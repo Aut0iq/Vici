@@ -47,7 +47,7 @@ const Settings = ({ navigation }) => {
 						style={mainStyles.icon}
 					/>
 					<View style={{ flexDirection: 'column', justifyContent: 'center' }}>
-						<Text style={{ color: theme.primaryText, fontSize: size.text.large, marginBottom: 0 }}>Castafiore</Text>
+						<Text style={{ color: theme.primaryText, fontSize: size.text.large, marginBottom: 0 }}>Vici</Text>
 						<Text style={{ color: theme.secondaryText, fontSize: size.text.small }}>Version {pkg.version}</Text>
 					</View>
 				</Pressable>
@@ -133,7 +133,7 @@ const Settings = ({ navigation }) => {
 				<ButtonMenu
 					title="Github"
 					icon="github"
-					onPress={() => Linking.openURL('https://github.com/sawyerf/Castafiore')}
+					onPress={() => Linking.openURL('https://github.com/Aut0iq/Vici')}
 					isLast
 				/>
 			</View>

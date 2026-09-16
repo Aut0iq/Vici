@@ -3,7 +3,7 @@ import { SystemBars } from 'react-native-edge-to-edge'
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 
-import { HomeStack, SearchStack, PlaylistsStack, SettingsStack } from '~/screens/Stacks'
+import { HomeStack, SearchStack, MixesStack, PlaylistsStack, SettingsStack } from '~/screens/Stacks'
 import { useSettings } from '~/contexts/settings'
 import { useTheme } from '~/contexts/theme'
 import TabBar from '~/components/bar/TabBar'
@@ -38,6 +38,7 @@ const Navigation = () => {
 			>
 				<Tab.Screen name="HomeStack" options={{ title: 'Home', icon: "home" }} component={HomeStack} />
 				<Tab.Screen name="SearchStack" options={{ title: 'Search', icon: "search" }} component={SearchStack} />
+				<Tab.Screen name="MixesStack" options={{ title: 'Mixes', icon: "magic" }} component={MixesStack} />
 				<Tab.Screen name="PlaylistsStack" options={{ title: 'Playlists', icon: "book" }} component={PlaylistsStack} />
 				<Tab.Screen name="SettingsStack" options={{ title: 'Settings', icon: "gear" }} component={SettingsStack} />
 			</Tab.Navigator>

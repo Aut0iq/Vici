@@ -66,6 +66,8 @@ const styles = StyleSheet.create({
 		width: size.image.large,
 		height: size.image.large,
 		marginBottom: 6,
+		borderRadius: 18,
+		overflow: 'hidden',
 	},
 	titleAlbum: (theme) => ({
 		color: theme.primaryText,

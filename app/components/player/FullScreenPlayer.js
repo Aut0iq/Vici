@@ -1,11 +1,14 @@
 import React from 'react'
-import { Text, View, Modal, FlatList, StyleSheet, useWindowDimensions, Pressable, Platform, LayoutAnimation, UIManager } from 'react-native'
+import { Text, View, Modal, FlatList, StyleSheet, useWindowDimensions, Pressable, Platform, LayoutAnimation, UIManager, Animated, PanResponder, Easing } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
+import { useTranslation } from 'react-i18next'
 
 import { useConfig } from '~/contexts/config'
 import { useSong, useSongDispatch } from '~/contexts/song'
 import { useCachedFirst } from '~/utils/api'
+import { urlCover } from '~/utils/url'
+import ImageError from '~/components/ImageError'
 import FavoritedButton from '~/components/button/FavoritedButton'
 import IconButton from '~/components/button/IconButton'
 import Lyric from '~/components/player/Lyric'
@@ -133,16 +136,83 @@ const GlassButton = ({ icon, onPress, iconSize = 18 }) => (
 )
 
 const FullScreenPlayer = ({ setFullScreen }) => {
+	const { t } = useTranslation()
 	const config = useConfig()
 	const songDispatch = useSongDispatch()
 	const song = useSong()
 	const insets = useSafeAreaInsets()
 	const navigation = useNavigation()
-	const { width } = useWindowDimensions()
+	const { width, height } = useWindowDimensions()
 	const [isQueue, setIsQueue] = React.useState(false)
 	const [hasLyrics, setHasLyrics] = React.useState(false)
 	const [isOptArtists, setIsOptArtists] = React.useState(false)
 	const [isOpt, setIsOpt] = React.useState(false)
+	const [isLyricsOpen, setIsLyricsOpen] = React.useState(false)
+	const useNative = Platform.OS !== 'web'
+
+	// Анимации жестов: сдвиг всего плеера и выезжающая панель с текстом
+	const drag = React.useRef(new Animated.Value(0)).current
+	const sheet = React.useRef(new Animated.Value(0)).current
+	const sheetDrag = React.useRef(new Animated.Value(0)).current
+	const touchInLyrics = React.useRef(false)
+	const isQueueRef = React.useRef(isQueue)
+	const isLyricsOpenRef = React.useRef(isLyricsOpen)
+	isQueueRef.current = isQueue
+	isLyricsOpenRef.current = isLyricsOpen
+
+	// Свернуть плеер: уезжает вниз и превращается в мини-плеер
+	const closePlayer = () => {
+		Animated.timing(drag, { toValue: height, duration: 220, easing: Easing.in(Easing.cubic), useNativeDriver: useNative })
+			.start(() => setFullScreen(false))
+	}
+
+	// Панель с текстом песни
+	const openLyrics = () => {
+		setIsLyricsOpen(true)
+		sheetDrag.setValue(0)
+		Animated.timing(sheet, { toValue: 1, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: useNative }).start()
+	}
+	const closeLyrics = () => {
+		Animated.timing(sheet, { toValue: 0, duration: 240, easing: Easing.in(Easing.cubic), useNativeDriver: useNative })
+			.start(() => {
+				setIsLyricsOpen(false)
+				sheetDrag.setValue(0)
+			})
+	}
+
+	const isVertical = (g) => Math.abs(g.dy) > 14 && Math.abs(g.dy) > Math.abs(g.dx) * 1.6
+	const canSwipePlayer = (g) => !touchInLyrics.current && !isQueueRef.current && !isLyricsOpenRef.current && isVertical(g)
+
+	// Свайп вниз — свернуть, свайп вверх — открыть текст
+	const playerPan = React.useRef(PanResponder.create({
+		onMoveShouldSetPanResponderCapture: (_, g) => canSwipePlayer(g),
+		onMoveShouldSetPanResponder: (_, g) => canSwipePlayer(g),
+		onPanResponderMove: (_, g) => drag.setValue(g.dy > 0 ? g.dy : g.dy * 0.25),
+		onPanResponderRelease: (_, g) => {
+			if (g.dy > 120 || (g.dy > 30 && g.vy > 0.9)) {
+				closePlayer()
+				return
+			}
+			if (g.dy < -70 || (g.dy < -20 && g.vy < -0.8)) openLyrics()
+			Animated.spring(drag, { toValue: 0, bounciness: 4, useNativeDriver: useNative }).start()
+		},
+		onPanResponderTerminate: () => Animated.spring(drag, { toValue: 0, useNativeDriver: useNative }).start(),
+	})).current
+
+	// На панели с текстом: потянуть за верхнюю часть вниз — закрыть
+	const sheetPan = React.useRef(PanResponder.create({
+		onStartShouldSetPanResponder: () => true,
+		onMoveShouldSetPanResponder: (_, g) => isVertical(g),
+		onPanResponderMove: (_, g) => sheetDrag.setValue(Math.max(0, g.dy)),
+		onPanResponderRelease: (_, g) => {
+			if (g.dy > 100 || (g.dy > 25 && g.vy > 0.8)) closeLyrics()
+			else if (Math.abs(g.dy) < 5 && Math.abs(g.dx) < 5) closeLyrics()
+			else Animated.spring(sheetDrag, { toValue: 0, bounciness: 4, useNativeDriver: useNative }).start()
+		},
+		onPanResponderTerminate: () => Animated.spring(sheetDrag, { toValue: 0, useNativeDriver: useNative }).start(),
+	})).current
+
+	const sheetY = Animated.add(sheet.interpolate({ inputRange: [0, 1], outputRange: [height, 0] }), sheetDrag)
 
 	const [stars] = useCachedFirst([], 'getStarred2', null, (json, setData) => {
 		setData(json?.starred2?.song || [])
@@ -169,11 +239,15 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 
 	return (
 		<Modal
+			transparent={true}
 			statusBarTranslucent={true}
 			navigationBarTranslucent={true}
-			onRequestClose={() => setFullScreen(false)}
+			onRequestClose={() => (isLyricsOpenRef.current ? closeLyrics() : closePlayer())}
 		>
-			<View style={{ flex: 1, backgroundColor: VICI.ink, overflow: 'hidden' }}>
+			<Animated.View
+				style={{ flex: 1, backgroundColor: VICI.ink, overflow: 'hidden', transform: [{ translateY: drag }] }}
+				{...playerPan.panHandlers}
+			>
 				{/* Фон в цветах обложки */}
 				<AmbientBackground song={song.songInfo} />
 
@@ -181,9 +255,9 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 					<View style={{ width: '100%', maxWidth: 500, flex: 1 }}>
 						{/* Верхняя панель */}
 						<View style={styles.topBar}>
-							<GlassButton icon="chevron-down" onPress={() => setFullScreen(false)} />
+							<GlassButton icon="chevron-down" onPress={closePlayer} />
 							<Pressable onPress={goToAlbum} style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
-								<Text numberOfLines={1} style={{ color: VICI.text3, fontSize: 11 }}>{song.songInfo.isLiveStream ? 'Radio' : 'Album'}</Text>
+								<Text numberOfLines={1} style={{ color: VICI.text3, fontSize: 11 }}>{song.songInfo.isLiveStream ? t('Radio') : t('Album')}</Text>
 								<Text numberOfLines={1} style={{ color: VICI.text, fontSize: 13, fontWeight: 'bold' }}>{song.songInfo.album || song.songInfo.title}</Text>
 							</Pressable>
 							<GlassButton icon="ellipsis-h" onPress={() => setIsOpt(true)} />
@@ -196,7 +270,13 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 							) : (
 								<>
 									<VinylCover coverSize={coverSize} width={contentWidth} />
-									<GlassView radius={26} style={[styles.lyricsBox, hasLyrics ? { height: 170, marginTop: 22, opacity: 1 } : { height: 0, marginTop: 0, opacity: 0 }]}>
+									<GlassView
+										radius={26}
+										style={[styles.lyricsBox, hasLyrics ? { height: 170, marginTop: 22, opacity: 1 } : { height: 0, marginTop: 0, opacity: 0 }]}
+										onTouchStart={() => { touchInLyrics.current = true }}
+										onTouchEnd={() => { touchInLyrics.current = false }}
+										onTouchCancel={() => { touchInLyrics.current = false }}
+									>
 										<Lyric
 											song={song}
 											style={{ width: '100%', height: 170 }}
@@ -285,6 +365,43 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 					</View>
 				</View>
 
+				{/* Панель с текстом песни (свайп вверх) */}
+				{isLyricsOpen && (
+					<>
+						<Animated.View
+							pointerEvents="none"
+							style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.45)', opacity: sheet }]}
+						/>
+						<Animated.View style={[styles.sheet, { top: insets.top + 40, transform: [{ translateY: sheetY }] }]}>
+							<View style={[StyleSheet.absoluteFill, styles.sheetShade]} />
+							<GlassView radius={30} style={StyleSheet.absoluteFill} />
+							<View {...sheetPan.panHandlers} style={styles.sheetHeader}>
+								<View style={styles.handle} />
+								<View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, width: '100%', paddingHorizontal: 20 }}>
+									<ImageError
+										source={{ uri: urlCover(config, song?.songInfo, 100) }}
+										style={{ width: 46, height: 46, borderRadius: 10 }}
+									/>
+									<View style={{ flex: 1 }}>
+										<Text numberOfLines={1} style={{ color: VICI.text, fontSize: 16, fontWeight: 'bold' }}>{song.songInfo.title}</Text>
+										<Text numberOfLines={1} style={{ color: VICI.text2, fontSize: 13 }}>{song.songInfo.artist}</Text>
+									</View>
+								</View>
+							</View>
+							<Lyric
+								song={song}
+								style={{ flex: 1, width: '100%' }}
+								sizeText={20}
+								activeSizeText={26}
+								gap={22}
+								paddingVertical={Math.round(height * 0.28)}
+								color={{ active: VICI.gold, inactive: VICI.text3 }}
+							/>
+							<View style={{ height: insets.bottom + 10 }} />
+						</Animated.View>
+					</>
+				)}
+
 				<OptionsPlayer
 					song={song.songInfo}
 					isOpen={isOpt}
@@ -298,7 +415,7 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 					visible={isOptArtists}
 					setFullScreen={setFullScreen}
 				/>
-			</View>
+			</Animated.View>
 		</Modal>
 	)
 }
@@ -361,6 +478,32 @@ const styles = StyleSheet.create({
 	},
 	sideButton: {
 		padding: 10,
+	},
+	sheet: {
+		position: 'absolute',
+		left: 0,
+		right: 0,
+		bottom: 0,
+		borderTopLeftRadius: 30,
+		borderTopRightRadius: 30,
+		overflow: 'hidden',
+	},
+	sheetShade: {
+		backgroundColor: 'rgba(14,10,15,0.55)',
+		borderTopLeftRadius: 30,
+		borderTopRightRadius: 30,
+	},
+	sheetHeader: {
+		alignItems: 'center',
+		paddingTop: 10,
+		paddingBottom: 14,
+	},
+	handle: {
+		width: 42,
+		height: 5,
+		borderRadius: 3,
+		backgroundColor: 'rgba(246,240,232,0.35)',
+		marginBottom: 14,
 	},
 	playCircle: {
 		width: 66,

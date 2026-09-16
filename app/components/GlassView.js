@@ -4,10 +4,10 @@ import { LinearGradient } from 'expo-linear-gradient'
 
 // «Жидкое стекло»: полупрозрачная заливка, блик сверху и светлая кромка.
 // Всё, что лежит под панелью, просвечивает сквозь неё.
-const GlassView = ({ children, style, radius = 24, intensity = 1 }) => {
+const GlassView = ({ children, style, radius = 24, intensity = 1, ...rest }) => {
 	const a = (value) => Math.min(1, value * intensity)
 	return (
-		<View style={[{ borderRadius: radius, overflow: 'hidden' }, style]}>
+		<View style={[{ borderRadius: radius, overflow: 'hidden' }, style]} {...rest}>
 			{/* Основа стекла: светлее сверху слева, прозрачнее к центру */}
 			<LinearGradient
 				colors={[`rgba(255,255,255,${a(0.22)})`, `rgba(255,255,255,${a(0.07)})`, `rgba(255,255,255,${a(0.12)})`]}

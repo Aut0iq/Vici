@@ -1,8 +1,20 @@
 {
   "translation": {
+    "Mixes": "Миксы",
+    "No mixes yet": "Миксов пока нет",
+    "Playlists ending with \"mix\" will appear here": "Здесь появятся плейлисты, название которых заканчивается на «mix»",
+    "Continue listening": "Продолжить слушать",
+    "Continue": "Продолжить",
+    "Nothing to continue": "Начните слушать",
+    "Pick something or play a random song": "Выберите альбом или включите случайный трек",
+    "Repeat song": "Повторять трек",
+    "Disable repeat song": "Не повторять трек",
+    "Album": "Альбом",
+    "Radio": "Радио",
     "tabs": {
       "Home": "Главная",
       "Search": "Поиск",
+      "Mixes": "Миксы",
       "Playlists": "Плейлисты",
       "Settings": "Настройки"
     },

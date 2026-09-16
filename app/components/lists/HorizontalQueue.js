@@ -39,7 +39,7 @@ const HorizontalQueue = ({ current, queue }) => {
 				flexDirection: 'row',
 				alignItems: 'center',
 				gap: 10,
-				borderRadius: 5,
+				borderRadius: 16,
 				overflow: 'hidden'
 			}}
 		>
@@ -54,7 +54,7 @@ const HorizontalQueue = ({ current, queue }) => {
 							left: 0,
 							bottom: 0,
 							right: 0,
-							borderRadius: 5,
+							borderRadius: 16,
 							opacity: 0.2
 						}}
 					/> : null
@@ -64,7 +64,7 @@ const HorizontalQueue = ({ current, queue }) => {
 				style={{
 					height: settings.isDesktop ? size.image.large : size.image.medium,
 					width: settings.isDesktop ? size.image.large : size.image.medium,
-					borderRadius: 5
+					borderRadius: 16
 				}}
 			/>
 			<View style={{ flex: 1, gap: 5 }}>

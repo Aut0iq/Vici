@@ -44,7 +44,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		height: size.image.large,
 		width: size.image.large,
-		borderRadius: 3,
+		borderRadius: 18,
+		overflow: 'hidden',
 		paddingHorizontal: 40,
 		position: 'relative',
 	},
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: 10,
 		left: 10,
-		borderRadius: 3,
+		borderRadius: 12,
 	},
 	artistCover: {
 		width: 70,

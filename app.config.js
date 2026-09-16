@@ -25,12 +25,12 @@ module.exports = ({ config }) => {
 				],
 				adaptiveIcon: {
 					foregroundImage: "./assets/foreground-icon.png",
-					backgroundColor: process.env.IS_DEV === "true" ? "#000000" : "#660000"
+					backgroundColor: "#0E0A0F"
 				},
 				splash: {
 					image: "./assets/foreground-icon.png",
 					resizeMode: "contain",
-					backgroundColor: process.env.IS_DEV === "true" ? "#000000" : "#660000"
+					backgroundColor: "#0E0A0F"
 				}
 			},
 			web: {

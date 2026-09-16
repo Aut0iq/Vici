@@ -9,7 +9,7 @@ import { useConfig } from '~/contexts/config'
 import { useTheme } from '~/contexts/theme'
 import { urlCover } from '~/utils/url'
 import { BAR_HEIGHT, BAR_MARGIN } from '~/components/bar/BottomBar'
-import GlassView from '~/components/GlassView'
+import GlassView, { USE_BLUR } from '~/components/GlassView'
 import IconButton from '~/components/button/IconButton'
 import ImageError from '~/components/ImageError'
 import PlayButton from '~/components/button/PlayButton'
@@ -43,12 +43,12 @@ const BoxPlayer = ({ setFullScreen }) => {
 		<View
 			style={[styles.wrap, { bottom: (insets.bottom || 8) + BAR_MARGIN + BAR_HEIGHT + 10, left: insets.left + 14, right: insets.right + 14 }]}
 		>
-			<BlurView
+			{USE_BLUR ? <BlurView
 				intensity={30}
 				tint="dark"
 				experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
 				style={[StyleSheet.absoluteFill, { borderRadius: 22, overflow: 'hidden' }]}
-			/>
+			/> : null}
 			<View style={[StyleSheet.absoluteFill, styles.tint]} />
 			<GlassView radius={22} intensity={0.5}>
 				<Pressable onPress={() => setFullScreen(true)} style={styles.row}>
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 	},
 	tint: {
 		borderRadius: 22,
-		backgroundColor: 'rgba(22,15,21,0.15)',
+		backgroundColor: USE_BLUR ? 'rgba(22,15,21,0.15)' : 'rgba(22,15,21,0.6)',
 	},
 	row: {
 		height: HEIGHT,

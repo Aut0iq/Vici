@@ -1,18 +1,14 @@
 import React from 'react'
-import { Text, View, Modal, FlatList, StyleSheet, useWindowDimensions, Pressable, Platform } from 'react-native'
+import { Text, View, Modal, FlatList, StyleSheet, useWindowDimensions, Pressable, Platform, LayoutAnimation, UIManager } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 
 import { useConfig } from '~/contexts/config'
 import { useSong, useSongDispatch } from '~/contexts/song'
-import { useTheme } from '~/contexts/theme'
 import { useCachedFirst } from '~/utils/api'
-import { urlCover } from '~/utils/url'
 import FavoritedButton from '~/components/button/FavoritedButton'
 import IconButton from '~/components/button/IconButton'
-import ImageError from '~/components/ImageError'
 import Lyric from '~/components/player/Lyric'
-import mainStyles from '~/styles/main'
 import OptionsMultiArtists from '~/components/options/OptionsMultiArtists'
 import OptionsPlayer from '~/components/options/OptionsPlayer'
 import OptionsQueue from '~/components/options/OptionsQueue'
@@ -20,60 +16,47 @@ import PlayButton from '~/components/button/PlayButton'
 import Player from '~/utils/player'
 import size from '~/styles/size'
 import SlideBar from '~/components/button/SlideBar'
-import SlideControl from '~/components/button/SlideControl'
 import SongItem from '~/components/item/SongItem'
-import ConnectButton from '~/components/button/ConnectButton'
+import VinylCover from '~/components/player/VinylCover'
+import GlassView from '~/components/GlassView'
+import AmbientBackground from '~/components/player/AmbientBackground'
 
-const preview = {
-	COVER: 0,
-	QUEUE: 1,
-	LYRICS: 2
+// Цвета Vici
+const VICI = {
+	ink: '#0E0A0F',
+	gold: '#E6BD55',
+	goldDeep: '#B8872C',
+	text: '#F6F0E8',
+	text2: 'rgba(246,240,232,0.62)',
+	text3: 'rgba(246,240,232,0.42)',
+	glass: 'rgba(255,255,255,0.08)',
+	edge: 'rgba(255,255,255,0.16)',
 }
 
-const CoverItem = ({ isPreview, song, setFullScreen, stars }) => {
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+	UIManager.setLayoutAnimationEnabledExperimental(true)
+}
+
+// Очередь воспроизведения (открывается кнопкой слева от «назад»)
+const Queue = ({ song, stars, setFullScreen, width, height }) => {
 	const scroll = React.useRef(null)
 	const config = useConfig()
-	const theme = useTheme()
 	const songDispatch = useSongDispatch()
 	const [indexOptions, setIndexOptions] = React.useState(-1)
-	const { width } = useWindowDimensions()
 
 	React.useEffect(() => {
-		if (isPreview === preview.QUEUE) scroll.current.scrollToIndex({ index: song.index, animated: true, viewOffset: 0, viewPosition: 0.5 })
+		scroll.current?.scrollToIndex({ index: song.index, animated: true, viewOffset: 0, viewPosition: 0.5 })
 	}, [song.index])
 
-	const albumImage = React.useMemo(() => {
-		const size = Math.min(width, 500) - 50
-		return {
-			maxWidth: size,
-			width: size,
-			maxHeight: size,
-			height: size,
-			minwidth: size,
-			minHeight: size,
-			aspectRatio: 1,
-			borderRadius: 10,
-		}
-	}, [width])
-
-	if (isPreview === preview.COVER) return (
-		<SlideControl style={albumImage}>
-			<ImageError
-				source={{ uri: urlCover(config, song?.songInfo) }}
-				style={[albumImage, { backgroundColor: theme.secondaryBack }]}
-			/>
-		</SlideControl>
-	)
-	if (isPreview === preview.QUEUE) return (
+	return (
 		<>
 			<FlatList
-				style={[albumImage, { borderRadius: null }]}
-				contentContainerStyle={{ width: '100%' }}
+				style={{ width, height }}
 				ref={scroll}
 				data={song.queue}
 				keyExtractor={(_, index) => index}
 				showsVerticalScrollIndicator={false}
-				onLayout={() => scroll.current.scrollToIndex({ index: song.index, animated: false, viewOffset: 0, viewPosition: 0.5 })}
+				onLayout={() => scroll.current?.scrollToIndex({ index: song.index, animated: false, viewOffset: 0, viewPosition: 0.5 })}
 				getItemLayout={(_, index) => ({ length: size.image.small + 10, offset: (size.image.small + 10) * index, index })}
 				onScrollToIndexFailed={() => { }}
 				renderItem={({ item, index }) => (
@@ -95,16 +78,12 @@ const CoverItem = ({ isPreview, song, setFullScreen, stars }) => {
 			<OptionsQueue queue={song.queue} indexOptions={indexOptions} setIndexOptions={setIndexOptions} closePlayer={() => setFullScreen(false)} />
 		</>
 	)
-	if (isPreview === preview.LYRICS) return (
-		<Lyric song={song} style={albumImage} />
-	)
 }
 
 const TimeBar = () => {
 	const [duration, setDuration] = React.useState(0)
 	const [fakeTime, setFakeTime] = React.useState(-1)
 	const song = useSong()
-	const theme = useTheme()
 	const time = Player.updateTime()
 
 	React.useEffect(() => {
@@ -118,34 +97,50 @@ const TimeBar = () => {
 	}, [time.duration])
 
 	return (
-		<>
+		<View style={{ width: '100%', paddingHorizontal: 24 }}>
 			<SlideBar
 				disable={time.duration === 0 || duration === Infinity}
 				progress={fakeTime < 0 ? time.position / duration : fakeTime}
 				onStart={(progress) => Player.pauseSong() && setFakeTime(progress)}
 				onChange={(progress) => setFakeTime(progress)}
 				onComplete={(progress) => Player.setPosition(progress * duration) && Player.resumeSong() && setTimeout(() => setFakeTime(-1), 500)}
-				stylePress={{ width: '100%', height: 24, paddingVertical: 10, marginTop: 10 }}
-				styleBar={{ width: '100%', height: '100%', borderRadius: size.radius.circle, overflow: 'hidden' }}
+				stylePress={{ width: '100%', height: 24, paddingVertical: 10 }}
+				styleBar={{ width: '100%', height: '100%', borderRadius: size.radius.circle, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.16)' }}
+				styleProgress={{ backgroundColor: VICI.gold }}
+				styleBitogno={{ backgroundColor: '#FFF1BF' }}
 				isBitogno={song.songInfo?.isLiveStream ? false : true}
 			/>
-
 			<View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between' }}>
-				<Text style={{ color: theme.primaryText, fontSize: size.text.small }}>{Player.secondToTime(fakeTime < 0 ? time.position : fakeTime * duration)}</Text>
-				<Text style={{ color: theme.primaryText, fontSize: size.text.small }}>{Player.secondToTime(duration)}</Text>
+				<Text style={styles.time}>{Player.secondToTime(fakeTime < 0 ? time.position : fakeTime * duration)}</Text>
+				<Text style={styles.time}>{Player.secondToTime(duration)}</Text>
 			</View>
-		</>
+		</View>
 	)
 }
 
+// Круглая «стеклянная» кнопка
+const GlassButton = ({ icon, onPress, iconSize = 18 }) => (
+	<GlassView radius={21} style={{ width: 42, height: 42 }}>
+		<IconButton
+			icon={icon}
+			size={iconSize}
+			color={VICI.text}
+			onPress={onPress}
+			style={styles.glassButton}
+			styleIcon={{ textAlign: 'center' }}
+		/>
+	</GlassView>
+)
+
 const FullScreenPlayer = ({ setFullScreen }) => {
-	const songDispatch = useSongDispatch()
 	const config = useConfig()
-	const theme = useTheme()
+	const songDispatch = useSongDispatch()
 	const song = useSong()
 	const insets = useSafeAreaInsets()
 	const navigation = useNavigation()
-	const [isPreview, setIsPreview] = React.useState(preview.COVER)
+	const { width } = useWindowDimensions()
+	const [isQueue, setIsQueue] = React.useState(false)
+	const [hasLyrics, setHasLyrics] = React.useState(false)
 	const [isOptArtists, setIsOptArtists] = React.useState(false)
 	const [isOpt, setIsOpt] = React.useState(false)
 
@@ -153,55 +148,77 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 		setData(json?.starred2?.song || [])
 	}, [song.songInfo?.id])
 
+	const contentWidth = Math.min(width, 500)
+	const coverSize = Math.round(contentWidth * (hasLyrics ? 0.56 : 0.78))
+	const isShuffle = song.actionEndOfSong === 'random'
+
+	// Плавно перестраиваем экран, когда появляется или пропадает текст
+	const onLyricsAvailable = React.useCallback((available) => {
+		setHasLyrics((prev) => {
+			if (prev !== available && Platform.OS !== 'web') {
+				LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+			}
+			return available
+		})
+	}, [])
+
+	const goToAlbum = () => {
+		navigation.navigate('Album', { id: song.songInfo.albumId, name: song.songInfo.album, artist: song.songInfo.artist, artistId: song.songInfo.artistId })
+		setFullScreen(false)
+	}
+
 	return (
 		<Modal
 			statusBarTranslucent={true}
-			navigationBarTranslucent={Platform.OS === 'android' && parseInt(Platform.Version, 10) > 34 ? false : true}
+			navigationBarTranslucent={true}
 			onRequestClose={() => setFullScreen(false)}
 		>
-			<View style={[mainStyles.contentMainContainer(insets), styles.mainContainer(insets, theme)]}>
-				<View style={{ width: '100%', flexDirection: 'row' }}>
-					<OptionsPlayer
-						song={song.songInfo}
-						isOpen={isOpt}
-						setIsOpen={setIsOpt}
-						closePlayer={() => setFullScreen(false)}
-					/>
-					<IconButton
-						style={{
-							paddingVertical: 20,
-							paddingHorizontal: 25,
-							flex: 1,
-						}}
-						icon="chevron-down"
-						color={theme.primaryText}
-						onPress={() => setFullScreen(false)}
-					/>
-					<IconButton
-						style={{
-							paddingVertical: 20,
-							paddingHorizontal: 25,
-						}}
-						icon="ellipsis-h"
-						color={theme.primaryText}
-						onPress={() => setIsOpt(true)}
-					/>
-				</View>
-				<View style={styles.playerContainer}>
-					<CoverItem isPreview={isPreview} song={song} setFullScreen={setFullScreen} stars={stars} />
-					<View style={{ flexDirection: 'row', marginTop: 15, width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
-						<View style={{ flex: 1 }}>
-							<Pressable
-								style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
-								onPress={() => {
-									navigation.navigate('Album', { id: song.songInfo.albumId, name: song.songInfo.album, artist: song.songInfo.artist, artistId: song.songInfo.artistId })
-									setFullScreen(false)
-								}}
-							>
-								<Text numberOfLines={1} style={{ color: theme.primaryText, fontSize: size.title.small, textAlign: 'left', fontWeight: 'bold' }}>{song.songInfo.title}</Text>
+			<View style={{ flex: 1, backgroundColor: VICI.ink, overflow: 'hidden' }}>
+				{/* Фон в цветах обложки */}
+				<AmbientBackground song={song.songInfo} />
+
+				<View style={{ flex: 1, paddingTop: insets.top + 8, paddingBottom: insets.bottom + 14, alignItems: 'center' }}>
+					<View style={{ width: '100%', maxWidth: 500, flex: 1 }}>
+						{/* Верхняя панель */}
+						<View style={styles.topBar}>
+							<GlassButton icon="chevron-down" onPress={() => setFullScreen(false)} />
+							<Pressable onPress={goToAlbum} style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
+								<Text numberOfLines={1} style={{ color: VICI.text3, fontSize: 11 }}>{song.songInfo.isLiveStream ? 'Radio' : 'Album'}</Text>
+								<Text numberOfLines={1} style={{ color: VICI.text, fontSize: 13, fontWeight: 'bold' }}>{song.songInfo.album || song.songInfo.title}</Text>
+							</Pressable>
+							<GlassButton icon="ellipsis-h" onPress={() => setIsOpt(true)} />
+						</View>
+
+						{/* Обложка с пластинкой и текст песни */}
+						<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+							{isQueue ? (
+								<Queue song={song} stars={stars} setFullScreen={setFullScreen} width={contentWidth - 32} height="100%" />
+							) : (
+								<>
+									<VinylCover coverSize={coverSize} width={contentWidth} />
+									<GlassView radius={26} style={[styles.lyricsBox, hasLyrics ? { height: 170, marginTop: 22, opacity: 1 } : { height: 0, marginTop: 0, opacity: 0 }]}>
+										<Lyric
+											song={song}
+											style={{ width: '100%', height: 170 }}
+											sizeText={15}
+											activeSizeText={19}
+											gap={10}
+											paddingVertical={66}
+											color={{ active: VICI.gold, inactive: VICI.text3 }}
+											onAvailable={onLyricsAvailable}
+										/>
+									</GlassView>
+								</>
+							)}
+						</View>
+
+						{/* Название и исполнитель по центру */}
+						<View style={styles.meta}>
+							<Pressable onPress={goToAlbum} style={{ maxWidth: '100%' }}>
+								<Text numberOfLines={1} style={styles.title}>{song.songInfo.title}</Text>
 							</Pressable>
 							<Pressable
-								style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
+								style={{ maxWidth: '100%' }}
 								onPress={() => {
 									if (song.songInfo.artists?.length > 1) {
 										setIsOptArtists(true)
@@ -211,111 +228,150 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 									}
 								}}
 							>
-								<Text numberOfLines={1} style={mainStyles.largeText(theme.secondaryText)}>{song.songInfo.artist}</Text>
+								<Text numberOfLines={1} style={styles.artist}>{song.songInfo.artist}</Text>
 							</Pressable>
-							<OptionsMultiArtists
-								albumArtists={song.songInfo.albumArtists || []}
-								artists={song.songInfo.artists || []}
-								close={() => setIsOptArtists(false)}
-								visible={isOptArtists}
-								setFullScreen={setFullScreen}
+							<View style={styles.heart}>
+								<FavoritedButton
+									id={song.songInfo.id}
+									isFavorited={stars.some(s => s.id === song.songInfo.id)}
+									rating={song.songInfo?.userRating ?? song.songInfo?.rating ?? 0}
+									style={{ padding: 10 }}
+								/>
+							</View>
+						</View>
+
+						<TimeBar />
+
+						{/* Управление */}
+						<View style={styles.controls}>
+							<IconButton
+								icon="bars"
+								size={19}
+								color={isQueue ? VICI.gold : VICI.text2}
+								style={styles.sideButton}
+								onPress={() => setIsQueue(!isQueue)}
+							/>
+							<View style={{ flexDirection: 'row', alignItems: 'center', gap: 26 }}>
+								<IconButton
+									icon="step-backward"
+									size={26}
+									color={VICI.text}
+									style={{ padding: 8 }}
+									onPress={() => Player.previousSong(config, song, songDispatch)}
+								/>
+								<View style={styles.playCircle}>
+									<PlayButton
+										size={24}
+										color="#1a1206"
+										style={{ width: 66, height: 66, justifyContent: 'center', alignItems: 'center' }}
+									/>
+								</View>
+								<IconButton
+									icon="step-forward"
+									size={26}
+									color={VICI.text}
+									style={{ padding: 8 }}
+									onPress={() => Player.nextSong(config, song, songDispatch)}
+								/>
+							</View>
+							<IconButton
+								icon="random"
+								size={19}
+								color={isShuffle ? VICI.gold : VICI.text2}
+								style={styles.sideButton}
+								onPress={() => Player.setRepeat(songDispatch, isShuffle ? 'next' : 'random')}
 							/>
 						</View>
-						<FavoritedButton
-							id={song.songInfo.id}
-							isFavorited={stars.some(s => s.id === song.songInfo.id)}
-							rating={song.songInfo?.userRating ?? song.songInfo?.rating ?? 0}
-							style={{ padding: 20, paddingEnd: 0 }}
-						/>
-					</View>
-					<TimeBar />
-					<View style={{ flexDirection: 'row', width: '100%', marginVertical: 30, alignItems: 'center', justifyContent: 'center', gap: 30 }}>
-						<IconButton
-							icon="step-backward"
-							size={size.icon.large}
-							color={theme.primaryText}
-							style={{ padding: 10 }}
-							onPress={() => Player.previousSong(config, song, songDispatch)}
-						/>
-						<PlayButton
-							size={50}
-							color={theme.primaryText}
-							style={{
-								paddingHorizontal: 10,
-								minWidth: 63,
-								minHeight: 60,
-								justifyContent: 'center',
-								alignItems: 'center',
-							}}
-						/>
-						<IconButton
-							icon="step-forward"
-							size={size.icon.large}
-							color={theme.primaryText}
-							style={{ padding: 10 }}
-							onPress={() => Player.nextSong(config, song, songDispatch)}
-						/>
-					</View>
-					<View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between' }}>
-						<IconButton
-							icon="comment-o"
-							size={17}
-							color={isPreview == preview.LYRICS ? theme.primaryTouch : theme.secondaryText}
-							style={{ paddingVertical: 10, paddingEnd: 10 }}
-							onPress={() => setIsPreview(isPreview == preview.LYRICS ? preview.COVER : preview.LYRICS)}
-						/>
-						<IconButton
-							icon="repeat"
-							size={17}
-							color={song.actionEndOfSong == 'repeat' ? theme.primaryTouch : theme.secondaryText}
-							style={{ paddingVertical: 10, paddingHorizontal: 10 }}
-							onPress={() => {
-								Player.setRepeat(songDispatch, song.actionEndOfSong === 'repeat' ? 'next' : 'repeat')
-							}}
-						/>
-						<ConnectButton
-							size={20}
-							color={theme.secondaryText}
-							style={{ paddingVertical: 10, paddingStart: 10 }}
-						/>
-						<IconButton
-							icon="random"
-							size={17}
-							color={song.actionEndOfSong == 'random' ? theme.primaryTouch : theme.secondaryText}
-							style={{ paddingVertical: 10, paddingHorizontal: 10 }}
-							onPress={() => Player.setRepeat(songDispatch, song.actionEndOfSong === 'random' ? 'next' : 'random')}
-						/>
-						<IconButton
-							icon="bars"
-							size={17}
-							color={isPreview == preview.QUEUE ? theme.primaryTouch : theme.secondaryText}
-							style={{ paddingVertical: 10, paddingStart: 10 }}
-							onPress={() => setIsPreview(isPreview == preview.QUEUE ? preview.COVER : preview.QUEUE)}
-						/>
 					</View>
 				</View>
+
+				<OptionsPlayer
+					song={song.songInfo}
+					isOpen={isOpt}
+					setIsOpen={setIsOpt}
+					closePlayer={() => setFullScreen(false)}
+				/>
+				<OptionsMultiArtists
+					albumArtists={song.songInfo.albumArtists || []}
+					artists={song.songInfo.artists || []}
+					close={() => setIsOptArtists(false)}
+					visible={isOptArtists}
+					setFullScreen={setFullScreen}
+				/>
 			</View>
 		</Modal>
 	)
 }
 
 const styles = StyleSheet.create({
-	mainContainer: (insets, theme) => ({
+	topBar: {
 		width: '100%',
-		height: '100%',
-		paddingBottom: insets.bottom,
-		backgroundColor: theme.primaryBack,
+		flexDirection: 'row',
 		alignItems: 'center',
-	}),
-	playerContainer: {
-		paddingHorizontal: 25,
-		maxWidth: 500,
-		width: '100%',
-		height: '100%',
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+	},
+	glassButton: {
+		width: 42,
+		height: 42,
 		alignItems: 'center',
-		flexDirection: 'column',
-		flex: 1,
 		justifyContent: 'center',
+	},
+	lyricsBox: {
+		width: '92%',
+	},
+	meta: {
+		width: '100%',
+		alignItems: 'center',
+		paddingHorizontal: 64,
+		marginTop: 14,
+		marginBottom: 6,
+	},
+	title: {
+		color: VICI.text,
+		fontSize: 22,
+		fontWeight: 'bold',
+		textAlign: 'center',
+	},
+	artist: {
+		color: VICI.text2,
+		fontSize: 15,
+		marginTop: 2,
+		textAlign: 'center',
+	},
+	heart: {
+		position: 'absolute',
+		right: 14,
+		top: 0,
+		bottom: 0,
+		justifyContent: 'center',
+	},
+	time: {
+		color: VICI.text2,
+		fontSize: 11,
+		marginTop: 6,
+	},
+	controls: {
+		width: '100%',
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		paddingHorizontal: 18,
+		marginTop: 14,
+	},
+	sideButton: {
+		padding: 10,
+	},
+	playCircle: {
+		width: 66,
+		height: 66,
+		borderRadius: 33,
+		backgroundColor: VICI.gold,
+		borderTopWidth: 1,
+		borderColor: '#FFF1BF',
+		alignItems: 'center',
+		justifyContent: 'center',
+		elevation: 8,
 	},
 })
 

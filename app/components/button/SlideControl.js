@@ -25,6 +25,15 @@ const SlideControl = ({ children, style }) => {
 			else if (move > 100) position.setValue(100)
 			else position.setValue(move)
 		},
+		// Если жест перехватил плеер (свайп вверх/вниз) — вернуть обложку на место
+		onPanResponderTerminate: () => {
+			startMove.current = 0
+			Animated.timing(position, {
+				toValue: 0,
+				useNativeDriver: Platform.OS !== 'web',
+				duration: 150
+			}).start()
+		},
 		onPanResponderRelease: () => {
 			startMove.current = 0
 			if (position._value < -50) {

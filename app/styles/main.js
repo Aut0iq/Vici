@@ -8,7 +8,7 @@ export default StyleSheet.create({
 	}),
 	contentMainContainer: (insets, statusBar = true) => ({
 		paddingTop: statusBar ? insets.top : 0,
-		paddingBottom: 80,
+		paddingBottom: insets.bottom + 180, // место под парящие мини-плеер и меню
 		paddingStart: insets.left,
 		paddingEnd: insets.right,
 	}),
@@ -45,7 +45,8 @@ export default StyleSheet.create({
 		height: size.image.small,
 		width: size.image.small,
 		// marginStart: 10,
-		borderRadius: 4,
+		borderRadius: 12,
+		overflow: 'hidden',
 		backgroundColor: theme.secondaryBack,
 	}),
 	icon: {

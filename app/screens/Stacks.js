@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 import Home from '~/screens/tabs/Home'
 import Playlists from '~/screens/tabs/Playlists'
+import Mixes from '~/screens/tabs/Mixes'
 import Search from '~/screens/tabs/Search'
 import Settings from '~/screens/tabs/Settings'
 
@@ -97,6 +98,24 @@ export const SearchStack = () => {
 			<Stack.Screen name="ArtistExplorer" component={ArtistExplorer} />
 			<Stack.Screen name="SongExplorer" component={SongExplorer} />
 			{/* Pres */}
+			<Stack.Screen name="Album" component={Album} />
+			<Stack.Screen name="Artist" component={Artist} />
+			<Stack.Screen name="ArtistAlbums" component={ArtistAlbums} />
+			<Stack.Screen name="Genre" component={Genre} />
+			<Stack.Screen name="GenreAlbum" component={GenreAlbum} />
+			<Stack.Screen name="GenreSong" component={GenreSong} />
+			<Stack.Screen name="Info" component={Info} />
+			<Stack.Screen name="Songs" component={Songs} />
+		</Stack.Navigator>
+	)
+}
+
+export const MixesStack = () => {
+	return (
+		<Stack.Navigator screenOptions={{ headerShown: false }}>
+			<Stack.Screen name="Mixes" component={Mixes} />
+			<Stack.Screen name="Playlist" component={Playlist} />
+			<Stack.Screen name="EditPlaylist" component={EditPlaylist} />
 			<Stack.Screen name="Album" component={Album} />
 			<Stack.Screen name="Artist" component={Artist} />
 			<Stack.Screen name="ArtistAlbums" component={ArtistAlbums} />

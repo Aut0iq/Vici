@@ -1,8 +1,12 @@
 {
   "translation": {
+    "Mixes": "Mixes",
+    "No mixes yet": "No mixes yet",
+    "Playlists ending with \"mix\" will appear here": "Playlists ending with \"mix\" will appear here",
     "tabs": {
       "Home": "Home",
       "Search": "Search",
+      "Mixes": "Mixes",
       "Playlists": "Playlists",
       "Settings": "Settings"
     },

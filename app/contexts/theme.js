@@ -6,12 +6,12 @@ import { useSettings } from '~/contexts/settings'
 const getTheme = (settings = undefined) => {
 	const listTheme = Object.keys(themes)
 
-	if (!settings?.theme) return themes.castafiore
+	if (!settings?.theme) return themes.vici
 	else if (listTheme.includes(settings.theme)) return {
 		...themes[settings.theme],
 		...themesPlayer[settings.themePlayer]
 	}
-	else return themes.castafiore
+	else return themes.vici
 }
 
 const ThemeContext = React.createContext()
@@ -38,6 +38,24 @@ export const ThemeProvider = ({ children }) => {
 }
 
 export const themes = {
+	vici: {
+		primaryBack: '#0E0A0F',
+		secondaryBack: '#1A1319',
+		tertiaryBack: '#2A2129',
+		primaryText: '#F6F0E8',
+		secondaryText: '#9A9095',
+		primaryTouch: '#E6BD55',
+		secondaryTouch: '#B8872C',
+		innerTouch: '#1A1206',
+		backgroundTouch: '#3A3139',
+
+		playerBackground: '#1A1319',
+		playerPrimaryText: '#F6F0E8',
+		playerSecondaryText: '#9A9095',
+		playerButton: '#E6BD55',
+
+		barStyle: 'light',
+	},
 	castafiore: {
 		// Use for background
 		primaryBack: '#121212',

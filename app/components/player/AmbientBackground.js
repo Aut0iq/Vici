@@ -5,7 +5,6 @@ import { getColors } from 'react-native-image-colors'
 
 import { useConfig } from '~/contexts/config'
 import { urlCover } from '~/utils/url'
-import ImageError from '~/components/ImageError'
 
 const INK = '#0E0A0F'
 
@@ -13,8 +12,8 @@ const INK = '#0E0A0F'
 // BLUR_SIZE — размер копии обложки в пикселях: чем меньше, тем сильнее размытие (16–32)
 // BLUR_RADIUS — дополнительное размытие этой копии (0–6)
 // BLUR_SCALE — увеличение, чтобы спрятать края размытой картинки (1.2–1.5)
-const BLUR_SIZE = 16
-const BLUR_RADIUS = 6
+const BLUR_SIZE = 18
+const BLUR_RADIUS = 4
 const BLUR_SCALE = 1.35
 const MISSING = '#010101'
 
@@ -67,9 +66,11 @@ const AmbientBackground = ({ song }) => {
 	const fade = React.useRef(new Animated.Value(1)).current
 	// Для цветов берём обложку 100px. Для фона — крошечную 32px: при растягивании
 	// на весь экран она сама превращается в плавные пятна без «лесенок».
-	const uri = urlCover(config, song, 100)
-	const blurUri = urlCover(config, song, Platform.OS === 'web' ? 300 : BLUR_SIZE)
+	const uri = song ? urlCover(config, song, 100) : null
+	const blurUri = song ? urlCover(config, song, Platform.OS === 'web' ? 300 : BLUR_SIZE) : null
 	const key = song?.coverArt || song?.albumId || song?.id
+	const [failed, setFailed] = React.useState(false)
+	React.useEffect(() => setFailed(false), [blurUri])
 
 	React.useEffect(() => {
 		if (!uri) return
@@ -88,12 +89,16 @@ const AmbientBackground = ({ song }) => {
 
 	return (
 		<View style={[StyleSheet.absoluteFill, { backgroundColor: INK }]} pointerEvents="none">
-			{/* Сама обложка, сильно размытая и чуть увеличенная */}
-			<ImageError
-				source={{ uri: blurUri }}
-				blurRadius={Platform.OS === 'web' ? 90 : BLUR_RADIUS}
-				style={[StyleSheet.absoluteFill, { width: '100%', height: '100%', transform: [{ scale: BLUR_SCALE }] }]}
-			/>
+			{/* Сама обложка, сильно размытая и чуть увеличенная.
+			    Если трека нет или обложка не загрузилась — только цветные переливы Vici */}
+			{blurUri && !failed ? (
+				<Image
+					source={{ uri: blurUri }}
+					blurRadius={Platform.OS === 'web' ? 90 : BLUR_RADIUS}
+					onError={() => setFailed(true)}
+					style={[StyleSheet.absoluteFill, { width: '100%', height: '100%', transform: [{ scale: BLUR_SCALE }] }]}
+				/>
+			) : null}
 			{/* Лёгкое затемнение, чтобы светлые обложки не превращались в серую кашу */}
 			<View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.38)' }]} />
 			<Wash colors={prevColors} />

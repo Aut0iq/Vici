@@ -93,7 +93,7 @@ export const defaultSettings = {
 	sizeOfList: 15,
 	scrollHelper: false,
 	// Theme settings
-	theme: 'castafiore',
+	theme: 'vici',
 	themePlayer: 'default',
 	// Cache settings
 	isSongCaching: false,

@@ -125,7 +125,7 @@ const SideBar = ({ state, descriptors, navigation }) => {
 					style={mainStyles.icon}
 				/>
 				<View style={{ flexDirection: 'column', justifyContent: 'center' }}>
-					<Text style={{ color: theme.primaryText, fontSize: size.text.large, marginBottom: 0 }}>Castafiore</Text>
+					<Text style={{ color: theme.primaryText, fontSize: size.text.large, marginBottom: 0 }}>Vici</Text>
 					<Text style={{ color: theme.secondaryText, fontSize: size.text.small }}>Version {pkg.version}</Text>
 				</View>
 			</View>

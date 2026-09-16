@@ -1,14 +1,14 @@
-let packageName = "com.sawyerf.castafiore"
+let packageName = "com.aut0iq.vici"
 if (process.env.IS_DEV === "true") {
-	packageName = "com.sawyerf.castafiore.dev"
+	packageName = "com.aut0iq.vici.dev"
 }
 
 module.exports = ({ config }) => {
 	return {
 		expo: {
-			name: "Castafiore" + (process.env.IS_DEV === "true" ? " (dev)" : ""),
-			slug: "Castafiore",
-			description: "Castafiore is a music player that support Navidrome and Subsonic API.",
+			name: "Vici" + (process.env.IS_DEV === "true" ? " (dev)" : ""),
+			slug: "vici",
+			description: "Vici is a music player for Navidrome and Subsonic API.",
 			version: config.version,
 			orientation: "default",
 			icon: "./assets/icon.png",
@@ -35,15 +35,10 @@ module.exports = ({ config }) => {
 			},
 			web: {
 				favicon: "./assets/icon.png",
-				shortName: "Castafiore",
+				shortName: "Vici",
 				startUrl: "./index.html",
 				backgroundColor: "#121212",
 				theme_color: "#121212"
-			},
-			extra: {
-				eas: {
-					projectId: "98d27f72-714e-415c-99f9-30f3f78d68e2"
-				}
 			},
 			experiments: {
 				baseUrl: process.env.PLATFORM === "web" ? "./" : undefined
@@ -72,7 +67,7 @@ module.exports = ({ config }) => {
 				[
 					"react-native-google-cast",
 					{
-					  androidPlayServicesCastFrameworkVersion: "22.2.0",
+						androidPlayServicesCastFrameworkVersion: "22.2.0",
 					},
 				],
 			]

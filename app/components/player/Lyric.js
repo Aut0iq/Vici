@@ -9,7 +9,7 @@ import { parseLrc } from '~/utils/lrc'
 import Player from '~/utils/player'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const Lyric = ({ song, style, color = null, sizeText = 23 }) => {
+const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null, gap = 30, paddingVertical = 0, onAvailable = null }) => {
 	const { t } = useTranslation()
 	const [indexCurrent, setIndex] = React.useState(0)
 	const [lyrics, setLyrics] = React.useState([])
@@ -18,6 +18,13 @@ const Lyric = ({ song, style, color = null, sizeText = 23 }) => {
 	const refScroll = React.useRef(null)
 	const theme = useTheme()
 	const time = Player.updateTime()
+	const onAvailableRef = React.useRef(onAvailable)
+	onAvailableRef.current = onAvailable
+
+	// Сообщаем плееру, есть ли у трека текст
+	const report = (available) => {
+		if (onAvailableRef.current) onAvailableRef.current(available)
+	}
 
 	React.useEffect(() => {
 		setLyrics([{ time: 0, text: t('Loading lyrics...') }])
@@ -29,8 +36,10 @@ const Lyric = ({ song, style, color = null, sizeText = 23 }) => {
 			.then(res => {
 				if (res) {
 					const ly = JSON.parse(res)
+					if (!ly?.length) return getNavidromeLyrics()
 					setIsLayout(true)
 					setLyrics(ly)
+					report(true)
 				} else {
 					getNavidromeLyrics()
 				}
@@ -56,12 +65,13 @@ const Lyric = ({ song, style, color = null, sizeText = 23 }) => {
 	const getNavidromeLyrics = () => {
 		getApi(config, 'getLyricsBySongId', { id: song.songInfo.id })
 			.then(res => {
-				const ly = res.lyricsList?.structuredLyrics[0]?.line?.map(ly => ({ time: ly.start / 1000, text: ly.value.length ? ly.value : '...' }))
-				if (ly.length == 0) { // If not found
+				const ly = res.lyricsList?.structuredLyrics?.[0]?.line?.map(ly => ({ time: (ly.start || 0) / 1000, text: ly.value?.length ? ly.value : '...' }))
+				if (!ly?.length) { // If not found
 					return getLrcLibLyrics()
 				}
 				ly.sort((a, b) => a.time - b.time)
 				setLyrics(ly)
+				report(true)
 				AsyncStorage.setItem(`lyrics/${song.songInfo.id}`, JSON.stringify(ly))
 			})
 			.catch(() => { // If not found
@@ -82,11 +92,14 @@ const Lyric = ({ song, style, color = null, sizeText = 23 }) => {
 			.then(res => res.json())
 			.then(res => {
 				const ly = parseLrc(res.syncedLyrics)
+				if (!ly.length) throw new Error('No synced lyrics')
 				setLyrics(ly)
+				report(true)
 				AsyncStorage.setItem(`lyrics/${song.songInfo.id}`, JSON.stringify(ly))
 			})
 			.catch(() => {
 				setLyrics([{ time: 0, text: t('No lyrics found') }])
+				report(false)
 			})
 	}
 
@@ -94,7 +107,7 @@ const Lyric = ({ song, style, color = null, sizeText = 23 }) => {
 		<FlatList
 			ref={refScroll}
 			style={[style, { borderRadius: null }]}
-			contentContainerStyle={{ gap: 30 }}
+			contentContainerStyle={{ gap, paddingVertical }}
 			showsVerticalScrollIndicator={false}
 			onScrollToIndexFailed={() => { }}
 			initialNumToRender={lyrics.length}
@@ -111,7 +124,9 @@ const Lyric = ({ song, style, color = null, sizeText = 23 }) => {
 						<Text
 							style={{
 								color: index === indexCurrent ? color?.active || theme.primaryText : color?.inactive || theme.secondaryText,
-								fontSize: sizeText,
+								fontSize: index === indexCurrent && activeSizeText ? activeSizeText : sizeText,
+								fontWeight: index === indexCurrent && activeSizeText ? 'bold' : 'normal',
+								paddingHorizontal: 16,
 								textAlign: 'center',
 							}}>
 							{item.text.length ? item.text : '...'}

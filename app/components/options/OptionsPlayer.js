@@ -7,7 +7,7 @@ import { getApi } from '~/utils/api'
 import { urlCover } from '~/utils/url'
 import { useConfig } from '~/contexts/config'
 import { useSettings, useSetSettings } from '~/contexts/settings'
-import { useSongDispatch } from '~/contexts/song'
+import { useSong, useSongDispatch } from '~/contexts/song'
 import OptionsPopup from '~/components/popup/OptionsPopup'
 import Player from '~/utils/player'
 import size from '~/styles/size'
@@ -19,6 +19,7 @@ const OptionsPlayer = ({ song, isOpen, setIsOpen, closePlayer }) => {
 	const navigation = useNavigation()
 	const config = useConfig()
 	const songDispatch = useSongDispatch()
+	const songState = useSong()
 	const refOption = React.useRef()
 
 	const goToArtist = () => {
@@ -116,6 +117,15 @@ const OptionsPlayer = ({ song, isOpen, setIsOpen, closePlayer }) => {
 						Linking.openURL(song.homePageUrl)
 					},
 					hidden: !song.homePageUrl
+				},
+				{
+					name: t(songState?.actionEndOfSong === 'repeat' ? 'Disable repeat song' : 'Repeat song'),
+					icon: 'refresh',
+					onPress: () => {
+						Player.setRepeat(songDispatch, songState?.actionEndOfSong === 'repeat' ? 'next' : 'repeat')
+						refOption.current.close()
+					},
+					hidden: song.isLiveStream
 				},
 				{
 					name: t(settings.repeatQueue ? 'Disable repeat queue' : 'Enable repeat queue'),

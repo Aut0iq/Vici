@@ -2,6 +2,10 @@ import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 
+// Настоящее размытие под нижним меню и мини-плеером.
+// На слабых телефонах и эмуляторе оно может тормозить — тогда поставьте false.
+export const USE_BLUR = true
+
 // «Жидкое стекло»: полупрозрачная заливка, блик сверху и светлая кромка.
 // Всё, что лежит под панелью, просвечивает сквозь неё.
 const GlassView = ({ children, style, radius = 24, intensity = 1, ...rest }) => {

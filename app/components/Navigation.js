@@ -1,6 +1,6 @@
 import React from 'react'
 import { SystemBars } from 'react-native-edge-to-edge'
-import { NavigationContainer } from '@react-navigation/native'
+import { NavigationContainer, DarkTheme } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 
 import { HomeStack, SearchStack, MixesStack, PlaylistsStack, SettingsStack } from '~/screens/Stacks'
@@ -16,6 +16,16 @@ const Navigation = () => {
 
 	return (
 		<NavigationContainer
+			// Тёмный фон навигации: без него при переходах между экранами просвечивает белый
+			theme={{
+				...DarkTheme,
+				colors: {
+					...DarkTheme.colors,
+					background: theme.primaryBack,
+					card: theme.primaryBack,
+					primary: theme.primaryTouch,
+				},
+			}}
 			documentTitle={{
 				formatter: () => {
 					return `Vici`
@@ -27,6 +37,7 @@ const Navigation = () => {
 				tabBar={(props) => <TabBar {...props} />}
 				screenOptions={{
 					headerShown: false,
+					sceneStyle: { backgroundColor: theme.primaryBack },
 					navigationBarColor: theme.primaryBack,
 					tabBarPosition: settings.isDesktop ? 'left' : 'bottom',
 					tabBarStyle: {

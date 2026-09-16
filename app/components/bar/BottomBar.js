@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 
 import { useConfig } from '~/contexts/config'
 import { useTheme } from '~/contexts/theme'
-import GlassView from '~/components/GlassView'
+import GlassView, { USE_BLUR } from '~/components/GlassView'
 import useKeyboardIsOpen from '~/utils/useKeyboardIsOpen'
 
 export const BAR_HEIGHT = 64
@@ -67,12 +67,12 @@ const BottomBar = ({ state, descriptors, navigation }) => {
 			pointerEvents="box-none"
 		>
 			<View style={styles.shadow}>
-				<BlurView
+				{USE_BLUR ? <BlurView
 					intensity={30}
 					tint="dark"
 					experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
 					style={[StyleSheet.absoluteFill, { borderRadius: BAR_HEIGHT / 2, overflow: 'hidden' }]}
-				/>
+				/> : null}
 				<View style={[StyleSheet.absoluteFill, styles.tint]} />
 				<GlassView radius={BAR_HEIGHT / 2} intensity={0.5} style={styles.bar}>
 					{state.routes.map((route, index) => (
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
 	},
 	tint: {
 		borderRadius: BAR_HEIGHT / 2,
-		backgroundColor: 'rgba(22,15,21,0.15)',
+		backgroundColor: USE_BLUR ? 'rgba(22,15,21,0.15)' : 'rgba(22,15,21,0.6)',
 	},
 	bar: {
 		height: BAR_HEIGHT,

@@ -32,6 +32,7 @@ module.exports = ({ config }) => {
 				edgeToEdgeEnabled: true,
 				permissions: [
 					"CHANGE_WIFI_MULTICAST_STATE",
+					"android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
 				],
 				adaptiveIcon: {
 					foregroundImage: "./assets/foreground-icon.png",
@@ -73,6 +74,9 @@ module.exports = ({ config }) => {
 				],
 				[
 					'./plugins/asyncStorage.js'
+				],
+				[
+					'./plugins/androidQueries.js'
 				],
 				[
 					"react-native-android-widget",

@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, ScrollView } from 'react-native'
+import { View, ScrollView, AppState } from 'react-native'
 import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
@@ -7,10 +7,17 @@ import { useTranslation } from 'react-i18next'
 import { useSettings } from '~/contexts/settings'
 import { useSetSettings } from '~/contexts/settings'
 import { useTheme } from '~/contexts/theme'
+import ButtonMenu from '~/components/settings/ButtonMenu'
 import ButtonSwitch from '~/components/settings/ButtonSwitch'
 import Header from '~/components/Header'
 import mainStyles from '~/styles/main'
 import SelectItem from '~/components/settings/SelectItem'
+import {
+	isIgnoringBatteryOptimizations,
+	openBatteryOptimizationSettings,
+	openRoutines,
+	openBluetoothSettings,
+} from '~/../modules/audio-route'
 import settingStyles from '~/styles/settings'
 
 const FORMATS = [
@@ -41,6 +48,18 @@ const PlayerSettings = () => {
 	const theme = useTheme()
 	const settings = useSettings()
 	const setSettings = useSetSettings()
+	const [batteryFree, setBatteryFree] = React.useState(null)
+	const [noRoutines, setNoRoutines] = React.useState(false)
+
+	// Проверяем ограничения батареи при открытии экрана и после возврата из системных настроек
+	React.useEffect(() => {
+		const check = () => isIgnoringBatteryOptimizations().then(setBatteryFree)
+		check()
+		const subscription = AppState.addEventListener('change', (state) => {
+			if (state === 'active') check()
+		})
+		return () => subscription.remove()
+	}, [])
 
 	return (
 		<ScrollView
@@ -50,6 +69,35 @@ const PlayerSettings = () => {
 			<Header title={t("Player")} />
 
 			<View style={settingStyles.contentMainContainer}>
+				<Text style={settingStyles.titleContainer(theme)}>{t('settings.player.Headphones')}</Text>
+				<View style={[settingStyles.optionsContainer(theme), { marginBottom: 5 }]}>
+					<ButtonSwitch
+						title={t('settings.player.Play on connect')}
+						icon="headphones"
+						value={settings.playOnHeadphonesConnect}
+						onPress={() => setSettings({ ...settings, playOnHeadphonesConnect: !settings.playOnHeadphonesConnect })}
+					/>
+					<ButtonMenu
+						title={batteryFree ? t('settings.player.Background allowed') : t('settings.player.Allow background')}
+						icon={batteryFree ? 'check' : 'battery-half'}
+						onPress={() => openBatteryOptimizationSettings()}
+					/>
+					<ButtonMenu
+						title={t('settings.player.Open routines')}
+						icon="magic"
+						onPress={() => openRoutines().then((ok) => setNoRoutines(!ok))}
+					/>
+					<ButtonMenu
+						title={t('settings.player.Bluetooth settings')}
+						icon="bluetooth"
+						onPress={() => openBluetoothSettings()}
+						isLast
+					/>
+				</View>
+				<Text style={settingStyles.description(theme)}>
+					{noRoutines ? t('settings.player.Routines not found') : t('settings.player.Play on connect Description')}
+				</Text>
+
 				<Text style={settingStyles.titleContainer(theme)}>{t('settings.player.Stream format')}</Text>
 				<View style={[settingStyles.optionsContainer(theme), { marginBottom: 5 }]}>
 					{FORMATS.map((item, index) => (

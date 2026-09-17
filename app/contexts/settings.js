@@ -102,6 +102,7 @@ export const defaultSettings = {
 	// Player settings
 	saveQueue: false,
 	streamFormat: 'raw',
+	playOnHeadphonesConnect: false,
 	maxBitRate: 0,
 	playSeedFirst: false,
 	repeatQueue: true,

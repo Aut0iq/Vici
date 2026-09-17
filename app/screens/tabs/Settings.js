@@ -108,6 +108,11 @@ const Settings = ({ navigation }) => {
 					title={t("Language")}
 					icon="language"
 					onPress={() => navigation.navigate('Settings/Language')}
+				/>
+				<ButtonMenu
+					title="Last.fm"
+					icon="lastfm"
+					onPress={() => navigation.navigate('Settings/LastFm')}
 					isLast
 				/>
 			</View>

@@ -1,5 +1,13 @@
 {
   "translation": {
+    "Connected as": "Вы вошли как",
+    "Last.fm application": "Приложение Last.fm",
+    "Sign in to Last.fm": "Войти в Last.fm",
+    "I allowed access": "Я разрешил доступ",
+    "Open Last.fm again": "Открыть Last.fm ещё раз",
+    "Tracks are sent to Last.fm straight from your phone.": "Треки отправляются в Last.fm прямо с телефона.",
+    "Create your own application key at last.fm/api/account/create, then sign in below.": "Создайте свой ключ приложения на last.fm/api/account/create, затем войдите ниже.",
+    "Allow access in the Last.fm page that just opened, then come back and finish.": "Разрешите доступ на открывшейся странице Last.fm, вернитесь сюда и завершите вход.",
     "Lyrics": "Текст",
     "Mixes": "Миксы",
     "No mixes yet": "Миксов пока нет",
@@ -74,11 +82,19 @@
         "Reverse playlist tracks Description": "Если включено, то недавно добавленные треки будут показаны первыми."
       },
       "player": {
+        "Headphones": "Наушники",
+        "Play on connect": "Играть при подключении",
+        "Play on connect Description": "Когда вы подключаете наушники или колонку, музыка продолжит играть сама. Чтобы это работало при полностью закрытом приложении, разрешите работу в фоне и создайте правило: «Bluetooth-устройство подключено» → «Открыть приложение Vici».",
         "Stream format": "Формат потока",
         "Stream format Description": "Укажите формат потока для воспроизведения.",
         "Max bitrate": "Максимальный битрейт",
         "Max bitrate Description": "Укажите максимальный битрейт в килобитах в секунду для воспроизведения. Меньшие битрейты будут потреблять меньше данных, но могут привести к снижению качества звука.",
-        "Play seed first": "Сначала воспроизвести трек"
+        "Play seed first": "Сначала воспроизвести трек",
+        "Allow background": "Разрешить работу в фоне",
+        "Background allowed": "Работа в фоне разрешена",
+        "Open routines": "Открыть «Режимы и routines»",
+        "Bluetooth settings": "Настройки Bluetooth",
+        "Routines not found": "«Режимы и routines» не найдены на этом телефоне. Правило можно создать только на устройствах Samsung."
       },
       "theme": {
         "Player Theme": "Тема плеера"

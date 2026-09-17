@@ -7,6 +7,8 @@ export default StyleSheet.create({
 		fontSize: 12,
 		textTransform: 'uppercase',
 		fontWeight: 'bold',
+		fontFamily: theme.ambient ? 'display' : undefined,
+		letterSpacing: theme.ambient ? 1 : 0,
 		color: theme.secondaryText,
 		marginBottom: 5,
 		marginStart: 10,

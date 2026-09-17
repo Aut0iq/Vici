@@ -1,6 +1,6 @@
 import React from 'react'
-import { Pressable, View, Text, Linking } from 'react-native'
-
+import { Pressable, View, Linking } from 'react-native'
+import Text from '~/components/Text'
 import { useTheme } from '~/contexts/theme'
 import ImageError from '~/components/ImageError'
 import mainStyles from '~/styles/main'

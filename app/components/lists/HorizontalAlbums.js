@@ -1,5 +1,6 @@
 import React from 'react'
-import { Text, StyleSheet, Pressable } from 'react-native'
+import { StyleSheet, Pressable } from 'react-native'
+import Text from '~/components/Text'
 import { useNavigation } from '@react-navigation/native'
 
 import { useConfig } from '~/contexts/config'

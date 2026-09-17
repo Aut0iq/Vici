@@ -1,5 +1,6 @@
 import React from 'react'
-import { Text, View, ScrollView, Platform } from 'react-native'
+import { View, ScrollView, Platform } from 'react-native'
+import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import AsyncStorage from '@react-native-async-storage/async-storage'

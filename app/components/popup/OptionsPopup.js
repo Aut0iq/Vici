@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, Text, Modal, ScrollView, Animated, Pressable, Platform } from 'react-native'
+import { View, Modal, ScrollView, Animated, Pressable, Platform } from 'react-native'
+import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
@@ -10,6 +11,7 @@ import { useSettings } from '~/contexts/settings'
 import { useTheme } from '~/contexts/theme'
 import { urlCover } from '~/utils/url'
 import ImageError from '~/components/ImageError'
+import GlassView from '~/components/GlassView'
 import mainStyles from '~/styles/main'
 import size from '~/styles/size'
 
@@ -33,13 +35,13 @@ const OptionItem = ({ option }) => {
 				justifyContent: 'flex-start',
 				alignContent: 'center',
 				gap: 10,
-				backgroundColor: isHover ? 'rgba(0,0,0,0.1)' : theme.secondaryBack,
+				backgroundColor: isHover ? 'rgba(255,255,255,0.06)' : (theme.glass ? 'transparent' : theme.secondaryBack),
 			}])}
 			onPress={option.onPress}
 		>
 			{
 				option.icon && (
-					<Icon name={option.icon} size={size.icon.tiny} color={theme.secondaryText} style={{
+					<Icon name={option.icon} size={size.icon.tiny} color={theme.glass ? theme.primaryTouch : theme.secondaryText} style={{
 						width: 25,
 						textAlign: 'center'
 					}} />
@@ -51,7 +53,7 @@ const OptionItem = ({ option }) => {
 						style={{
 							width: 35,
 							height: 35,
-							borderRadius: option.borderRadius || 5,
+							borderRadius: option.borderRadius || 10,
 						}}
 						source={{ uri: option.image }}
 					/>
@@ -117,7 +119,7 @@ const OptionsPopup = ({ ref, visible, close, options, item = null }) => {
 				style={{
 					width: '100%',
 					height: '100%',
-					backgroundColor: 'rgba(0,0,0,0.5)',
+					backgroundColor: theme.glass ? 'rgba(8,5,8,0.55)' : 'rgba(0,0,0,0.5)',
 				}}
 				contentContainerStyle={{
 					justifyContent: 'flex-end',
@@ -134,7 +136,17 @@ const OptionsPopup = ({ ref, visible, close, options, item = null }) => {
 				/>
 				<Animated.View
 					onLayout={onLayout}
-					style={{
+					style={theme.glass ? {
+						// Тема Vici: парящая стеклянная панель со скруглёнными углами
+						marginHorizontal: 10,
+						marginBottom: (insets.bottom > 10 ? insets.bottom : 10),
+						paddingTop: 10,
+						paddingBottom: 10,
+						backgroundColor: 'rgba(26,18,24,0.94)',
+						borderRadius: 28,
+						overflow: 'hidden',
+						transform: [{ translateY: slide }]
+					} : {
 						width: "100%",
 						paddingTop: 15,
 						paddingBottom: insets.bottom > 15 ? insets.bottom : 15,
@@ -144,6 +156,12 @@ const OptionsPopup = ({ ref, visible, close, options, item = null }) => {
 						transform: [{ translateY: slide }]
 					}}
 				>
+					{theme.glass ? (
+						<>
+							<GlassView radius={28} intensity={0.7} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} pointerEvents="none" />
+							<View style={{ alignSelf: 'center', width: 40, height: 5, borderRadius: 3, backgroundColor: 'rgba(246,240,232,0.3)', marginBottom: 12 }} />
+						</>
+					) : null}
 					{
 						item &&
 						<View
@@ -154,7 +172,7 @@ const OptionsPopup = ({ ref, visible, close, options, item = null }) => {
 								marginHorizontal: 20,
 								marginBottom: 10,
 								marginTop: 5,
-								borderColor: theme.secondaryText,
+								borderColor: theme.glassLine || theme.secondaryText,
 								borderBottomWidth: 1,
 								paddingBottom: 15,
 							}}
@@ -164,7 +182,7 @@ const OptionsPopup = ({ ref, visible, close, options, item = null }) => {
 									width: 50,
 									height: 50,
 									marginRight: 10,
-									borderRadius: 5,
+									borderRadius: 12,
 								}}
 								source={{ uri: urlCover(config, item, 100) }}
 							/>

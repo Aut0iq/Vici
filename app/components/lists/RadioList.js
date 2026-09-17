@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, Text, Linking, StyleSheet, Pressable } from 'react-native'
+import { View, Linking, StyleSheet, Pressable } from 'react-native'
+import Text from '~/components/Text'
 import { useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 import Icon from 'react-native-vector-icons/FontAwesome'
@@ -104,11 +105,10 @@ const RadioList = ({ radios }) => {
 						/>
 					</View>
 				</ImageError>
-				<View style={{ flexDirection: 'column', flex: 1 }}>
+				<View style={{ flexDirection: 'column', flex: 1, justifyContent: 'center' }}>
 					<Text
 						numberOfLines={1}
 						style={[mainStyles.mediumText(theme.primaryText), {
-							flex: 1,
 							fontWeight: 'bold',
 						}]}
 					>
@@ -116,7 +116,7 @@ const RadioList = ({ radios }) => {
 					</Text>
 					{item.homePageUrl && <Text
 						numberOfLines={1}
-						style={mainStyles.mediumText(theme.secondaryText)}
+						style={[mainStyles.mediumText(theme.secondaryText), { fontSize: 13 }]}
 					>
 						{item.homePageUrl}
 					</Text>}
@@ -194,17 +194,20 @@ const styles = StyleSheet.create({
 		height: 60,
 		width: 300,
 		padding: 10,
-		backgroundColor: theme.secondaryBack,
+		backgroundColor: theme.glass || theme.secondaryBack,
+		borderWidth: theme.glass ? 1 : 0,
+		borderColor: theme.glassEdge,
+		borderTopColor: theme.glassHighlight,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'flex-start',
-		borderRadius: 7,
+		borderRadius: theme.glass ? 16 : 7,
 	}),
 	image: {
 		height: '100%',
 		aspectRatio: 1,
 		marginRight: 10,
-		borderRadius: 3,
+		borderRadius: 10,
 	},
 })
 

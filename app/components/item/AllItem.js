@@ -1,6 +1,6 @@
 import React from 'react'
-import { Pressable, Text, StyleSheet, Platform } from 'react-native'
-
+import { Pressable, StyleSheet, Platform } from 'react-native'
+import Text from '~/components/Text'
 import { useConfig } from '~/contexts/config'
 import { useTheme } from '~/contexts/theme'
 import { urlCover } from '~/utils/url'

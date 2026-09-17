@@ -1,5 +1,6 @@
 import React from 'react'
-import { Text, View, TextInput, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native'
+import { View, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native'
+import Text, { TextInput } from '~/components/Text'
 import { useNavigation } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'

@@ -17,6 +17,8 @@ export default StyleSheet.create({
 		color: theme.primaryText,
 		fontSize: size.title.medium,
 		fontWeight: 'bold',
+		fontFamily: theme.ambient ? 'display' : undefined,
+		letterSpacing: theme.ambient ? 1 : 0,
 		margin: 20,
 		marginTop: 30
 	}),
@@ -24,11 +26,13 @@ export default StyleSheet.create({
 		color: theme.primaryText,
 		fontSize: size.title.small,
 		fontWeight: 'bold',
+		fontFamily: theme.ambient ? 'display' : undefined,
 	}),
 	titleSection: theme => ({
 		color: theme.primaryText,
 		fontSize: size.title.small,
 		fontWeight: 'bold',
+		fontFamily: theme.ambient ? 'display' : undefined,
 		marginHorizontal: 20,
 		marginTop: 25,
 		marginBottom: 12

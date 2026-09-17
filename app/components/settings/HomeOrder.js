@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, Text, PanResponder, Animated, Pressable } from 'react-native'
+import { View, PanResponder, Animated, Pressable } from 'react-native'
+import Text from '~/components/Text'
 import { useTranslation } from 'react-i18next'
 import Icon from 'react-native-vector-icons/FontAwesome'
 

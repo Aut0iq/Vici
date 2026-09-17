@@ -5,12 +5,9 @@ import { getApi } from "~/utils/api"
 import { downloadNextSong } from "~/utils/player"
 import { songReducer } from "~/contexts/song"
 import logger from "~/utils/logger"
+import { onTrackStart, onPlayingChange, onTrackEnd } from "~/services/scrobbler"
 
 let lockDownload = false
-let lastScrobble = {
-	id: null,
-	time: 0,
-}
 let shouldPlay = false
 let pauseTimer = null
 
@@ -53,8 +50,7 @@ module.exports = async () => {
 	TrackPlayer.addEventListener(Event.PlaybackQueueEnded, (_event) => {
 		if (!global.song?.queue?.length) return
 		if (global.song?.songInfo?.id === 'tuktuktuk') return Player.resetAudio(global.songDispatch)
-		getApi(global.config, 'scrobble', { id: global.song.songInfo.id, submission: true })
-			.catch(() => { })
+		onTrackEnd(global.song.actionEndOfSong === 'repeat')
 		if (global.song.actionEndOfSong === 'repeat') {
 			Player.setPosition(0)
 			Player.resumeSong()
@@ -75,17 +71,11 @@ module.exports = async () => {
 				})
 		}
 
-		if (event.track) {
-			const now = Date.now()
-			if (lastScrobble.id !== event.track.id || now - lastScrobble.time > 10 * 1000) {
-				getApi(global.config, 'scrobble', { id: event.track.id, submission: false })
-					.catch(() => { })
-				lastScrobble = {
-					id: event.track.id,
-					time: now,
-				}
-			}
-		}
+		if (event.track) onTrackStart(event.track.id, event.track.duration)
+	})
+	// Учёт времени прослушивания для скробблинга: считаем только время, когда реально играет
+	TrackPlayer.addEventListener(Event.PlaybackState, ({ state }) => {
+		onPlayingChange(state === State.Playing)
 	})
 	TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
 		logger.error('PlaybackError', error.code, error.message)

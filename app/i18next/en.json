@@ -1,5 +1,13 @@
 {
   "translation": {
+    "Connected as": "Connected as",
+    "Last.fm application": "Last.fm application",
+    "Sign in to Last.fm": "Sign in to Last.fm",
+    "I allowed access": "I allowed access",
+    "Open Last.fm again": "Open Last.fm again",
+    "Tracks are sent to Last.fm straight from your phone.": "Tracks are sent to Last.fm straight from your phone.",
+    "Create your own application key at last.fm/api/account/create, then sign in below.": "Create your own application key at last.fm/api/account/create, then sign in below.",
+    "Allow access in the Last.fm page that just opened, then come back and finish.": "Allow access in the Last.fm page that just opened, then come back and finish.",
     "Lyrics": "Lyrics",
     "Mixes": "Mixes",
     "No mixes yet": "No mixes yet",
@@ -67,13 +75,21 @@
         "Reverse playlist tracks Description": "If enabled, recently added tracks will be shown first."
       },
       "player": {
+        "Headphones": "Headphones",
+        "Play on connect": "Play on connect",
+        "Play on connect Description": "Music resumes by itself when you connect headphones or a speaker. To make it work with the app fully closed, allow background work and create a routine: \"Bluetooth device connected\" to \"Open Vici\".",
         "Stream format": "Stream format",
         "Stream format Description": "Specify the format of the stream to be played.",
         "Max bitrate": "Max bitrate",
         "Max bitrate Description": "Specify the maximum bit rate in kilobits per second for the stream to be played. Lower bit rates will consume less data but may result in lower audio quality.",
         "Play seed first": "Play seed song first",
         "Save last queue": "Save last queue",
-        "Save last queue Description": "Automatically save the last queue you played. You activate the 'Last queue' section on the home page to access it."
+        "Save last queue Description": "Automatically save the last queue you played. You activate the 'Last queue' section on the home page to access it.",
+        "Allow background": "Allow background work",
+        "Background allowed": "Background work allowed",
+        "Open routines": "Open Modes and Routines",
+        "Bluetooth settings": "Bluetooth settings",
+        "Routines not found": "Modes and Routines is not available on this phone. The rule can only be created on Samsung devices."
       },
       "theme": {
         "Player Theme": "Player Theme"

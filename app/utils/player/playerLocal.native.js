@@ -28,7 +28,14 @@ const initPlayer = async (songDispatch) => {
 	const song = await AsyncStorage.getItem('song')
 		.then((song) => song ? JSON.parse(song) : null)
 	try {
-		await TrackPlayer.setupPlayer()
+		// Буфер: начинаем играть, когда загружено ~0.7 секунды звука (по умолчанию ExoPlayer ждёт 2.5 секунды),
+		// поэтому незакэшированные треки стартуют заметно быстрее
+		await TrackPlayer.setupPlayer({
+			minBuffer: 25,
+			maxBuffer: 60,
+			playBuffer: 0.7,
+			backBuffer: 0,
+		})
 	} catch (error) {
 		if (error?.code === 'android_cannot_setup_player_in_background') return
 	}
@@ -149,8 +156,15 @@ const downloadNextSong = async (queue, currentIndex) => {
 	if (!Array.isArray(queue) || !queue.length || currentIndex === undefined || currentIndex === null) return
 	const maxIndex = Math.min(global.cacheNextSong, queue.length)
 
-	for (let i = -1; i < maxIndex; i++) {
+	// Сначала соседние треки (следующий и предыдущий) — именно на них переключаются свайпом.
+	// Текущий не качаем: он и так уже играет по сети
+	const order = [1, -1]
+	for (let i = 2; i < maxIndex; i++) order.push(i)
+
+	for (const i of order) {
+		if (queue.length <= 1) break
 		const index = (currentIndex + queue.length + i) % queue.length
+		if (index === currentIndex) continue
 		if (!queue[index].isLiveStream && queue[index].id.match(/^[a-zA-Z0-9-]*$/)) {
 			await downloadSong(urlStream(global.config, queue[index].id, global.streamFormat, global.maxBitRate), queue[index].id)
 		}
@@ -178,8 +192,15 @@ const convertToTrack = async (track, config) => {
 	}
 }
 
+// Если треки переключают быстро, загружаем только последний выбранный —
+// без очереди из промежуточных загрузок
+let loadToken = 0
 const loadSong = async (config, queue, index) => {
-	await TrackPlayer.load(await convertToTrack(queue[index], config))
+	const token = ++loadToken
+	const track = await convertToTrack(queue[index], config)
+	if (token !== loadToken) return
+	await TrackPlayer.load(track)
+	if (token !== loadToken) return
 	await TrackPlayer.play()
 }
 

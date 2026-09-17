@@ -182,22 +182,68 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 	}
 
 	const isVertical = (g) => Math.abs(g.dy) > 14 && Math.abs(g.dy) > Math.abs(g.dx) * 1.6
-	const canSwipePlayer = (g) => !isQueueRef.current && !isLyricsOpenRef.current && isVertical(g)
+	const isHorizontal = (g) => Math.abs(g.dx) > 14 && Math.abs(g.dx) > Math.abs(g.dy) * 1.6
 
-	// Свайп вниз — свернуть, свайп вверх — открыть текст
+	// Обложка: лёг ли палец на неё (для свайпа влево/вправо) и её сдвиг
+	const coverX = React.useRef(new Animated.Value(0)).current
+	const touchOnCover = React.useRef(false)
+	const startsOnCover = () => touchOnCover.current
+	const gestureMode = React.useRef(null)
+
+	const canSwipe = (g) => {
+		if (isQueueRef.current || isLyricsOpenRef.current) return false
+		if (isVertical(g)) {
+			gestureMode.current = 'vertical'
+			return true
+		}
+		if (isHorizontal(g) && startsOnCover()) {
+			gestureMode.current = 'horizontal'
+			return true
+		}
+		return false
+	}
+
+	const resetGesture = () => {
+		Animated.spring(drag, { toValue: 0, bounciness: 4, useNativeDriver: useNative }).start()
+		Animated.spring(coverX, { toValue: 0, bounciness: 6, useNativeDriver: useNative }).start()
+	}
+
+	// Один обработчик на весь экран:
+	// вниз — свернуть, вверх — текст песни (в любом месте), влево/вправо по обложке — сменить трек
 	const playerPan = React.useRef(PanResponder.create({
-		onMoveShouldSetPanResponderCapture: (_, g) => canSwipePlayer(g),
-		onMoveShouldSetPanResponder: (_, g) => canSwipePlayer(g),
-		onPanResponderMove: (_, g) => drag.setValue(g.dy > 0 ? g.dy : g.dy * 0.25),
+		onMoveShouldSetPanResponderCapture: (_, g) => canSwipe(g),
+		onMoveShouldSetPanResponder: (_, g) => canSwipe(g),
+		onPanResponderTerminationRequest: () => false,
+		onPanResponderMove: (_, g) => {
+			if (gestureMode.current === 'horizontal') coverX.setValue(Math.max(-140, Math.min(140, g.dx)))
+			else drag.setValue(g.dy > 0 ? g.dy : g.dy * 0.25)
+		},
 		onPanResponderRelease: (_, g) => {
+			const mode = gestureMode.current
+			gestureMode.current = null
+			touchOnCover.current = false
+			if (mode === 'horizontal') {
+				// Берём самое свежее состояние плеера, а не то, что было при прошлой отрисовке —
+				// поэтому быстрые свайпы туда-обратно срабатывают сразу
+				const current = global.song || song
+				const cfg = global.config || config
+				if (g.dx < -60 || (g.dx < -20 && g.vx < -0.6)) Player.nextSong(cfg, current, songDispatch)
+				else if (g.dx > 60 || (g.dx > 20 && g.vx > 0.6)) Player.previousSong(cfg, current, songDispatch)
+				resetGesture()
+				return
+			}
 			if (g.dy > 120 || (g.dy > 30 && g.vy > 0.9)) {
 				closePlayer()
 				return
 			}
 			if (g.dy < -70 || (g.dy < -20 && g.vy < -0.8)) openLyrics()
-			Animated.spring(drag, { toValue: 0, bounciness: 4, useNativeDriver: useNative }).start()
+			resetGesture()
 		},
-		onPanResponderTerminate: () => Animated.spring(drag, { toValue: 0, useNativeDriver: useNative }).start(),
+		onPanResponderTerminate: () => {
+			gestureMode.current = null
+			touchOnCover.current = false
+			resetGesture()
+		},
 	})).current
 
 	// На панели с текстом: потянуть за верхнюю часть вниз — закрыть
@@ -261,7 +307,16 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 									<Queue song={song} stars={stars} setFullScreen={setFullScreen} width={contentWidth - 32} height="100%" />
 								</View>
 							) : (
-								<VinylCover coverSize={coverSize} width={contentWidth} />
+								<VinylCover
+									coverSize={coverSize}
+									width={contentWidth}
+									translateX={coverX}
+									onCoverTouch={(value) => { touchOnCover.current = value }}
+									onDoubleTap={() => {
+										if ((global.song || song).state === Player.State.Playing) Player.pauseSong()
+										else Player.resumeSong()
+									}}
+								/>
 							)}
 
 						{/* Название и исполнитель по центру */}
@@ -380,7 +435,9 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 								sizeText={20}
 								activeSizeText={26}
 								gap={22}
-								paddingVertical={Math.round(height * 0.28)}
+								// Сверху небольшой отступ, снизу большой — чтобы последние строки тоже могли встать по центру
+								paddingTop={12}
+								paddingBottom={Math.round(height * 0.4)}
 								color={{ active: VICI.gold, inactive: VICI.text3 }}
 							/>
 							<View style={{ height: insets.bottom + 10 }} />
@@ -475,7 +532,7 @@ const styles = StyleSheet.create({
 		overflow: 'hidden',
 	},
 	sheetShade: {
-		backgroundColor: 'rgba(14,10,15,0.55)',
+		backgroundColor: 'rgba(14,10,15,0.86)',
 		borderTopLeftRadius: 30,
 		borderTopRightRadius: 30,
 	},

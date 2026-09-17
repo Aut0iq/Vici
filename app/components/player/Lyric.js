@@ -8,7 +8,7 @@ import { useConfig } from '~/contexts/config'
 import { fetchLyrics } from '~/utils/lyrics'
 import Player from '~/utils/player'
 
-const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null, gap = 30, paddingVertical = 0, onAvailable = null }) => {
+const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null, gap = 30, paddingVertical = 0, paddingTop = null, paddingBottom = null, onAvailable = null }) => {
 	const { t } = useTranslation()
 	const config = useConfig()
 	const theme = useTheme()
@@ -75,7 +75,7 @@ const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null
 		<FlatList
 			ref={refScroll}
 			style={[style, { borderRadius: null }]}
-			contentContainerStyle={{ gap, paddingVertical }}
+			contentContainerStyle={{ gap, paddingTop: paddingTop ?? paddingVertical, paddingBottom: paddingBottom ?? paddingVertical }}
 			showsVerticalScrollIndicator={false}
 			onScrollToIndexFailed={() => { }}
 			initialNumToRender={data.length}

@@ -1,108 +1,75 @@
 import React from 'react'
 import { FlatList, Pressable } from 'react-native'
-import Text from '~/components/Text'
 import { useTranslation } from 'react-i18next'
 
+import Text from '~/components/Text'
 import { useTheme } from '~/contexts/theme'
 import { useConfig } from '~/contexts/config'
-import { getApi } from '~/utils/api'
-import { parseLrc } from '~/utils/lrc'
+import { fetchLyrics } from '~/utils/lyrics'
 import Player from '~/utils/player'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null, gap = 30, paddingVertical = 0, onAvailable = null }) => {
 	const { t } = useTranslation()
-	const [indexCurrent, setIndex] = React.useState(0)
-	const [lyrics, setLyrics] = React.useState([])
-	const [isLayout, setIsLayout] = React.useState(false)
 	const config = useConfig()
-	const refScroll = React.useRef(null)
 	const theme = useTheme()
 	const time = Player.updateTime()
+	const refScroll = React.useRef(null)
+	const [lyrics, setLyrics] = React.useState({ synced: false, lines: [] })
+	const [status, setStatus] = React.useState('loading')
+	const [indexCurrent, setIndex] = React.useState(-1)
 	const onAvailableRef = React.useRef(onAvailable)
 	onAvailableRef.current = onAvailable
 
-	// Сообщаем плееру, есть ли у трека текст
-	const report = (available) => {
-		if (onAvailableRef.current) onAvailableRef.current(available)
-	}
+	const songId = song?.songInfo?.id
 
+	// Загружаем текст. Если трек успели переключить, ответ для старого трека игнорируется —
+	// поэтому тексты больше не путаются между песнями.
 	React.useEffect(() => {
-		setLyrics([{ time: 0, text: t('Loading lyrics...') }])
-		getLyrics()
-	}, [song.songInfo])
+		if (!songId) return
+		const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+		let active = true
+		setLyrics({ synced: false, lines: [] })
+		setStatus('loading')
+		setIndex(-1)
 
-	const getLyrics = () => {
-		AsyncStorage.getItem(`lyrics/${song.songInfo.id}`)
-			.then(res => {
-				if (res) {
-					const ly = JSON.parse(res)
-					if (!ly?.length) return getNavidromeLyrics()
-					setIsLayout(true)
-					setLyrics(ly)
-					report(true)
+		fetchLyrics(config, song.songInfo, { signal: controller?.signal })
+			.then((result) => {
+				if (!active) return
+				if (result?.lines?.length) {
+					setLyrics(result)
+					setStatus('ready')
+					onAvailableRef.current?.(true)
 				} else {
-					getNavidromeLyrics()
+					setStatus('none')
+					onAvailableRef.current?.(false)
 				}
 			})
-	}
+			.catch(() => {
+				if (!active) return
+				setStatus('none')
+				onAvailableRef.current?.(false)
+			})
 
-	React.useEffect(() => {
-		if (lyrics.length == 0) return
-		let index = lyrics.findIndex(ly => ly.time > time.position) - 1
-		if (index === -1) index = 0
-		if (index === -2) index = lyrics.length - 1
-		if (index < 0) return
-		if (index !== indexCurrent) {
-			setIndex(index)
+		return () => {
+			active = false
+			controller?.abort()
 		}
+	}, [songId])
+
+	// Текущая строка по времени трека
+	React.useEffect(() => {
+		if (!lyrics.synced || !lyrics.lines.length) return
+		let index = lyrics.lines.findIndex((ly) => ly.time > time.position) - 1
+		if (index === -2) index = lyrics.lines.length - 1
+		if (index !== indexCurrent) setIndex(index)
 	}, [time.position, lyrics])
 
 	React.useEffect(() => {
-		if (!isLayout) return
+		if (indexCurrent < 0 || !refScroll.current) return
 		refScroll.current.scrollToIndex({ index: indexCurrent, animated: true, viewOffset: 0, viewPosition: 0.5 })
-	}, [indexCurrent, isLayout])
+	}, [indexCurrent])
 
-	const getNavidromeLyrics = () => {
-		getApi(config, 'getLyricsBySongId', { id: song.songInfo.id })
-			.then(res => {
-				const ly = res.lyricsList?.structuredLyrics?.[0]?.line?.map(ly => ({ time: (ly.start || 0) / 1000, text: ly.value?.length ? ly.value : '...' }))
-				if (!ly?.length) { // If not found
-					return getLrcLibLyrics()
-				}
-				ly.sort((a, b) => a.time - b.time)
-				setLyrics(ly)
-				report(true)
-				AsyncStorage.setItem(`lyrics/${song.songInfo.id}`, JSON.stringify(ly))
-			})
-			.catch(() => { // If not found
-				getLrcLibLyrics()
-			})
-	}
-
-	const getLrcLibLyrics = () => {
-		const params = {
-			track_name: song.songInfo.title,
-			artist_name: song.songInfo.artist,
-			album_name: song.songInfo.album,
-			duration: song.songInfo.duration
-		}
-		fetch('https://lrclib.net/api/get?' + Object.keys(params).map((key) => `${key}=${encodeURIComponent(params[key])}`).join('&'), {
-			headers: { 'Lrclib-Client': 'Castafiore' }
-		})
-			.then(res => res.json())
-			.then(res => {
-				const ly = parseLrc(res.syncedLyrics)
-				if (!ly.length) throw new Error('No synced lyrics')
-				setLyrics(ly)
-				report(true)
-				AsyncStorage.setItem(`lyrics/${song.songInfo.id}`, JSON.stringify(ly))
-			})
-			.catch(() => {
-				setLyrics([{ time: 0, text: t('No lyrics found') }])
-				report(false)
-			})
-	}
+	const data = status === 'ready' ? lyrics.lines : [{ time: null, text: status === 'loading' ? t('Loading lyrics...') : t('No lyrics found') }]
 
 	return (
 		<FlatList
@@ -111,26 +78,25 @@ const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null
 			contentContainerStyle={{ gap, paddingVertical }}
 			showsVerticalScrollIndicator={false}
 			onScrollToIndexFailed={() => { }}
-			initialNumToRender={lyrics.length}
-			data={lyrics}
-			onLayout={() => setIsLayout(true)}
-			keyExtractor={(item, index) => index}
+			initialNumToRender={data.length}
+			data={data}
+			keyExtractor={(item, index) => `${songId}-${index}`}
 			renderItem={({ item, index }) => {
+				const isCurrent = lyrics.synced && index === indexCurrent
 				return (
 					<Pressable
-						onPress={() => {
-							Player.setPosition(item.time)
-						}}
+						disabled={item.time === null}
+						onPress={() => Player.setPosition(item.time)}
 					>
 						<Text
 							style={{
-								color: index === indexCurrent ? color?.active || theme.primaryText : color?.inactive || theme.secondaryText,
-								fontSize: index === indexCurrent && activeSizeText ? activeSizeText : sizeText,
-								fontWeight: index === indexCurrent && activeSizeText ? 'bold' : 'normal',
+								color: isCurrent ? color?.active || theme.primaryText : color?.inactive || theme.secondaryText,
+								fontSize: isCurrent && activeSizeText ? activeSizeText : sizeText,
+								fontWeight: isCurrent && activeSizeText ? 'bold' : 'normal',
 								paddingHorizontal: 16,
 								textAlign: 'center',
 							}}>
-							{item.text.length ? item.text : '...'}
+							{item.text?.length ? item.text : '♪'}
 						</Text>
 					</Pressable>
 				)

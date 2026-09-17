@@ -87,7 +87,7 @@ export const HomeStack = () => {
 			screenOptions={{
 				headerShown: false,
 				contentStyle: { backgroundColor: theme.primaryBack },
-				animation: 'fade',
+				animation: 'none',
 				tabBarStyle: {
 					backgroundColor: theme.secondaryBack,
 					borderTopColor: theme.secondaryBack,
@@ -122,7 +122,7 @@ export const SearchStack = () => {
 			screenOptions={{
 				headerShown: false,
 				contentStyle: { backgroundColor: theme.primaryBack },
-				animation: 'fade',
+				animation: 'none',
 				tabBarStyle: {
 					backgroundColor: theme.secondaryBack,
 					borderTopColor: theme.secondaryBack,
@@ -152,7 +152,7 @@ export const MixesStack = () => {
 	const theme = useTheme()
 
 	return (
-		<Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.primaryBack }, animation: 'fade' }}>
+		<Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.primaryBack }, animation: 'none' }}>
 			<Stack.Screen name="Mixes" component={Mixes} />
 			<Stack.Screen name="Playlist" component={bg.Playlist} />
 			<Stack.Screen name="EditPlaylist" component={bg.EditPlaylist} />
@@ -176,7 +176,7 @@ export const PlaylistsStack = () => {
 			screenOptions={{
 				headerShown: false,
 				contentStyle: { backgroundColor: theme.primaryBack },
-				animation: 'fade',
+				animation: 'none',
 				tabBarStyle: {
 					backgroundColor: theme.secondaryBack,
 					borderTopColor: theme.secondaryBack,
@@ -209,7 +209,7 @@ export const SettingsStack = () => {
 			screenOptions={{
 				headerShown: false,
 				contentStyle: { backgroundColor: theme.primaryBack },
-				animation: 'fade',
+				animation: 'none',
 				tabBarStyle: {
 					backgroundColor: theme.secondaryBack,
 					borderTopColor: theme.secondaryBack,

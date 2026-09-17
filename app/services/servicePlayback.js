@@ -63,7 +63,7 @@ module.exports = async () => {
 		} else Player.nextSong(global.config, global.song, fakeSongDispatch)
 	})
 	TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, async (event) => {
-		if (!lockDownload) {
+		if (!lockDownload && global.song?.queue?.length) {
 			lockDownload = true
 			downloadNextSong(global.song.queue, global.song.index)
 				.then(() => {

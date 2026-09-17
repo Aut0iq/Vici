@@ -5,7 +5,8 @@ import { useConfig } from '~/contexts/config'
 import { useSong } from '~/contexts/song'
 import { urlCover } from '~/utils/url'
 import ImageError from '~/components/ImageError'
-import Player from '~/utils/player'
+import { LinearGradient } from 'expo-linear-gradient'
+import State from '~/utils/playerState'
 import SlideControl from '~/components/button/SlideControl'
 
 // Один оборот пластинки, в миллисекундах
@@ -17,12 +18,13 @@ const VinylCover = ({ coverSize, width }) => {
 	const config = useConfig()
 	const song = useSong()
 	const spin = React.useRef(new Animated.Value(0)).current
-	const isPlaying = song.state === Player.State.Playing
+	const isPlaying = song.state === State.Playing
 
 	const cover = Math.round(coverSize)
 	const vinyl = Math.round(cover * 1.12)
-	const shift = Math.round(cover * 0.24)
-	const coverLeft = Math.round((width - cover) / 2)
+	const shift = Math.round(cover * 0.28)
+	// Сдвигаем обложку влево, чтобы обложка вместе с выглядывающей пластинкой стояли по центру
+	const coverLeft = Math.max(0, Math.round((width - (cover / 2 + shift + vinyl / 2)) / 2))
 	const coverTop = Math.round((vinyl - cover) / 2)
 	const vinylLeft = coverLeft + Math.round((cover - vinyl) / 2) + shift
 
@@ -57,42 +59,63 @@ const VinylCover = ({ coverSize, width }) => {
 
 	return (
 		<View style={{ width, height: vinyl }}>
-			{/* Пластинка */}
+			{/* Неподвижная тень под пластинкой: если тень вращается вместе с ней, Android её перерисовывает и она мерцает */}
+			<View
+				style={[
+					circle(vinyl),
+					{ position: 'absolute', left: vinylLeft, top: 0, backgroundColor: '#17131a', elevation: 12 },
+				]}
+			/>
+
+			{/* Пластинка. renderToHardwareTextureAndroid — рисуем её один раз и дальше только поворачиваем картинку,
+			    без перерисовки тонких дорожек на каждом кадре */}
 			<Animated.View
+				renderToHardwareTextureAndroid={true}
+				shouldRasterizeIOS={true}
 				style={[
 					circle(vinyl),
 					{
 						position: 'absolute',
 						left: vinylLeft,
 						top: 0,
-						backgroundColor: '#141113',
+						backgroundColor: '#17131a',
 						borderWidth: 1,
 						borderColor: 'rgba(255,255,255,0.12)',
-						elevation: 12,
 						transform: [{ rotate }],
 					},
 				]}
 			>
 				{/* Дорожки */}
-				{[0.93, 0.86, 0.79, 0.72, 0.65, 0.58, 0.51].map((k) => (
+				{[0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5].map((k, i) => (
 					<View
 						key={k}
-						style={[circle(vinyl * k), centered(vinyl * k), { borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)' }]}
+						style={[circle(vinyl * k), centered(vinyl * k), { borderWidth: 1, borderColor: i % 2 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.35)' }]}
 					/>
 				))}
-				{/* Блики — по ним видно, что пластинка крутится */}
+				{/* Блики: светлые сектора, которые вращаются вместе с пластинкой */}
 				<View
 					style={[
 						circle(vinyl),
 						centered(vinyl),
 						{
-							borderWidth: vinyl * 0.29,
+							borderWidth: vinyl / 2,
 							borderColor: 'transparent',
-							borderTopColor: 'rgba(255,255,255,0.10)',
-							borderBottomColor: 'rgba(255,255,255,0.06)',
+							borderTopColor: 'rgba(255,255,255,0.13)',
+							borderBottomColor: 'rgba(255,255,255,0.08)',
 						},
 					]}
 				/>
+				<View style={[circle(vinyl), centered(vinyl), { overflow: 'hidden' }]}>
+					<LinearGradient
+						colors={['rgba(255,255,255,0.16)', 'rgba(255,255,255,0)', 'rgba(255,255,255,0)', 'rgba(255,255,255,0.10)']}
+						locations={[0, 0.4, 0.62, 1]}
+						start={{ x: 0, y: 0 }}
+						end={{ x: 1, y: 1 }}
+						style={{ width: '100%', height: '100%' }}
+					/>
+				</View>
+				{/* Золотая риска у края — по ней хорошо видно вращение */}
+				<View style={{ position: 'absolute', left: vinyl / 2 - 2, top: vinyl * 0.04, width: 4, height: vinyl * 0.08, borderRadius: 2, backgroundColor: 'rgba(230,189,85,0.55)' }} />
 				{/* Наклейка в центре */}
 				<View style={[circle(vinyl * 0.4), centered(vinyl * 0.4), { backgroundColor: '#7a211d', borderWidth: 3, borderColor: '#0f0c0d' }]} />
 				<View style={[circle(vinyl * 0.2), centered(vinyl * 0.2), { borderWidth: 1, borderColor: 'rgba(230,189,85,0.45)' }]} />

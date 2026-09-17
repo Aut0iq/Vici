@@ -35,12 +35,11 @@ const App = () => {
 		else if (fontsLoaded) logger.info('Fonts', 'Fonts loaded')
 	}, [fontsLoaded, fontsError])
 
-	if (!fontsLoaded && !fontsError) return null
-
+	// Провайдеры (в том числе плеер) запускаем сразу, а интерфейс показываем после загрузки шрифтов
 	return (
 		<AppProvider>
 			<SafeAreaProvider initialMetrics={initialWindowMetrics}>
-				<Navigation />
+				{fontsLoaded || fontsError ? <Navigation /> : null}
 			</SafeAreaProvider>
 		</AppProvider>
 	)

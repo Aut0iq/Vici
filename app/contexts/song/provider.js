@@ -13,6 +13,11 @@ export const SongProvider = ({ children }) => {
 	React.useEffect(() => {
 		if (!song.isInit) {
 			if (Platform.OS === 'android') {
+				// Если приложение уже на экране, событие 'change' может не прийти — запускаем плеер сразу
+				if (AppState.currentState === 'active') {
+					Player.initPlayer(dispatch)
+					return
+				}
 				const subscription = AppState.addEventListener('change', (appState) => {
 					if (appState === 'active') {
 						Player.initPlayer(dispatch)

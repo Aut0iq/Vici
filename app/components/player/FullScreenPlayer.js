@@ -4,6 +4,8 @@ import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
+import { LinearGradient } from 'expo-linear-gradient'
+import Icon from 'react-native-vector-icons/FontAwesome'
 
 import { useConfig } from '~/contexts/config'
 import { useSong, useSongDispatch } from '~/contexts/song'
@@ -145,7 +147,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 	const navigation = useNavigation()
 	const { width, height } = useWindowDimensions()
 	const [isQueue, setIsQueue] = React.useState(false)
-	const [hasLyrics, setHasLyrics] = React.useState(false)
 	const [isOptArtists, setIsOptArtists] = React.useState(false)
 	const [isOpt, setIsOpt] = React.useState(false)
 	const [isLyricsOpen, setIsLyricsOpen] = React.useState(false)
@@ -155,7 +156,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 	const drag = React.useRef(new Animated.Value(0)).current
 	const sheet = React.useRef(new Animated.Value(0)).current
 	const sheetDrag = React.useRef(new Animated.Value(0)).current
-	const touchInLyrics = React.useRef(false)
 	const isQueueRef = React.useRef(isQueue)
 	const isLyricsOpenRef = React.useRef(isLyricsOpen)
 	isQueueRef.current = isQueue
@@ -182,7 +182,7 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 	}
 
 	const isVertical = (g) => Math.abs(g.dy) > 14 && Math.abs(g.dy) > Math.abs(g.dx) * 1.6
-	const canSwipePlayer = (g) => !touchInLyrics.current && !isQueueRef.current && !isLyricsOpenRef.current && isVertical(g)
+	const canSwipePlayer = (g) => !isQueueRef.current && !isLyricsOpenRef.current && isVertical(g)
 
 	// Свайп вниз — свернуть, свайп вверх — открыть текст
 	const playerPan = React.useRef(PanResponder.create({
@@ -220,18 +220,8 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 	}, [song.songInfo?.id])
 
 	const contentWidth = Math.min(width, 500)
-	const coverSize = Math.round(contentWidth * (hasLyrics ? 0.56 : 0.78))
+	const coverSize = Math.min(Math.round(contentWidth * 0.7), 360)
 	const isShuffle = song.actionEndOfSong === 'random'
-
-	// Плавно перестраиваем экран, когда появляется или пропадает текст
-	const onLyricsAvailable = React.useCallback((available) => {
-		setHasLyrics((prev) => {
-			if (prev !== available && Platform.OS !== 'web') {
-				LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-			}
-			return available
-		})
-	}, [])
 
 	const goToAlbum = () => {
 		navigation.navigate('Album', { id: song.songInfo.albumId, name: song.songInfo.album, artist: song.songInfo.artist, artistId: song.songInfo.artistId })
@@ -264,34 +254,15 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 							<GlassButton icon="ellipsis-h" onPress={() => setIsOpt(true)} />
 						</View>
 
-						{/* Обложка с пластинкой и текст песни */}
-						<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+						{/* Обложка с пластинкой (или очередь) и управление — одним блоком по центру */}
+						<View style={{ flex: 1, justifyContent: isQueue ? 'flex-start' : 'center' }}>
 							{isQueue ? (
-								<Queue song={song} stars={stars} setFullScreen={setFullScreen} width={contentWidth - 32} height="100%" />
+								<View style={{ flex: 1, alignItems: 'center' }}>
+									<Queue song={song} stars={stars} setFullScreen={setFullScreen} width={contentWidth - 32} height="100%" />
+								</View>
 							) : (
-								<>
-									<VinylCover coverSize={coverSize} width={contentWidth} />
-									<GlassView
-										radius={26}
-										style={[styles.lyricsBox, hasLyrics ? { height: 170, marginTop: 22, opacity: 1 } : { height: 0, marginTop: 0, opacity: 0 }]}
-										onTouchStart={() => { touchInLyrics.current = true }}
-										onTouchEnd={() => { touchInLyrics.current = false }}
-										onTouchCancel={() => { touchInLyrics.current = false }}
-									>
-										<Lyric
-											song={song}
-											style={{ width: '100%', height: 170 }}
-											sizeText={15}
-											activeSizeText={19}
-											gap={10}
-											paddingVertical={66}
-											color={{ active: VICI.gold, inactive: VICI.text3 }}
-											onAvailable={onLyricsAvailable}
-										/>
-									</GlassView>
-								</>
+								<VinylCover coverSize={coverSize} width={contentWidth} />
 							)}
-						</View>
 
 						{/* Название и исполнитель по центру */}
 						<View style={styles.meta}>
@@ -340,12 +311,19 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 									style={{ padding: 8 }}
 									onPress={() => Player.previousSong(config, song, songDispatch)}
 								/>
-								<View style={styles.playCircle}>
-									<PlayButton
-										size={24}
-										color="#1a1206"
-										style={{ width: 66, height: 66, justifyContent: 'center', alignItems: 'center' }}
-									/>
+								<View style={styles.playShadow}>
+									<LinearGradient
+										colors={['#F6DC8F', '#E6BD55', '#C99A38']}
+										start={{ x: 0.2, y: 0 }}
+										end={{ x: 0.8, y: 1 }}
+										style={styles.playCircle}
+									>
+										<PlayButton
+											size={24}
+											color="#1a1206"
+											style={{ width: 68, height: 68, justifyContent: 'center', alignItems: 'center' }}
+										/>
+									</LinearGradient>
 								</View>
 								<IconButton
 									icon="step-forward"
@@ -363,6 +341,13 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 								onPress={() => Player.setRepeat(songDispatch, isShuffle ? 'next' : 'random')}
 							/>
 						</View>
+						</View>
+
+						{/* Подсказка: текст песни открывается свайпом вверх или нажатием */}
+						<Pressable onPress={openLyrics} style={({ pressed }) => [styles.lyricsHint, { opacity: pressed ? 0.6 : 1 }]}>
+							<Icon name="chevron-up" size={12} color={VICI.text3} />
+							<Text style={styles.lyricsHintText}>{t('Lyrics')}</Text>
+						</Pressable>
 					</View>
 				</View>
 
@@ -442,7 +427,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 		alignItems: 'center',
 		paddingHorizontal: 64,
-		marginTop: 14,
+		marginTop: 30,
 		marginBottom: 6,
 	},
 	title: {
@@ -506,16 +491,34 @@ const styles = StyleSheet.create({
 		backgroundColor: 'rgba(246,240,232,0.35)',
 		marginBottom: 14,
 	},
+	playShadow: {
+		width: 68,
+		height: 68,
+		borderRadius: 34,
+		elevation: 10,
+		backgroundColor: '#C99A38',
+	},
 	playCircle: {
-		width: 66,
-		height: 66,
-		borderRadius: 33,
-		backgroundColor: VICI.gold,
-		borderTopWidth: 1,
-		borderColor: '#FFF1BF',
+		width: 68,
+		height: 68,
+		borderRadius: 34,
+		overflow: 'hidden',
 		alignItems: 'center',
 		justifyContent: 'center',
-		elevation: 8,
+	},
+	lyricsHint: {
+		alignSelf: 'center',
+		alignItems: 'center',
+		paddingHorizontal: 24,
+		paddingTop: 10,
+		paddingBottom: 2,
+	},
+	lyricsHintText: {
+		color: VICI.text3,
+		fontSize: 11,
+		fontFamily: 'display',
+		letterSpacing: 2,
+		marginTop: 2,
 	},
 })
 

@@ -5,6 +5,7 @@
 <p align="center">
   <a href="https://github.com/Aut0iq/Vici/releases/latest"><img src="https://img.shields.io/github/v/release/Aut0iq/Vici?style=flat-square&color=E6BD55&label=release" alt="Последний релиз"></a>
   <a href="https://github.com/Aut0iq/Vici/actions/workflows/android-release.yml"><img src="https://img.shields.io/github/actions/workflow/status/Aut0iq/Vici/android-release.yml?style=flat-square&label=build" alt="Сборка"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-E6BD55?style=flat-square" alt="MIT"></a>
   <img src="https://img.shields.io/badge/platform-Android-3DDC84?style=flat-square" alt="Android">
   <img src="https://img.shields.io/badge/server-Navidrome%20%2F%20Subsonic-7a2a45?style=flat-square" alt="Navidrome">
 </p>
@@ -78,8 +79,10 @@ git push origin v2026.09.20
 
 ## Лицензия
 
-Условия использования кода — в файле [LICENSE](LICENSE).
+Vici распространяется под лицензией [MIT](LICENSE) © 2026 [Aut0iq](https://github.com/Aut0iq).
 
-Исходный код Castafiore распространяется под лицензией [Unlicense](https://unlicense.org/) (общественное достояние).
+Код можно свободно использовать, изменять и распространять, в том числе в своих проектах, при условии сохранения уведомления об авторских правах и текста лицензии.
+
+Vici основан на [Castafiore](https://github.com/sawyerf/Castafiore), исходный код которого передан в общественное достояние ([Unlicense](https://unlicense.org/)).
 
 [LRCLIB]: https://lrclib.net/

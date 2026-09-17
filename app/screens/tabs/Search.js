@@ -17,6 +17,7 @@ import SongsList from '~/components/lists/SongsList'
 import HistoryItem from '~/components/item/HistoryItem'
 import size from '~/styles/size'
 import SectionTitle from '~/components/SectionTitle'
+import ScreenBackground from '~/components/ScreenBackground'
 
 const STATES = {
 	INIT: 'init',
@@ -225,8 +226,9 @@ const Search = () => {
 	}
 
 	return (
+		<ScreenBackground>
 		<View style={[
-			mainStyles.mainContainer(theme),
+			{ flex: 1 },
 			mainStyles.contentMainContainer(insets), {
 				paddingBottom: 0,
 			}]}>
@@ -240,8 +242,11 @@ const Search = () => {
 						textAlign: 'left',
 						padding: 8,
 						paddingStart: 42,
-						borderRadius: 10,
-						backgroundColor: theme.secondaryBack,
+						borderRadius: 16,
+						backgroundColor: theme.glass || theme.secondaryBack,
+						borderWidth: theme.glass ? 1 : 0,
+						borderColor: theme.glassEdge,
+						borderTopColor: theme.glassHighlight,
 						outline: 'none',
 					}}
 					placeholder={t("Search")}
@@ -261,7 +266,7 @@ const Search = () => {
 				}
 				<Icon name="search" size={size.icon.tiny} color={theme.secondaryText} style={{ position: 'absolute', left: 0, lineHeight: 20, paddingVertical: 11.5, paddingHorizontal: 12 }} />
 			</View>
-			<ScrollView vertical={true} style={{ flex: 1 }} contentContainerStyle={{ flexDirection: 'column', paddingBottom: 80, gap: 10 }}>
+			<ScrollView vertical={true} style={{ flex: 1 }} contentContainerStyle={{ flexDirection: 'column', paddingBottom: insets.bottom + 180, gap: 10 }}>
 				<SearchResult
 					state={state}
 					query={query}
@@ -273,6 +278,7 @@ const Search = () => {
 				/>
 			</ScrollView>
 		</View>
+		</ScreenBackground>
 	)
 }
 
@@ -284,8 +290,11 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderRadius: 10,
-		backgroundColor: theme.secondaryBack,
+		borderRadius: 18,
+		backgroundColor: theme.glass || theme.secondaryBack,
+		borderWidth: theme.glass ? 1 : 0,
+		borderColor: theme.glassEdge,
+		borderTopColor: theme.glassHighlight,
 		maxWidth: 400,
 	}),
 })

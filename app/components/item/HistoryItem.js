@@ -50,7 +50,7 @@ const HistoryItem = ({ itemHist, index, setQuery, delItemHistory }) => {
 							style={{
 								width: 45,
 								height: 45,
-								borderRadius: itemHist.mediaType === 'artist' ? size.radius.circle : 3,
+								borderRadius: itemHist.mediaType === 'artist' ? size.radius.circle : 10,
 								marginEnd: 10,
 								backgroundColor: theme.secondaryBack,
 							}}

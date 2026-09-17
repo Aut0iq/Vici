@@ -4,7 +4,8 @@ import size from "~/styles/size"
 export default StyleSheet.create({
 	mainContainer: (theme) => ({
 		flex: 1,
-		backgroundColor: theme.primaryBack,
+		// В теме Vici фон рисует ScreenBackground, поэтому здесь прозрачно
+		backgroundColor: theme.ambient ? 'transparent' : theme.primaryBack,
 	}),
 	contentMainContainer: (insets, statusBar = true) => ({
 		paddingTop: statusBar ? insets.top : 0,

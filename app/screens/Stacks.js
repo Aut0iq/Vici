@@ -42,6 +42,40 @@ import SharesSettings from '~/screens/Settings/Shares'
 import ThemeSettings from '~/screens/Settings/Theme'
 
 import { useTheme } from '~/contexts/theme'
+import { withBackground } from '~/components/ScreenBackground'
+
+// Внутренние экраны получают фон Vici (цвета текущего трека)
+const bg = Object.fromEntries(Object.entries({
+	AddServer,
+	Album,
+	AlbumExplorer,
+	Artist,
+	ArtistAlbums,
+	ArtistExplorer,
+	CacheSettings,
+	Connect,
+	EditPlaylist,
+	Favorited,
+	FreshReleases,
+	Genre,
+	GenreAlbum,
+	GenreSong,
+	HomeSettings,
+	Info,
+	InformationsSettings,
+	LanguageSettings,
+	LogsSettings,
+	PlayerSettings,
+	Playlist,
+	PlaylistsSettings,
+	SearchMore,
+	SharesSettings,
+	ShowAll,
+	SongExplorer,
+	Songs,
+	ThemeSettings,
+	UpdateRadio,
+}).map(([name, Screen]) => [name, withBackground(Screen)]))
 
 const Stack = createNativeStackNavigator()
 
@@ -62,20 +96,20 @@ export const HomeStack = () => {
 			}}
 		>
 			<Stack.Screen name="Home" component={Home} />
-			<Stack.Screen name="ShowAll" component={ShowAll} />
-			<Stack.Screen name="FreshReleases" component={FreshReleases} />
-			<Stack.Screen name="UpdateRadio" component={UpdateRadio} />
+			<Stack.Screen name="ShowAll" component={bg.ShowAll} />
+			<Stack.Screen name="FreshReleases" component={bg.FreshReleases} />
+			<Stack.Screen name="UpdateRadio" component={bg.UpdateRadio} />
 			{/* Pres */}
-			<Stack.Screen name="Album" component={Album} />
-			<Stack.Screen name="Artist" component={Artist} />
-			<Stack.Screen name="ArtistAlbums" component={ArtistAlbums} />
-			<Stack.Screen name="EditPlaylist" component={EditPlaylist} />
-			<Stack.Screen name="Genre" component={Genre} />
-			<Stack.Screen name="GenreAlbum" component={GenreAlbum} />
-			<Stack.Screen name="GenreSong" component={GenreSong} />
-			<Stack.Screen name="Info" component={Info} />
-			<Stack.Screen name="Playlist" component={Playlist} />
-			<Stack.Screen name="Songs" component={Songs} />
+			<Stack.Screen name="Album" component={bg.Album} />
+			<Stack.Screen name="Artist" component={bg.Artist} />
+			<Stack.Screen name="ArtistAlbums" component={bg.ArtistAlbums} />
+			<Stack.Screen name="EditPlaylist" component={bg.EditPlaylist} />
+			<Stack.Screen name="Genre" component={bg.Genre} />
+			<Stack.Screen name="GenreAlbum" component={bg.GenreAlbum} />
+			<Stack.Screen name="GenreSong" component={bg.GenreSong} />
+			<Stack.Screen name="Info" component={bg.Info} />
+			<Stack.Screen name="Playlist" component={bg.Playlist} />
+			<Stack.Screen name="Songs" component={bg.Songs} />
 		</Stack.Navigator>
 	)
 }
@@ -97,19 +131,19 @@ export const SearchStack = () => {
 			}}
 		>
 			<Stack.Screen name="Search" component={Search} />
-			<Stack.Screen name="SearchMore" component={SearchMore} />
-			<Stack.Screen name="AlbumExplorer" component={AlbumExplorer} />
-			<Stack.Screen name="ArtistExplorer" component={ArtistExplorer} />
-			<Stack.Screen name="SongExplorer" component={SongExplorer} />
+			<Stack.Screen name="SearchMore" component={bg.SearchMore} />
+			<Stack.Screen name="AlbumExplorer" component={bg.AlbumExplorer} />
+			<Stack.Screen name="ArtistExplorer" component={bg.ArtistExplorer} />
+			<Stack.Screen name="SongExplorer" component={bg.SongExplorer} />
 			{/* Pres */}
-			<Stack.Screen name="Album" component={Album} />
-			<Stack.Screen name="Artist" component={Artist} />
-			<Stack.Screen name="ArtistAlbums" component={ArtistAlbums} />
-			<Stack.Screen name="Genre" component={Genre} />
-			<Stack.Screen name="GenreAlbum" component={GenreAlbum} />
-			<Stack.Screen name="GenreSong" component={GenreSong} />
-			<Stack.Screen name="Info" component={Info} />
-			<Stack.Screen name="Songs" component={Songs} />
+			<Stack.Screen name="Album" component={bg.Album} />
+			<Stack.Screen name="Artist" component={bg.Artist} />
+			<Stack.Screen name="ArtistAlbums" component={bg.ArtistAlbums} />
+			<Stack.Screen name="Genre" component={bg.Genre} />
+			<Stack.Screen name="GenreAlbum" component={bg.GenreAlbum} />
+			<Stack.Screen name="GenreSong" component={bg.GenreSong} />
+			<Stack.Screen name="Info" component={bg.Info} />
+			<Stack.Screen name="Songs" component={bg.Songs} />
 		</Stack.Navigator>
 	)
 }
@@ -120,16 +154,16 @@ export const MixesStack = () => {
 	return (
 		<Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.primaryBack }, animation: 'fade' }}>
 			<Stack.Screen name="Mixes" component={Mixes} />
-			<Stack.Screen name="Playlist" component={Playlist} />
-			<Stack.Screen name="EditPlaylist" component={EditPlaylist} />
-			<Stack.Screen name="Album" component={Album} />
-			<Stack.Screen name="Artist" component={Artist} />
-			<Stack.Screen name="ArtistAlbums" component={ArtistAlbums} />
-			<Stack.Screen name="Genre" component={Genre} />
-			<Stack.Screen name="GenreAlbum" component={GenreAlbum} />
-			<Stack.Screen name="GenreSong" component={GenreSong} />
-			<Stack.Screen name="Info" component={Info} />
-			<Stack.Screen name="Songs" component={Songs} />
+			<Stack.Screen name="Playlist" component={bg.Playlist} />
+			<Stack.Screen name="EditPlaylist" component={bg.EditPlaylist} />
+			<Stack.Screen name="Album" component={bg.Album} />
+			<Stack.Screen name="Artist" component={bg.Artist} />
+			<Stack.Screen name="ArtistAlbums" component={bg.ArtistAlbums} />
+			<Stack.Screen name="Genre" component={bg.Genre} />
+			<Stack.Screen name="GenreAlbum" component={bg.GenreAlbum} />
+			<Stack.Screen name="GenreSong" component={bg.GenreSong} />
+			<Stack.Screen name="Info" component={bg.Info} />
+			<Stack.Screen name="Songs" component={bg.Songs} />
 		</Stack.Navigator>
 	)
 }
@@ -151,18 +185,18 @@ export const PlaylistsStack = () => {
 			}}
 		>
 			<Stack.Screen name="Playlists" component={Playlists} />
-			<Stack.Screen name="Favorited" component={Favorited} />
+			<Stack.Screen name="Favorited" component={bg.Favorited} />
 			{/* Pres */}
-			<Stack.Screen name="Album" component={Album} />
-			<Stack.Screen name="Artist" component={Artist} />
-			<Stack.Screen name="ArtistAlbums" component={ArtistAlbums} />
-			<Stack.Screen name="EditPlaylist" component={EditPlaylist} />
-			<Stack.Screen name="Genre" component={Genre} />
-			<Stack.Screen name="GenreAlbum" component={GenreAlbum} />
-			<Stack.Screen name="GenreSong" component={GenreSong} />
-			<Stack.Screen name="Info" component={Info} />
-			<Stack.Screen name="Playlist" component={Playlist} />
-			<Stack.Screen name="Songs" component={Songs} />
+			<Stack.Screen name="Album" component={bg.Album} />
+			<Stack.Screen name="Artist" component={bg.Artist} />
+			<Stack.Screen name="ArtistAlbums" component={bg.ArtistAlbums} />
+			<Stack.Screen name="EditPlaylist" component={bg.EditPlaylist} />
+			<Stack.Screen name="Genre" component={bg.Genre} />
+			<Stack.Screen name="GenreAlbum" component={bg.GenreAlbum} />
+			<Stack.Screen name="GenreSong" component={bg.GenreSong} />
+			<Stack.Screen name="Info" component={bg.Info} />
+			<Stack.Screen name="Playlist" component={bg.Playlist} />
+			<Stack.Screen name="Songs" component={bg.Songs} />
 		</Stack.Navigator>
 	)
 }
@@ -184,17 +218,17 @@ export const SettingsStack = () => {
 			}}
 		>
 			<Stack.Screen name="Settings" component={Settings} />
-			<Stack.Screen name="Connect" component={Connect} />
-			<Stack.Screen name="Settings/AddServer" component={AddServer} />
-			<Stack.Screen name="Settings/Home" component={HomeSettings} />
-			<Stack.Screen name="Settings/Playlists" component={PlaylistsSettings} />
-			<Stack.Screen name="Settings/Cache" component={CacheSettings} />
-			<Stack.Screen name="Settings/Theme" component={ThemeSettings} />
-			<Stack.Screen name="Settings/Informations" component={InformationsSettings} />
-			<Stack.Screen name="Settings/Player" component={PlayerSettings} />
-			<Stack.Screen name="Settings/Shares" component={SharesSettings} />
-			<Stack.Screen name="Settings/Language" component={LanguageSettings} />
-			<Stack.Screen name="Settings/Logs" component={LogsSettings} />
+			<Stack.Screen name="Connect" component={bg.Connect} />
+			<Stack.Screen name="Settings/AddServer" component={bg.AddServer} />
+			<Stack.Screen name="Settings/Home" component={bg.HomeSettings} />
+			<Stack.Screen name="Settings/Playlists" component={bg.PlaylistsSettings} />
+			<Stack.Screen name="Settings/Cache" component={bg.CacheSettings} />
+			<Stack.Screen name="Settings/Theme" component={bg.ThemeSettings} />
+			<Stack.Screen name="Settings/Informations" component={bg.InformationsSettings} />
+			<Stack.Screen name="Settings/Player" component={bg.PlayerSettings} />
+			<Stack.Screen name="Settings/Shares" component={bg.SharesSettings} />
+			<Stack.Screen name="Settings/Language" component={bg.LanguageSettings} />
+			<Stack.Screen name="Settings/Logs" component={bg.LogsSettings} />
 		</Stack.Navigator>
 	)
 }

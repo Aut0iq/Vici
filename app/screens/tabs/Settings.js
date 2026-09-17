@@ -15,6 +15,7 @@ import mainStyles from '~/styles/main'
 import Player from '~/utils/player'
 import settingStyles from '~/styles/settings'
 import size from '~/styles/size'
+import ScreenBackground from '~/components/ScreenBackground'
 
 const Settings = ({ navigation }) => {
 	const { t } = useTranslation()
@@ -26,14 +27,16 @@ const Settings = ({ navigation }) => {
 	const songDispatch = useSongDispatch()
 
 	return (
+		<ScreenBackground>
 		<ScrollView
-			style={mainStyles.mainContainer(theme)}
+			style={{ flex: 1 }}
 			contentContainerStyle={[
 				mainStyles.contentMainContainer(insets),
 				settingStyles.contentMainContainer
 			]}
 		>
-			<View style={[settingStyles.optionsContainer(theme), { marginTop: 40 }]}>
+			<Text style={[mainStyles.mainTitle(theme), { alignSelf: 'flex-start', marginHorizontal: 0, marginTop: 30, marginBottom: 20 }]}>{t('tabs.Settings')}</Text>
+			<View style={settingStyles.optionsContainer(theme)}>
 				<Pressable
 					onPress={() => Player.tuktuktuk(songDispatch)}
 					style={({ pressed }) => ([mainStyles.opacity({ pressed }), {
@@ -44,10 +47,10 @@ const Settings = ({ navigation }) => {
 					}])}>
 					<Image
 						source={require('~/../assets/icon.png')}
-						style={mainStyles.icon}
+						style={[mainStyles.icon, { borderRadius: 12 }]}
 					/>
 					<View style={{ flexDirection: 'column', justifyContent: 'center' }}>
-						<Text style={{ color: theme.primaryText, fontSize: size.text.large, marginBottom: 0 }}>Vici</Text>
+						<Text style={{ color: theme.primaryTouch, fontSize: size.text.large, fontWeight: 'bold', letterSpacing: 4, marginBottom: 0 }}>VICI</Text>
 						<Text style={{ color: theme.secondaryText, fontSize: size.text.small }}>Version {pkg.version}</Text>
 					</View>
 				</Pressable>
@@ -79,7 +82,7 @@ const Settings = ({ navigation }) => {
 				/>
 				<ButtonMenu
 					title={t("Playlists")}
-					icon="book"
+					icon="list-ul"
 					onPress={() => navigation.navigate('Settings/Playlists')}
 				/>
 				<ButtonMenu
@@ -157,6 +160,7 @@ const Settings = ({ navigation }) => {
 			</View>
 
 		</ScrollView>
+		</ScreenBackground>
 	)
 }
 

@@ -9,7 +9,7 @@ import FavoritedButton from '~/components/button/FavoritedButton'
 import size from '~/styles/size'
 import mainStyles from '~/styles/main'
 
-const ExplorerItem = ({ item, title, subTitle, onPress, onLongPress, borderRadius = 0, iconError = null, isFavorited = null }) => {
+const ExplorerItem = ({ item, title, subTitle, onPress, onLongPress, borderRadius = 14, iconError = null, isFavorited = null }) => {
 	const theme = useTheme()
 	const config = useConfig()
 

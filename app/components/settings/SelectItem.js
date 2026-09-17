@@ -1,5 +1,6 @@
 import React from 'react'
-import { Pressable, Text } from 'react-native'
+import { Pressable } from 'react-native'
+import Text from '~/components/Text'
 import Icon from 'react-native-vector-icons/FontAwesome'
 
 import { useTheme } from '~/contexts/theme'

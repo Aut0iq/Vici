@@ -15,6 +15,8 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@expo-google-fonts/cinzel": "^0.4.2",
+    "@expo-google-fonts/manrope": "^0.4.2",
     "@legendapp/list": "^1.1.4",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/bottom-tabs": "^7.3.13",
@@ -25,6 +27,7 @@
     "expo-build-properties": "~0.14.8",
     "expo-dev-client": "~5.2.4",
     "expo-file-system": "~18.1.11",
+    "expo-font": "~13.3.2",
     "expo-linear-gradient": "~14.1.5",
     "fast-xml-parser": "^5.3.3",
     "i18next": "^25.3.1",
@@ -33,6 +36,7 @@
     "react-dom": "19.0.0",
     "react-i18next": "^15.6.0",
     "react-native": "0.79.6",
+    "react-native-android-widget": "0.17.2",
     "react-native-edge-to-edge": "^1.6.0",
     "react-native-google-cast": "^4.9.1",
     "react-native-image-colors": "^2.6.0",

@@ -1,5 +1,6 @@
 import React from 'react'
-import { ScrollView, Pressable, Text } from 'react-native'
+import { ScrollView, Pressable } from 'react-native'
+import Text from '~/components/Text'
 import { useTheme } from '~/contexts/theme'
 
 const Selector = ({ current, items, setData }) => {

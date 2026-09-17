@@ -1,5 +1,6 @@
 import React from 'react'
-import { Text, View, ScrollView, StyleSheet, Pressable, Platform } from 'react-native'
+import { View, ScrollView, StyleSheet, Pressable, Platform } from 'react-native'
+import Text from '~/components/Text'
 import { useNavigation } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
 		fontSize: 24,
 		fontWeight: 'bold',
 		letterSpacing: 6,
-		fontFamily: Platform.select({ android: 'serif', ios: 'Georgia', default: 'Georgia, serif' }),
+		fontFamily: 'display',
 	},
 	card: {
 		marginHorizontal: 16,
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: '-40%',
 		width: '180%',
-		bottom: -588,
+		bottom: -598,
 		height: 600,
 		borderRadius: 600,
 		borderTopWidth: 2,

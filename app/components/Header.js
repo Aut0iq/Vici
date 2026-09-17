@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, StyleSheet } from 'react-native'
+import Text from '~/components/Text'
 import { useNavigation } from '@react-navigation/native'
 
 import { useTheme } from '~/contexts/theme'
@@ -50,6 +51,7 @@ const styles = StyleSheet.create({
 		color: theme.primaryText,
 		fontSize: size.text.large,
 		fontWeight: 'bold',
+		fontFamily: theme.ambient ? 'display' : undefined,
 		flex: 1,
 		textAlign: 'center',
 	}),

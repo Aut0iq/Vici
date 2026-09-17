@@ -1,5 +1,6 @@
 import React from 'react'
-import { Text, FlatList, Pressable } from 'react-native'
+import { FlatList, Pressable } from 'react-native'
+import Text from '~/components/Text'
 import { useTranslation } from 'react-i18next'
 
 import { useTheme } from '~/contexts/theme'

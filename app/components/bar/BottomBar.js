@@ -1,5 +1,6 @@
 import React from 'react'
-import { Text, View, Pressable, Platform, StyleSheet } from 'react-native'
+import { View, Pressable, Platform, StyleSheet } from 'react-native'
+import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { BlurView } from 'expo-blur'

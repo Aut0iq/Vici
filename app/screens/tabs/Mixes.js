@@ -1,5 +1,6 @@
 import React from 'react'
-import { ScrollView, Text, View, StyleSheet, Pressable, ActivityIndicator } from 'react-native'
+import { ScrollView, View, StyleSheet, Pressable, ActivityIndicator } from 'react-native'
+import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import Icon from 'react-native-vector-icons/FontAwesome'
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
 	label: {
 		color: '#E6BD55',
 		fontSize: 11,
-		fontWeight: 'bold',
+		fontFamily: 'display',
 		letterSpacing: 2,
 	},
 	title: {

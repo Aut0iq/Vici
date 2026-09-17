@@ -1,6 +1,6 @@
 import React from 'react'
-import { Text, View, TextInput, Platform } from 'react-native'
-
+import { View, Platform } from 'react-native'
+import Text, { TextInput } from '~/components/Text'
 import { useTheme } from '~/contexts/theme'
 import settingStyles from '~/styles/settings'
 import size from '~/styles/size'

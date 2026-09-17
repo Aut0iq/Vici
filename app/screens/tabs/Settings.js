@@ -1,6 +1,7 @@
 import React from 'react'
 import pkg from '~/../package.json'
-import { Text, View, Image, ScrollView, Pressable, Linking } from 'react-native'
+import { View, Image, ScrollView, Pressable, Linking } from 'react-native'
+import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 
@@ -50,7 +51,7 @@ const Settings = ({ navigation }) => {
 						style={[mainStyles.icon, { borderRadius: 12 }]}
 					/>
 					<View style={{ flexDirection: 'column', justifyContent: 'center' }}>
-						<Text style={{ color: theme.primaryTouch, fontSize: size.text.large, fontWeight: 'bold', letterSpacing: 4, marginBottom: 0 }}>VICI</Text>
+						<Text style={{ color: theme.primaryTouch, fontSize: size.text.large, fontFamily: 'display', letterSpacing: 4, marginBottom: 0 }}>VICI</Text>
 						<Text style={{ color: theme.secondaryText, fontSize: size.text.small }}>Version {pkg.version}</Text>
 					</View>
 				</Pressable>

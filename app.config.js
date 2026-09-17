@@ -8,6 +8,7 @@ module.exports = ({ config }) => {
 		expo: {
 			name: "Vici" + (process.env.IS_DEV === "true" ? " (dev)" : ""),
 			slug: "vici",
+			scheme: "vici",
 			description: "Vici is a music player for Navidrome and Subsonic API.",
 			version: config.version,
 			orientation: "default",
@@ -63,6 +64,26 @@ module.exports = ({ config }) => {
 				],
 				[
 					'./plugins/asyncStorage.js'
+				],
+				[
+					"react-native-android-widget",
+					{
+						widgets: [
+							{
+								name: "ViciPlayer",
+								label: "Vici",
+								description: "Сейчас играет",
+								minWidth: "320dp",
+								minHeight: "50dp",
+								targetCellWidth: 5,
+								targetCellHeight: 1,
+								maxResizeHeight: "110dp",
+								resizeMode: "horizontal|vertical",
+								previewImage: "./assets/widget-preview.png",
+								updatePeriodMillis: 0,
+							},
+						],
+					},
 				],
 				[
 					"react-native-google-cast",

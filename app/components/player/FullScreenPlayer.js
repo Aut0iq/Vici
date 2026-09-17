@@ -1,5 +1,6 @@
 import React from 'react'
-import { Text, View, Modal, FlatList, StyleSheet, useWindowDimensions, Pressable, Platform, LayoutAnimation, UIManager, Animated, PanResponder, Easing } from 'react-native'
+import { View, Modal, FlatList, StyleSheet, useWindowDimensions, Pressable, Platform, LayoutAnimation, UIManager, Animated, PanResponder, Easing } from 'react-native'
+import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'

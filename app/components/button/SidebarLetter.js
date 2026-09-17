@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, Text, PanResponder, Dimensions } from 'react-native'
+import { View, PanResponder, Dimensions } from 'react-native'
+import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import size from '~/styles/size'

@@ -1,5 +1,6 @@
 import React from 'react'
-import { Text, View, StyleSheet, Pressable, Platform } from 'react-native'
+import { View, StyleSheet, Pressable, Platform } from 'react-native'
+import Text from '~/components/Text'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 import Icon from 'react-native-vector-icons/FontAwesome'

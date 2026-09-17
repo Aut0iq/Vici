@@ -3,6 +3,14 @@ if (process.env.IS_DEV === "true") {
 	packageName = "com.aut0iq.vici.dev"
 }
 
+// Номер сборки Android из версии: 2026.09.17 -> 26091700, 2026.09.17.1 -> 26091701.
+// Он растёт с каждой новой версией, поэтому обновления ставятся поверх без проблем
+const toVersionCode = (version) => {
+	const [y = '', m = '', d = '', build = '0'] = String(version || '').split('.')
+	const code = parseInt(`${y.slice(-2)}${m.padStart(2, '0')}${d.padStart(2, '0')}${build.padStart(2, '0')}`, 10)
+	return Number.isFinite(code) && code > 0 ? code : 1
+}
+
 module.exports = ({ config }) => {
 	return {
 		expo: {
@@ -20,6 +28,7 @@ module.exports = ({ config }) => {
 			],
 			android: {
 				package: packageName,
+				versionCode: toVersionCode(config.version),
 				edgeToEdgeEnabled: true,
 				permissions: [
 					"CHANGE_WIFI_MULTICAST_STATE",

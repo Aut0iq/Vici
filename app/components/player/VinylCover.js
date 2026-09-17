@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Animated, Easing, Platform } from 'react-native'
+import { View, Animated, Easing, Platform, Pressable } from 'react-native'
 
 import { useConfig } from '~/contexts/config'
 import { useSong } from '~/contexts/song'
@@ -7,18 +7,19 @@ import { urlCover } from '~/utils/url'
 import ImageError from '~/components/ImageError'
 import { LinearGradient } from 'expo-linear-gradient'
 import State from '~/utils/playerState'
-import SlideControl from '~/components/button/SlideControl'
 
 // Один оборот пластинки, в миллисекундах
 const TURN_DURATION = 8000
 
 // Обложка трека спереди, а за ней крутится пластинка.
 // coverSize — сторона обложки, width — ширина всей области.
-const VinylCover = ({ coverSize, width }) => {
+// translateX — сдвиг обложки при свайпе (жесты обрабатывает сам плеер), onDoubleTap — пауза
+const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, onCoverTouch = null }) => {
 	const config = useConfig()
 	const song = useSong()
 	const spin = React.useRef(new Animated.Value(0)).current
 	const isPlaying = song.state === State.Playing
+	const lastTap = React.useRef(0)
 
 	const cover = Math.round(coverSize)
 	const vinyl = Math.round(cover * 1.12)
@@ -123,7 +124,11 @@ const VinylCover = ({ coverSize, width }) => {
 			</Animated.View>
 
 			{/* Обложка: свайп влево/вправо — переключить трек, двойной тап — пауза */}
-			<SlideControl
+			<Animated.View
+				// Сообщаем плееру, что палец лёг на обложку — тогда свайп влево/вправо переключит трек
+				onTouchStart={() => onCoverTouch?.(true)}
+				onTouchEnd={() => onCoverTouch?.(false)}
+				onTouchCancel={() => onCoverTouch?.(false)}
 				style={{
 					position: 'absolute',
 					left: coverLeft,
@@ -133,13 +138,24 @@ const VinylCover = ({ coverSize, width }) => {
 					borderRadius: 22,
 					backgroundColor: '#1d191c',
 					elevation: 18,
+					transform: translateX ? [{ translateX }] : [],
 				}}
 			>
-				<ImageError
-					source={{ uri: urlCover(config, song?.songInfo) }}
-					style={{ width: cover, height: cover, borderRadius: 22 }}
-				/>
-			</SlideControl>
+				<Pressable
+					onPress={() => {
+						const now = Date.now()
+						if (now - lastTap.current < 300) {
+							lastTap.current = 0
+							onDoubleTap?.()
+						} else lastTap.current = now
+					}}
+				>
+					<ImageError
+						source={{ uri: urlCover(config, song?.songInfo) }}
+						style={{ width: cover, height: cover, borderRadius: 22 }}
+					/>
+				</Pressable>
+			</Animated.View>
 		</View>
 	)
 }

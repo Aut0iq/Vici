@@ -37,9 +37,16 @@ yarn-error.*
 *.aab
 *.apk
 *.zip
-android
-ios
-android/**
+# Папки нативных проектов создаются командой prebuild и в репозиторий не попадают
+/android
+/ios
+/android/**
+
+# ...но собственные нативные модули в modules/ нужны для сборки
+!modules/*/android/
+!modules/*/android/**
+!modules/*/ios/
+!modules/*/ios/**
 .node_modules
 node_modules
 dist

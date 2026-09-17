@@ -14,6 +14,7 @@ import mainStyles from '~/styles/main'
 import SongsList from '~/components/lists/SongsList'
 import VerticalPlaylist from '~/components/lists/VerticalPlaylist'
 import size from '~/styles/size'
+import ScreenBackground from '~/components/ScreenBackground'
 
 const Playlists = ({ navigation }) => {
 	const { t } = useTranslation()
@@ -71,9 +72,10 @@ const Playlists = ({ navigation }) => {
 	}
 
 	return (
+		<ScreenBackground>
 		<ScrollView
 			vertical={true}
-			style={mainStyles.mainContainer(theme)}
+			style={{ flex: 1 }}
 			contentContainerStyle={mainStyles.contentMainContainer(insets)}
 		>
 			<View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginEnd: 20, marginTop: 30, marginBottom: 20 }}>
@@ -105,9 +107,10 @@ const Playlists = ({ navigation }) => {
 							<TextInput
 								style={{
 									height: 40,
-									borderColor: 'gray',
+									borderColor: theme.glassEdge || 'gray',
 									borderWidth: 1,
-									borderRadius: 6,
+									borderRadius: 14,
+									backgroundColor: theme.glass,
 									color: theme.primaryText,
 									flex: 1,
 									paddingHorizontal: 10,
@@ -126,7 +129,7 @@ const Playlists = ({ navigation }) => {
 								onPress={() => newPlaylist?.length > 0 ? addPlaylist() : setNewPlaylist(null)} />
 						</> :
 						<>
-							<Icon name="heart" size={size.icon.small} color={theme.primaryTouch} style={{ marginEnd: 10 }} />
+							<Icon name="list-ul" size={size.icon.small} color={theme.primaryTouch} style={{ marginEnd: 10 }} />
 							<Text style={[mainStyles.subTitle(theme), { flex: 1 }]}>{t('Playlists')}</Text>
 							<IconButton
 								icon="plus"
@@ -139,6 +142,7 @@ const Playlists = ({ navigation }) => {
 			</View>
 			<VerticalPlaylist playlists={playlists} onRefresh={refreshPlaylists} />
 		</ScrollView>
+		</ScreenBackground>
 	)
 }
 

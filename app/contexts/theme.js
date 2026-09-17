@@ -54,6 +54,13 @@ export const themes = {
 		playerSecondaryText: '#9A9095',
 		playerButton: '#E6BD55',
 
+		// Стекло: полупрозрачные панели поверх фона из обложки
+		ambient: true,
+		glass: 'rgba(255,255,255,0.07)',
+		glassEdge: 'rgba(255,255,255,0.14)',
+		glassHighlight: 'rgba(255,255,255,0.26)',
+		glassLine: 'rgba(255,255,255,0.08)',
+
 		barStyle: 'light',
 	},
 	castafiore: {

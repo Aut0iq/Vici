@@ -20,7 +20,7 @@ const ButtonSwitch = ({ title, value, onPress, icon = null, isLast = false }) =>
 					aspectRatio: 1,
 					marginRight: 15,
 					backgroundColor: theme.primaryTouch,
-					borderRadius: 5,
+					borderRadius: 9,
 					alignItems: 'center',
 					justifyContent: 'center',
 				}}>

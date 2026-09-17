@@ -21,7 +21,7 @@ const ButtonMenu = ({ title, onPress, icon, endText = "", isLast = false }) => {
 					aspectRatio: 1,
 					marginRight: 15,
 					backgroundColor: theme.primaryTouch,
-					borderRadius: 5,
+					borderRadius: 9,
 					alignItems: 'center',
 					justifyContent: 'center',
 				}}>

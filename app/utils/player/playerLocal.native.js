@@ -145,6 +145,8 @@ const downloadSong = async (urlStream, id) => {
 
 const downloadNextSong = async (queue, currentIndex) => {
 	if (!global.isSongCaching) return
+	// Очередь ещё может быть не записана (трек загрузился раньше, чем обновилось состояние)
+	if (!Array.isArray(queue) || !queue.length || currentIndex === undefined || currentIndex === null) return
 	const maxIndex = Math.min(global.cacheNextSong, queue.length)
 
 	for (let i = -1; i < maxIndex; i++) {

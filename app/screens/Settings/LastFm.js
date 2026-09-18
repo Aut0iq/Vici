@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import Text from '~/components/Text'
 import { useTheme } from '~/contexts/theme'
-import { loadAccount, getAccount, requestToken, createSession, disconnect } from '~/utils/lastfm'
+import { loadAccount, requestToken, createSession, disconnect, getStats } from '~/utils/lastfm'
 import ButtonText from '~/components/settings/ButtonText'
 import Header from '~/components/Header'
 import mainStyles from '~/styles/main'
@@ -23,6 +23,15 @@ const LastFm = () => {
 	const [token, setToken] = React.useState(null)
 	const [status, setStatus] = React.useState(null)
 	const [isBusy, setIsBusy] = React.useState(false)
+	const [stats, setStats] = React.useState(null)
+
+	// Счётчик отправленных треков: обновляем при открытии экрана и раз в 5 секунд
+	React.useEffect(() => {
+		const refresh = () => getStats().then(setStats)
+		refresh()
+		const timer = setInterval(refresh, 5000)
+		return () => clearInterval(timer)
+	}, [])
 
 	React.useEffect(() => {
 		loadAccount().then((value) => {
@@ -78,10 +87,20 @@ const LastFm = () => {
 			{account?.sessionKey ? (
 				<>
 					<View style={settingStyles.optionsContainer(theme)}>
-						<View style={settingStyles.optionItem(theme, true)}>
+						<View style={settingStyles.optionItem(theme)}>
 							<Text style={settingStyles.primaryText(theme)}>{t('Connected as')}</Text>
 							<Text style={{ color: theme.primaryTouch, fontSize: size.text.medium, fontWeight: 'bold' }}>{account.username}</Text>
 						</View>
+						<View style={settingStyles.optionItem(theme, !stats?.queued)}>
+							<Text style={settingStyles.primaryText(theme)}>{t('Scrobbled tracks')}</Text>
+							<Text style={{ color: theme.primaryText, fontSize: size.text.medium, fontWeight: 'bold' }}>{stats?.count ?? 0}</Text>
+						</View>
+						{stats?.queued ? (
+							<View style={settingStyles.optionItem(theme, true)}>
+								<Text style={settingStyles.primaryText(theme)}>{t('Waiting to be sent')}</Text>
+								<Text style={{ color: theme.primaryText, fontSize: size.text.medium, fontWeight: 'bold' }}>{stats.queued}</Text>
+							</View>
+						) : null}
 					</View>
 					<Text style={settingStyles.description(theme)}>
 						{t('Tracks are sent to Last.fm straight from your phone.')}

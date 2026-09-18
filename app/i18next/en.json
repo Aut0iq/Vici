@@ -226,6 +226,8 @@
     "No UPNP/DLNA devices found": "No UPNP/DLNA devices found",
     "Error scanning for devices": "Error scanning for devices",
     "Stream music to compatible devices: Chromecast, UPNP/DLNA speakers, TVs, and media receivers.": "Stream music to compatible devices: Chromecast, UPNP/DLNA speakers, TVs, and media receivers.",
-    "Chromecast": "Chromecast"
+    "Chromecast": "Chromecast",
+    "Scrobbled tracks": "Scrobbled tracks",
+    "Waiting to be sent": "Waiting to be sent"
   }
 }

@@ -216,6 +216,8 @@
     "min": "мин",
     "minutes": "минуты",
     "song": "трек",
-    "songs": "треки"
+    "songs": "треки",
+    "Scrobbled tracks": "Отправлено треков",
+    "Waiting to be sent": "Ждут отправки"
   }
 }

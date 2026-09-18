@@ -1,6 +1,11 @@
 {
-  "platforms": ["android"],
+  "platforms": [
+    "android"
+  ],
   "android": {
-    "modules": ["expo.modules.audioroute.AudioRouteModule"]
+    "modules": [
+      "expo.modules.audioroute.AudioRouteModule",
+      "expo.modules.audioroute.AudioVisualizerModule"
+    ]
   }
 }

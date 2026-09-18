@@ -228,6 +228,9 @@
     "Stream music to compatible devices: Chromecast, UPNP/DLNA speakers, TVs, and media receivers.": "Stream music to compatible devices: Chromecast, UPNP/DLNA speakers, TVs, and media receivers.",
     "Chromecast": "Chromecast",
     "Scrobbled tracks": "Scrobbled tracks",
-    "Waiting to be sent": "Waiting to be sent"
+    "Waiting to be sent": "Waiting to be sent",
+    "Visualizer is not available in this build": "Visualizer is not available in this build",
+    "Allow audio access to see the visualizer": "Allow audio access to see the visualizer",
+    "Could not read the audio": "Could not read the audio"
   }
 }

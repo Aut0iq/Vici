@@ -33,6 +33,8 @@ module.exports = ({ config }) => {
 				permissions: [
 					"CHANGE_WIFI_MULTICAST_STATE",
 					"android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
+					"android.permission.RECORD_AUDIO",
+					"android.permission.MODIFY_AUDIO_SETTINGS",
 				],
 				adaptiveIcon: {
 					foregroundImage: "./assets/foreground-icon.png",

@@ -9,6 +9,7 @@ import logger from '~/utils/logger'
 const API = 'https://ws.audioscrobbler.com/2.0/'
 const KEY_ACCOUNT = 'lastfm.account'
 const KEY_QUEUE = 'lastfm.queue'
+const KEY_STATS = 'lastfm.stats'
 const MAX_QUEUE = 100
 
 let account = null // { apiKey, secret, sessionKey, username }
@@ -107,6 +108,26 @@ const readQueue = async () => {
 }
 const writeQueue = (queue) => AsyncStorage.setItem(KEY_QUEUE, JSON.stringify(queue.slice(-MAX_QUEUE))).catch(() => { })
 
+// Сколько треков ушло в Last.fm и когда был последний
+export const getStats = async () => {
+	let stats = { count: 0, lastAt: null }
+	try {
+		stats = { ...stats, ...JSON.parse(await AsyncStorage.getItem(KEY_STATS)) }
+	} catch { }
+	const queue = await readQueue()
+	return { ...stats, queued: queue.length }
+}
+
+const addToStats = async (added) => {
+	try {
+		const stats = JSON.parse(await AsyncStorage.getItem(KEY_STATS)) || {}
+		await AsyncStorage.setItem(KEY_STATS, JSON.stringify({
+			count: (stats.count || 0) + added,
+			lastAt: Date.now(),
+		}))
+	} catch { }
+}
+
 const sendScrobble = async (items) => {
 	const params = { ...authParams() }
 	items.forEach((item, i) => {
@@ -152,6 +173,7 @@ export const scrobble = async (song, timestamp) => {
 
 	try {
 		await sendScrobble(batch)
+		await addToStats(batch.length)
 		if (queue.length) await writeQueue([])
 		logger.info('LastFM', `Scrobbled ${item.artist} - ${item.track}`)
 	} catch (error) {

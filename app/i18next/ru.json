@@ -218,6 +218,9 @@
     "song": "трек",
     "songs": "треки",
     "Scrobbled tracks": "Отправлено треков",
-    "Waiting to be sent": "Ждут отправки"
+    "Waiting to be sent": "Ждут отправки",
+    "Visualizer is not available in this build": "Визуализатор недоступен в этой сборке",
+    "Allow audio access to see the visualizer": "Разрешите доступ к звуку, чтобы увидеть визуализатор",
+    "Could not read the audio": "Не удалось прочитать звук"
   }
 }

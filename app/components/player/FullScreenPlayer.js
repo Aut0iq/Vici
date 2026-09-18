@@ -24,6 +24,7 @@ import size from '~/styles/size'
 import SlideBar from '~/components/button/SlideBar'
 import SongItem from '~/components/item/SongItem'
 import VinylCover from '~/components/player/VinylCover'
+import Visualizer from '~/components/player/Visualizer'
 import GlassView from '~/components/GlassView'
 import AmbientBackground from '~/components/player/AmbientBackground'
 
@@ -150,6 +151,7 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 	const [isOptArtists, setIsOptArtists] = React.useState(false)
 	const [isOpt, setIsOpt] = React.useState(false)
 	const [isLyricsOpen, setIsLyricsOpen] = React.useState(false)
+	const [isVisualizer, setIsVisualizer] = React.useState(false)
 	const useNative = Platform.OS !== 'web'
 
 	// Анимации жестов: сдвиг всего плеера и выезжающая панель с текстом
@@ -337,6 +339,11 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 							>
 								<Text numberOfLines={1} style={styles.artist}>{song.songInfo.artist}</Text>
 							</Pressable>
+							<Pressable onPress={() => setIsVisualizer(true)} style={({ pressed }) => [styles.vizButton, { opacity: pressed ? 0.6 : 1 }]}>
+								<GlassView radius={21} style={{ width: 42, height: 42, alignItems: 'center', justifyContent: 'center' }}>
+									<Icon name="signal" size={16} color={VICI.gold} />
+								</GlassView>
+							</Pressable>
 							<View style={styles.heart}>
 								<FavoritedButton
 									id={song.songInfo.id}
@@ -445,6 +452,8 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 					</>
 				)}
 
+				<Visualizer visible={isVisualizer} close={() => setIsVisualizer(false)} />
+
 				<OptionsPlayer
 					song={song.songInfo}
 					isOpen={isOpt}
@@ -498,6 +507,13 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		marginTop: 2,
 		textAlign: 'center',
+	},
+	vizButton: {
+		position: 'absolute',
+		left: 14,
+		top: 0,
+		bottom: 0,
+		justifyContent: 'center',
 	},
 	heart: {
 		position: 'absolute',

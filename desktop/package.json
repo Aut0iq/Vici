@@ -21,6 +21,7 @@
     },
     "files": [
       "main.js",
+      "icon.png",
       "web/**/*"
     ],
     "win": {

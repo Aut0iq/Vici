@@ -111,6 +111,9 @@ export const defaultSettings = {
 	cacheNextSong: 5,
 	showCache: true,
 	// Player settings
+	// Полноэкранный плеер помнит, что было открыто: 0 — обложка, 1 — очередь, 2 — текст
+	fullScreenPreview: 0,
+	fullScreenVisualizer: false,
 	saveQueue: false,
 	streamFormat: 'raw',
 	playOnHeadphonesConnect: false,

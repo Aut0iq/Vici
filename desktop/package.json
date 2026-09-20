@@ -1,0 +1,52 @@
+{
+  "name": "vici-desktop",
+  "productName": "Vici",
+  "version": "2026.920.0",
+  "private": true,
+  "description": "Vici — музыкальный плеер для Navidrome",
+  "author": "Aut0iq",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --publish never",
+    "publish": "electron-builder --win --publish always"
+  },
+  "build": {
+    "appId": "com.aut0iq.vici",
+    "productName": "Vici",
+    "copyright": "Aut0iq",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "web/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "shortcutName": "Vici"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Aut0iq",
+      "repo": "Vici"
+    },
+    "artifactName": "Vici-Setup-${version}.${ext}"
+  },
+  "devDependencies": {
+    "electron": "^44.4.3",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
+}

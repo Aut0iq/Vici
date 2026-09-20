@@ -1,9 +1,10 @@
-# Автосборка Vici для Android.
+# Автосборка Vici: APK для Android и установщик для Windows.
 # Как выпустить версию: git tag v2026.09.18 && git push origin v2026.09.18
-# Через ~20–30 минут на странице Releases появится APK, и Obtainium предложит обновление.
-# Можно запустить и вручную: вкладка Actions → Android release → Run workflow.
+# Через ~20–30 минут на странице Releases появятся APK и exe: Obtainium предложит
+# обновление на телефоне, а настольная версия обновится сама.
+# Можно запустить и вручную: вкладка Actions → Release → Run workflow.
 
-name: Android release
+name: Release
 
 on:
   push:
@@ -82,3 +83,60 @@ jobs:
           name: Vici ${{ steps.version.outputs.version }}
           files: vici-${{ steps.version.outputs.version }}.apk
           generate_release_notes: true
+
+  # Установщик для Windows: та же веб-версия приложения, упакованная в Electron.
+  # Запускается после Android, чтобы релиз уже существовал и файлы легли в него
+  desktop:
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Получить код
+        uses: actions/checkout@v4
+
+      - name: Определить версию
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Установить Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Установить зависимости
+        run: npm ci
+
+      - name: Записать версию
+        run: node desktop/version-from-tag.js "${{ steps.version.outputs.version }}"
+
+      - name: Собрать веб-версию
+        run: npm run export:web:desktop
+
+      - name: Перенести сборку в desktop/web
+        run: node desktop/sync-web.js
+
+      - name: Установить зависимости Electron
+        working-directory: desktop
+        run: npm ci
+
+      - name: Собрать установщик
+        working-directory: desktop
+        run: npx electron-builder --win --publish never
+
+      - name: Добавить установщик в релиз
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          files: |
+            desktop/release/*.exe
+            desktop/release/*.exe.blockmap
+            desktop/release/latest.yml

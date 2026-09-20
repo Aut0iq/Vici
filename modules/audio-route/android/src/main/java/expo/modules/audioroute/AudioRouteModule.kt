@@ -39,6 +39,21 @@ class AudioRouteModule : Module() {
     else -> "wired"
   }
 
+  // Открывает системный экран: из текущей активности, если она есть, иначе новой задачей.
+  // Ловим Throwable, а не Exception: прошивки бросают из startActivity что угодно,
+  // и вылет приложения из-за настроек батареи недопустим.
+  private fun startSystemScreen(intent: Intent): Boolean {
+    val activity = appContext.currentActivity
+    val context = activity ?: appContext.reactContext ?: return false
+    if (activity == null) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    return try {
+      context.startActivity(intent)
+      true
+    } catch (error: Throwable) {
+      false
+    }
+  }
+
   override fun definition() = ModuleDefinition {
     Name("AudioRoute")
 
@@ -51,54 +66,19 @@ class AudioRouteModule : Module() {
       power?.isIgnoringBatteryOptimizations(context.packageName) ?: false
     }
 
-    // Окно «Разрешить работу в фоне». Если система его не покажет — открываем общий список
+    // Открывает системный экран «Оптимизация батареи», где ограничение снимают вручную.
+    // Прямой диалог ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS не используем: на Samsung
+    // он валил приложение. Если экрана в прошивке нет — показываем страницу приложения.
     AsyncFunction("openBatteryOptimizationSettings") {
       val context = appContext.reactContext ?: return@AsyncFunction false
-      val direct = Intent(
-        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-        Uri.parse("package:" + context.packageName)
-      ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      try {
-        context.startActivity(direct)
-        true
-      } catch (e: Exception) {
-        try {
-          context.startActivity(
-            Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-              .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-          )
-          true
-        } catch (e2: Exception) {
-          false
-        }
-      }
-    }
-
-    // «Режимы и routines» Samsung. Возвращает false, если такого приложения нет
-    AsyncFunction("openRoutines") {
-      val context = appContext.reactContext ?: return@AsyncFunction false
-      val intent = context.packageManager.getLaunchIntentForPackage("com.samsung.android.app.routines")
-        ?: return@AsyncFunction false
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      try {
-        context.startActivity(intent)
-        true
-      } catch (e: Exception) {
-        false
-      }
-    }
-
-    // Bluetooth-настройки телефона
-    AsyncFunction("openBluetoothSettings") {
-      val context = appContext.reactContext ?: return@AsyncFunction false
-      try {
-        context.startActivity(
-          Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      val fallbacks = listOf(
+        Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
+        Intent(
+          Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+          Uri.fromParts("package", context.packageName, null)
         )
-        true
-      } catch (e: Exception) {
-        false
-      }
+      )
+      fallbacks.any { startSystemScreen(it) }
     }
 
     AsyncFunction("isExternalConnected") {

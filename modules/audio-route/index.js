@@ -24,10 +24,8 @@ const callBoolean = async (method) => {
 // Отключены ли ограничения батареи для приложения
 export const isIgnoringBatteryOptimizations = () => callBoolean('isIgnoringBatteryOptimizations')
 
-// Системные окна: работа в фоне, «Режимы и routines», Bluetooth
+// Открывает системный экран, где с приложения снимают ограничения батареи
 export const openBatteryOptimizationSettings = () => callBoolean('openBatteryOptimizationSettings')
-export const openRoutines = () => callBoolean('openRoutines')
-export const openBluetoothSettings = () => callBoolean('openBluetoothSettings')
 
 // Вызывает обработчик, когда подключили наушники или колонку.
 // Возвращает функцию для отписки.

@@ -15,8 +15,6 @@ import SelectItem from '~/components/settings/SelectItem'
 import {
 	isIgnoringBatteryOptimizations,
 	openBatteryOptimizationSettings,
-	openRoutines,
-	openBluetoothSettings,
 } from '~/../modules/audio-route'
 import settingStyles from '~/styles/settings'
 
@@ -49,7 +47,6 @@ const PlayerSettings = () => {
 	const settings = useSettings()
 	const setSettings = useSetSettings()
 	const [batteryFree, setBatteryFree] = React.useState(null)
-	const [noRoutines, setNoRoutines] = React.useState(false)
 
 	// Проверяем ограничения батареи при открытии экрана и после возврата из системных настроек
 	React.useEffect(() => {
@@ -81,22 +78,10 @@ const PlayerSettings = () => {
 						title={batteryFree ? t('settings.player.Background allowed') : t('settings.player.Allow background')}
 						icon={batteryFree ? 'check' : 'battery-half'}
 						onPress={() => openBatteryOptimizationSettings()}
-					/>
-					<ButtonMenu
-						title={t('settings.player.Open routines')}
-						icon="magic"
-						onPress={() => openRoutines().then((ok) => setNoRoutines(!ok))}
-					/>
-					<ButtonMenu
-						title={t('settings.player.Bluetooth settings')}
-						icon="bluetooth"
-						onPress={() => openBluetoothSettings()}
 						isLast
 					/>
 				</View>
-				<Text style={settingStyles.description(theme)}>
-					{noRoutines ? t('settings.player.Routines not found') : t('settings.player.Play on connect Description')}
-				</Text>
+				<Text style={settingStyles.description(theme)}>{t('settings.player.Play on connect Description')}</Text>
 
 				<Text style={settingStyles.titleContainer(theme)}>{t('settings.player.Stream format')}</Text>
 				<View style={[settingStyles.optionsContainer(theme), { marginBottom: 5 }]}>

@@ -86,10 +86,7 @@
         "Save last queue": "Save last queue",
         "Save last queue Description": "Automatically save the last queue you played. You activate the 'Last queue' section on the home page to access it.",
         "Allow background": "Allow background work",
-        "Background allowed": "Background work allowed",
-        "Open routines": "Open Modes and Routines",
-        "Bluetooth settings": "Bluetooth settings",
-        "Routines not found": "Modes and Routines is not available on this phone. The rule can only be created on Samsung devices."
+        "Background allowed": "Background work allowed"
       },
       "theme": {
         "Player Theme": "Player Theme"

@@ -78,9 +78,6 @@ module.exports = ({ config }) => {
 					'./plugins/asyncStorage.js'
 				],
 				[
-					'./plugins/androidQueries.js'
-				],
-				[
 					"react-native-android-widget",
 					{
 						widgets: [

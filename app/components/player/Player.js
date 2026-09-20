@@ -7,6 +7,7 @@ import { useConfig } from '~/contexts/config'
 import { updateWidget } from '~/widget'
 import { addDeviceConnectedListener, isExternalConnected } from '~/../modules/audio-route'
 import logger from '~/utils/logger'
+import useIsDesktop from '~/utils/useIsDesktop'
 import BoxDesktopPlayer from '~/components/player/BoxDesktopPlayer'
 import BoxPlayer from '~/components/player/BoxPlayer'
 import FullScreenHorizontalPlayer from '~/components/player/FullScreenHorizontalPlayer'
@@ -16,6 +17,7 @@ const Player = ({ state }) => {
 	const song = useSong()
 	const settings = useSettings()
 	const { height, width } = useWindowDimensions()
+	const isDesktop = useIsDesktop()
 	const [fullScreen, setFullScreen] = React.useState(false)
 
 	const config = useConfig()
@@ -80,7 +82,7 @@ const Player = ({ state }) => {
 		if (width <= height) return <FullScreenPlayer setFullScreen={setFullScreen} />
 		else return <FullScreenHorizontalPlayer setFullScreen={setFullScreen} />
 	}
-	else if (settings.isDesktop) return <BoxDesktopPlayer setFullScreen={setFullScreen} />
+	else if (isDesktop) return <BoxDesktopPlayer setFullScreen={setFullScreen} />
 	return <BoxPlayer setFullScreen={setFullScreen} />
 }
 

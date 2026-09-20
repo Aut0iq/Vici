@@ -133,7 +133,8 @@
     </form>
   </noscript>
   <!-- The root element for your Expo app. -->
-  <audio id="audio" style="display: none" controls></audio>
+  <!-- crossorigin нужен визуализатору: без него Web Audio глушит поток с чужого домена -->
+  <audio id="audio" crossorigin="anonymous" style="display: none" controls></audio>
   <div id="root"></div>
 </body>
 

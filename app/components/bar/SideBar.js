@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { useCachedAndApi } from '~/utils/api'
 import { urlCover } from '~/utils/url'
 import { useConfig } from '~/contexts/config'
+import { useSong } from '~/contexts/song'
 import { useTheme } from '~/contexts/theme'
 import pkg from '~/../package.json'
 import size from '~/styles/size'
@@ -150,6 +151,28 @@ const NavItem = ({ route, index, isFocused, options, navigation, isHover, setHov
 	)
 }
 
+// Обложка того, что играет сейчас — внизу бокового меню, во всю его ширину
+const CurrentCover = () => {
+	const config = useConfig()
+	const theme = useTheme()
+	const song = useSong()
+	const info = song?.songInfo
+
+	if (!info) return null
+	return (
+		<View style={styles.cover(theme)}>
+			<ImageError
+				source={{ uri: urlCover(config, info, 600) }}
+				style={{ width: '100%', aspectRatio: 1 }}
+			>
+				<View style={[styles.coverEmpty(theme), { width: '100%', aspectRatio: 1 }]}>
+					<Icon name="music" size={size.icon.large} color={theme.secondaryText} />
+				</View>
+			</ImageError>
+		</View>
+	)
+}
+
 const SideBar = ({ state, descriptors, navigation }) => {
 	const insets = useSafeAreaInsets()
 	const config = useConfig()
@@ -225,11 +248,23 @@ const SideBar = ({ state, descriptors, navigation }) => {
 						</ScrollView>
 					</> : null
 			}
+			<CurrentCover />
 		</View>
 	)
 }
 
 const styles = StyleSheet.create({
+	cover: (theme) => ({
+		width: '100%',
+		padding: 10,
+		borderTopWidth: 1,
+		borderTopColor: theme.tertiaryBack,
+	}),
+	coverEmpty: (theme) => ({
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: theme.secondaryBack,
+	}),
 	container: (insets, theme) => ({
 		flexDirection: 'column',
 		backgroundColor: theme.primaryBack,

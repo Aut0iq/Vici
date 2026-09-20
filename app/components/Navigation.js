@@ -1,4 +1,5 @@
 import React from 'react'
+import { View } from 'react-native'
 import { SystemBars } from 'react-native-edge-to-edge'
 import { NavigationContainer, DarkTheme } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -7,6 +8,8 @@ import { HomeStack, SearchStack, MixesStack, PlaylistsStack, SettingsStack } fro
 import { useSettings, tabSections } from '~/contexts/settings'
 import { useTheme } from '~/contexts/theme'
 import TabBar from '~/components/bar/TabBar'
+import QueuePanel from '~/components/bar/QueuePanel'
+import useIsDesktop from '~/utils/useIsDesktop'
 
 const Tab = createBottomTabNavigator()
 
@@ -22,6 +25,7 @@ const STACKS = {
 const Navigation = () => {
 	const theme = useTheme()
 	const settings = useSettings()
+	const isDesktop = useIsDesktop()
 
 	// Пользователь сам собирает нижнее меню в «Настройки → Вкладки».
 	// В навигатор попадают и вкладки, скрытые из меню, но доступные свайпом
@@ -32,6 +36,8 @@ const Navigation = () => {
 	), [settings.tabsOrder])
 
 	return (
+		<View style={{ flex: 1, flexDirection: 'row', minWidth: 0 }}>
+		<View style={{ flex: 1, minWidth: 0 }}>
 		<NavigationContainer
 			// Тёмный фон навигации: без него при переходах между экранами просвечивает белый
 			theme={{
@@ -56,7 +62,7 @@ const Navigation = () => {
 					headerShown: false,
 					sceneStyle: { backgroundColor: theme.primaryBack },
 					navigationBarColor: theme.primaryBack,
-					tabBarPosition: settings.isDesktop ? 'left' : 'bottom',
+					tabBarPosition: isDesktop ? 'left' : 'bottom',
 					tabBarStyle: {
 						backgroundColor: theme.secondaryBack,
 						borderTopColor: theme.secondaryBack,
@@ -74,6 +80,9 @@ const Navigation = () => {
 				))}
 			</Tab.Navigator>
 		</NavigationContainer>
+		</View>
+		{isDesktop ? <QueuePanel /> : null}
+		</View>
 	)
 }
 

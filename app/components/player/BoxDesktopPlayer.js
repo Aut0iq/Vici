@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
 		bottom: 0,
 		left: 0,
 		right: 0,
-		width: '100vw',
+		width: '100%',
 		flexDirection: 'row',
 		backgroundColor: theme.secondaryBack,
 		padding: 10,

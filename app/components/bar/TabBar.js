@@ -1,14 +1,14 @@
 import React from 'react'
 
 import { useConfig } from '~/contexts/config'
-import { useSettings } from '~/contexts/settings'
+import useIsDesktop from '~/utils/useIsDesktop'
 import Player from '~/components/player/Player'
 import BottomBar from '~/components/bar/BottomBar'
 import SideBar from '~/components/bar/SideBar'
 
 const TabBar = ({ state, descriptors, navigation }) => {
 	const config = useConfig()
-	const settings = useSettings()
+	const isDesktop = useIsDesktop()
 
 	React.useEffect(() => {
 		if (config.query === null) {
@@ -19,7 +19,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
 	return (
 		<>
 			{
-				settings.isDesktop ?
+				isDesktop ?
 					<SideBar state={state} descriptors={descriptors} navigation={navigation} />
 					: <BottomBar state={state} descriptors={descriptors} navigation={navigation} />
 			}

@@ -1,16 +1,13 @@
 import React from 'react'
 import { Pressable, View, StyleSheet, Platform } from 'react-native'
 import Text from '~/components/Text'
-import Icon from 'react-native-vector-icons/FontAwesome'
 
 import { useConfig } from '~/contexts/config'
 import { useSong, useSongDispatch } from '~/contexts/song'
 import { useTheme } from '~/contexts/theme'
-import { urlCover } from '~/utils/url'
 import { useCachedFirst } from '~/utils/api'
 import Player from '~/utils/player'
 import IconButton from '~/components/button/IconButton'
-import ImageError from '~/components/ImageError'
 import SlideBar from '~/components/button/SlideBar'
 import FavoritedButton from '~/components/button/FavoritedButton'
 import size from '~/styles/size'
@@ -36,14 +33,6 @@ const BoxDesktopPlayer = ({ setFullScreen }) => {
 				onPress={() => setFullScreen(true)}
 				style={{ flexDirection: 'row', flex: 1 }}
 			>
-				<ImageError
-					source={{ uri: urlCover(config, song?.songInfo, 100) }}
-					style={styles.boxPlayerImage}
-				>
-					<View style={styles.boxPlayerImage}>
-						<Icon name="music" size={size.icon.small} color={theme.primaryText} />
-					</View>
-				</ImageError>
 				<View style={{ justifyContent: 'center', gap: 2, flex: Platform.select({ web: 1, default: 0 }), maxWidth: 'min-content' }}>
 					<Text numberOfLines={1} style={{ color: theme.primaryText, textAlign: 'left', fontWeight: 'bold', maxWidth: 400 }}>{song?.songInfo?.track ? `${song?.songInfo?.track}. ` : null}{song?.songInfo?.title ? song.songInfo.title : 'Song title'}</Text>
 					<Text numberOfLines={1} style={{ color: theme.secondaryText, textAlign: 'left', maxWidth: 400 }}>{song?.songInfo?.artist ? song.songInfo.artist : 'Artist'}</Text>
@@ -158,14 +147,6 @@ const styles = StyleSheet.create({
 		borderTopWidth: 1,
 		borderTopColor: theme.tertiaryBack,
 	}),
-	boxPlayerImage: {
-		height: 56,
-		width: 56,
-		marginRight: 10,
-		borderRadius: 4,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
 })
 
 export default BoxDesktopPlayer

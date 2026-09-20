@@ -76,7 +76,7 @@ const createWindow = async (url) => {
 		show: false,
 		backgroundColor: '#0E0A0F',
 		autoHideMenuBar: true,
-		icon: path.join(__dirname, 'build', 'icon.png'),
+		icon: path.join(__dirname, 'icon.png'),
 		webPreferences: {
 			contextIsolation: true,
 			nodeIntegration: false,
@@ -109,7 +109,7 @@ const showWindow = () => {
 }
 
 const createTray = () => {
-	tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'build', 'icon.png')).resize({ width: 16, height: 16 }))
+	tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')).resize({ width: 16, height: 16 }))
 	tray.setToolTip('Vici')
 	tray.setContextMenu(Menu.buildFromTemplate([
 		{ label: 'Открыть Vici', click: showWindow },

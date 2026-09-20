@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 
 import { useConfig } from '~/contexts/config'
 import { useSong, useSongDispatch } from '~/contexts/song'
+import { useSettings, useSetSettings } from '~/contexts/settings'
 import { useTheme } from '~/contexts/theme'
 import { useCachedFirst } from '~/utils/api'
 import { urlCover } from '~/utils/url'
@@ -69,8 +70,14 @@ const TimeBar = () => {
 	)
 }
 const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
-	const [isPreview, setIsPreview] = React.useState(preview.COVER)
-	const [isVisualizer, setIsVisualizer] = React.useState(false)
+	// Держим выбор в настройках, а не в состоянии компонента: плеер размонтируется
+	// при закрытии, и иначе текст с визуализатором каждый раз выключались бы
+	const settings = useSettings()
+	const setSettings = useSetSettings()
+	const isPreview = settings.fullScreenPreview ?? preview.COVER
+	const setIsPreview = (value) => setSettings({ ...settings, fullScreenPreview: value })
+	const isVisualizer = !!settings.fullScreenVisualizer
+	const setIsVisualizer = (value) => setSettings({ ...settings, fullScreenVisualizer: value })
 	const [indexOptions, setIndexOptions] = React.useState(-1)
 	const config = useConfig()
 	const insets = useSafeAreaInsets()

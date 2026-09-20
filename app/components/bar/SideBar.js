@@ -256,7 +256,6 @@ const SideBar = ({ state, descriptors, navigation }) => {
 const styles = StyleSheet.create({
 	cover: (theme) => ({
 		width: '100%',
-		padding: 10,
 		borderTopWidth: 1,
 		borderTopColor: theme.tertiaryBack,
 	}),

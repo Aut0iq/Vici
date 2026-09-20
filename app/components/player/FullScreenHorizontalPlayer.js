@@ -13,7 +13,7 @@ import FavoritedButton from '~/components/button/FavoritedButton'
 import IconButton from '~/components/button/IconButton'
 import ImageError from '~/components/ImageError'
 import Lyric from '~/components/player/Lyric'
-import VisualizerPane from '~/components/player/VisualizerPane'
+import VisualizerPane, { hasVisualizerPane } from '~/components/player/VisualizerPane'
 import mainStyles from '~/styles/main'
 import OptionsQueue from '~/components/options/OptionsQueue'
 import PlayButton from '~/components/button/PlayButton'
@@ -26,8 +26,7 @@ import ConnectButton from '~/components/button/ConnectButton'
 const preview = {
 	COVER: 0,
 	QUEUE: 1,
-	LYRICS: 2,
-	VISUALIZER: 3
+	LYRICS: 2
 }
 
 const color = {
@@ -71,6 +70,7 @@ const TimeBar = () => {
 }
 const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 	const [isPreview, setIsPreview] = React.useState(preview.COVER)
+	const [isVisualizer, setIsVisualizer] = React.useState(false)
 	const [indexOptions, setIndexOptions] = React.useState(-1)
 	const config = useConfig()
 	const insets = useSafeAreaInsets()
@@ -112,6 +112,42 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 				paddingEnd: insets.right + 10 < 50 ? 50 : insets.right + 10,
 				gap: 20,
 			}}>
+				{isVisualizer ? (
+					<View style={{ flex: 1, flexDirection: 'row', gap: 20, minHeight: 0 }}>
+						{/* Левая половина — обложка целиком, без карточки в углу */}
+						<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, minWidth: 0 }}>
+							<ImageError style={styles.imageCoverLarge} source={{ uri: urlCover(config, song?.songInfo) }} />
+							<View style={{ alignItems: 'center', maxWidth: '90%' }}>
+								<Text numberOfLines={1} style={styles.titleCenter}>{song?.songInfo?.title}</Text>
+								<Text numberOfLines={1} style={styles.artistCenter}>{song?.songInfo?.artist}</Text>
+								<FavoritedButton
+									id={song?.songInfo?.id}
+									isFavorited={stars.some(s => s.id === song.songInfo.id)}
+									rating={song.songInfo?.userRating ?? song.songInfo?.rating ?? 0}
+									size={size.icon.medium}
+									style={{ padding: 0, marginTop: 10 }}
+								/>
+							</View>
+						</View>
+						{/* Правая половина — визуализатор, текст песни ложится поверх него */}
+						<View style={{ flex: 1, minWidth: 0 }}>
+							<VisualizerPane active={true}>
+								{isPreview == preview.LYRICS ? (
+									<Lyric
+										song={song}
+										sizeText={26}
+										color={{
+											active: color.primary,
+											inactive: color.secondary
+										}}
+										style={{ width: '100%' }}
+									/>
+								) : null}
+							</VisualizerPane>
+						</View>
+					</View>
+				) : (
+					<>
 				{
 					isPreview == preview.LYRICS &&
 					<View style={{ flex: 2, alignItems: 'center' }}>
@@ -157,12 +193,6 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 							<Text numberOfLines={1} style={styles.artist}>{song?.songInfo?.artist}</Text>
 						</View>
 					</SlideControl>
-					{
-						isPreview == preview.VISUALIZER &&
-						<View style={{ flex: 1, maxWidth: '50%', alignSelf: 'stretch' }}>
-							<VisualizerPane active={true} />
-						</View>
-					}
 					{
 						isPreview == preview.QUEUE &&
 						<View style={{ flex: 1, maxWidth: '50%', justifyContent: 'flex-end' }}>
@@ -228,6 +258,8 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 						</View>
 					}
 				</View>
+					</>
+				)}
 				<View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, maxWidth: '100%' }}>
 					<TimeBar />
 				</View>
@@ -239,12 +271,15 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 							color={isPreview == preview.LYRICS ? theme.primaryTouch : color.primary}
 							onPress={() => setIsPreview(isPreview == preview.LYRICS ? preview.COVER : preview.LYRICS)}
 						/>
-						<IconButton
-							icon="signal"
-							size={size.icon.small}
-							color={isPreview == preview.VISUALIZER ? theme.primaryTouch : color.primary}
-							onPress={() => setIsPreview(isPreview == preview.VISUALIZER ? preview.COVER : preview.VISUALIZER)}
-						/>
+						{
+							hasVisualizerPane &&
+							<IconButton
+								icon="signal"
+								size={size.icon.small}
+								color={isVisualizer ? theme.primaryTouch : color.primary}
+								onPress={() => setIsVisualizer(!isVisualizer)}
+							/>
+						}
 					</View>
 					<View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', gap: 25, minWidth: 222 }}>
 						<IconButton
@@ -357,6 +392,25 @@ const styles = StyleSheet.create({
 		textAlign: 'left',
 		margin: 20,
 		marginTop: 0,
+	},
+	imageCoverLarge: {
+		width: '82%',
+		maxWidth: 520,
+		aspectRatio: 1,
+		borderRadius: 14,
+		backgroundColor: 'rgba(0, 0, 0, 0.5)',
+	},
+	titleCenter: {
+		color: color.primary,
+		fontSize: size.title.medium,
+		fontWeight: 'bold',
+		textAlign: 'center',
+	},
+	artistCenter: {
+		color: color.secondary,
+		fontSize: size.text.large,
+		textAlign: 'center',
+		marginTop: 4,
 	},
 	imageCover: {
 		height: 200,

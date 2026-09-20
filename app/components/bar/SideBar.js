@@ -98,6 +98,58 @@ const PlaylistItem = ({ item, navigation, t }) => {
 	)
 }
 
+// Пункт бокового меню. Отдельный компонент, потому что набор вкладок
+// меняется в настройках, а хуки внутри map ломались бы при смене их числа
+const NavItem = ({ route, index, isFocused, options, navigation, isHover, setHoverIndex }) => {
+	const { t } = useTranslation()
+	const config = useConfig()
+	const theme = useTheme()
+	const disabled = !config.query && route.name !== 'SettingsStack'
+
+	const color = React.useMemo(() => {
+		if (isFocused) return theme.primaryTouch
+		if (disabled) return theme.secondaryText
+		return theme.primaryText
+	}, [isFocused, disabled, theme])
+
+	const onPress = () => {
+		const event = navigation.emit({
+			type: 'tabPress',
+			target: route.key,
+			canPreventDefault: true,
+		})
+
+		if (!isFocused && !event.defaultPrevented) {
+			navigation.navigate(route.name, route.params)
+		}
+	}
+
+	return (
+		<Pressable
+			onPress={onPress}
+			onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
+			onHoverIn={() => setHoverIndex(index)}
+			onHoverOut={() => setHoverIndex(-1)}
+			style={({ pressed }) => ([mainStyles.opacity({ pressed }), {
+				flexDirection: 'row',
+				alignItems: 'center',
+				backgroundColor: (isFocused || isHover) ? theme.secondaryBack : undefined,
+				marginHorizontal: 10,
+				paddingVertical: 4,
+				paddingLeft: 10,
+				borderRadius: 8,
+				marginBottom: 3,
+			}])}
+			disabled={disabled}
+		>
+			<Icon name={options.icon} size={26} color={color} style={{ marginRight: 10 }} />
+			<Text style={{ color: color, textAlign: 'left', fontSize: size.text.large, fontWeight: '600' }}>
+				{t(options.label)}
+			</Text>
+		</Pressable>
+	)
+}
+
 const SideBar = ({ state, descriptors, navigation }) => {
 	const insets = useSafeAreaInsets()
 	const config = useConfig()
@@ -130,60 +182,22 @@ const SideBar = ({ state, descriptors, navigation }) => {
 					<Text style={{ color: theme.secondaryText, fontSize: size.text.small }}>Version {pkg.version}</Text>
 				</View>
 			</View>
-			{state.routes.map((route, index) => {
-				const options = React.useMemo(() => descriptors[route.key].options, [])
-				const isFocused = React.useMemo(() => state.index === index, [state.index, index])
-				const color = React.useMemo(() => {
-					if (isFocused) return theme.primaryTouch
-					if (!config.query && route.name !== 'Settings') return theme.secondaryText
-					return theme.primaryText
-				}, [isFocused, config.query, route.name, theme])
-
-				const onPress = () => {
-					const event = navigation.emit({
-						type: 'tabPress',
-						target: route.key,
-						canPreventDefault: true,
-					})
-
-					if (!isFocused && !event.defaultPrevented) {
-						navigation.navigate(route.name, route.params)
-					}
-				}
-
-				const onLongPress = () => {
-					navigation.emit({
-						type: 'tabLongPress',
-						target: route.key,
-					})
-				}
-
-				return (
-					<Pressable
-						key={index}
-						onPress={onPress}
-						onLongPress={onLongPress}
-						onHoverIn={() => setHoverIndex(index)}
-						onHoverOut={() => setHoverIndex(-1)}
-						style={({ pressed }) => ([mainStyles.opacity({ pressed }), {
-							flexDirection: 'row',
-							alignItems: 'center',
-							backgroundColor: (isFocused || hoverIndex === index) ? theme.secondaryBack : undefined,
-							marginHorizontal: 10,
-							paddingVertical: 4,
-							paddingLeft: 10,
-							borderRadius: 8,
-							marginBottom: 3,
-						}])}
-						disabled={(!config.query && route.name !== 'Settings')}
-					>
-						<Icon name={options.icon} size={26} color={color} style={{ marginRight: 10 }} />
-						<Text style={{ color: color, textAlign: 'left', fontSize: size.text.large, fontWeight: '600' }}>
-							{t(`tabs.${options.title}`)}
-						</Text>
-					</Pressable>
-				)
-			})}
+			{/* Скрытые из меню вкладки остаются в навигаторе ради свайпа, но кнопок им не рисуем */}
+			{state.routes
+				.map((route, index) => ({ route, index }))
+				.filter(({ route }) => descriptors[route.key].options.inBar !== false)
+				.map(({ route, index }) => (
+					<NavItem
+						key={route.key}
+						route={route}
+						index={index}
+						isFocused={state.index === index}
+						options={descriptors[route.key].options}
+						navigation={navigation}
+						isHover={hoverIndex === index}
+						setHoverIndex={setHoverIndex}
+					/>
+				))}
 
 			{
 				config.query ?

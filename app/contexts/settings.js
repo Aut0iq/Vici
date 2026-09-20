@@ -74,6 +74,17 @@ export const defaultSettings = {
 			query: `u=${encodeURI('demo')}&t=${md5('demo' + 'aaaaaa')}&s=${'aaaaaa'}&v=1.16.1&c=castafiore`
 		},
 	],
+	// Bottom bar settings
+	// enable — показывать в нижнем меню, swipe — переключаться на неё свайпом.
+	// Флаги независимые: вкладку можно убрать из меню, но оставить доступной свайпом
+	tabSwipe: true,
+	tabsOrder: [
+		{ id: 'HomeStack', enable: true, swipe: true },
+		{ id: 'SearchStack', enable: true, swipe: true },
+		{ id: 'MixesStack', enable: true, swipe: true },
+		{ id: 'PlaylistsStack', enable: true, swipe: true },
+		{ id: 'SettingsStack', enable: true, swipe: true },
+	],
 	// Home Settings
 	homeOrderV2: [
 		{ id: 'week-activity', enable: false },
@@ -236,6 +247,18 @@ export const homeSections = [
 	},
 ]
 
+// Вкладки нижнего меню. Порядок и набор настраиваются в «Настройки → Вкладки»,
+// поэтому иконку и название вкладки берём отсюда, а не из Navigation.
+export const tabSections = [
+	{ id: 'HomeStack', label: 'tabs.Home', icon: 'home' },
+	{ id: 'SearchStack', label: 'tabs.Search', icon: 'search' },
+	{ id: 'MixesStack', label: 'tabs.Mixes', icon: 'magic' },
+	{ id: 'PlaylistsStack', label: 'tabs.Playlists', icon: 'list-ul' },
+	// Настройки можно убрать из меню, но свайп до них не отключается:
+	// иначе попасть в них будет уже нечем
+	{ id: 'SettingsStack', label: 'tabs.Settings', icon: 'gear', lockSwipe: true },
+]
+
 const getSettings = async () => {
 	const rawSettings = await AsyncStorage.getItem('settings')
 	if (rawSettings === null) return defaultSettings
@@ -246,6 +269,21 @@ const getSettings = async () => {
 				if (!data.homeOrderV2.some((s) => s.id === section.id)) {
 					data.homeOrderV2.push({ ...section, enable: false })
 				}
+			})
+		}
+		// Вкладки: выкидываем исчезнувшие, дописываем новые в конец.
+		// Настройкам принудительно возвращаем свайп — иначе в них станет не попасть
+		if (Array.isArray(data.tabsOrder)) {
+			data.tabsOrder = data.tabsOrder.filter((tab) => tabSections.some((section) => section.id === tab.id))
+			tabSections.forEach((section) => {
+				if (!data.tabsOrder.some((tab) => tab.id === section.id)) {
+					const preset = defaultSettings.tabsOrder.find((tab) => tab.id === section.id)
+					data.tabsOrder.push({ ...(preset || { id: section.id, enable: false, swipe: false }) })
+				}
+			})
+			data.tabsOrder.forEach((tab) => {
+				if (typeof tab.swipe !== 'boolean') tab.swipe = tab.enable
+				if (tabSections.find((section) => section.id === tab.id)?.lockSwipe) tab.swipe = true
 			})
 		}
 		return {

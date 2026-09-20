@@ -82,6 +82,11 @@ const Settings = ({ navigation }) => {
 					onPress={() => navigation.navigate('Settings/Home')}
 				/>
 				<ButtonMenu
+					title={t("Tabs")}
+					icon="columns"
+					onPress={() => navigation.navigate('Settings/Tabs')}
+				/>
+				<ButtonMenu
 					title={t("Playlists")}
 					icon="list-ul"
 					onPress={() => navigation.navigate('Settings/Playlists')}

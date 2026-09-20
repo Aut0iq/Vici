@@ -40,10 +40,12 @@ import LogsSettings from '~/screens/Settings/Logs'
 import PlayerSettings from '~/screens/Settings/Player'
 import PlaylistsSettings from '~/screens/Settings/Playlists'
 import SharesSettings from '~/screens/Settings/Shares'
+import TabsSettings from '~/screens/Settings/Tabs'
 import ThemeSettings from '~/screens/Settings/Theme'
 
 import { useTheme } from '~/contexts/theme'
 import { withBackground } from '~/components/ScreenBackground'
+import { withSwipe } from '~/components/SwipeTabs'
 
 // Внутренние экраны получают фон Vici (цвета текущего трека)
 const bg = Object.fromEntries(Object.entries({
@@ -75,9 +77,19 @@ const bg = Object.fromEntries(Object.entries({
 	ShowAll,
 	SongExplorer,
 	Songs,
+	TabsSettings,
 	ThemeSettings,
 	UpdateRadio,
 }).map(([name, Screen]) => [name, withBackground(Screen)]))
+
+// Корневые экраны вкладок: по ним работает переключение свайпом
+const tab = Object.fromEntries(Object.entries({
+	Home,
+	Mixes,
+	Playlists,
+	Search,
+	Settings,
+}).map(([name, Screen]) => [name, withSwipe(Screen)]))
 
 const Stack = createNativeStackNavigator()
 
@@ -97,7 +109,7 @@ export const HomeStack = () => {
 				}
 			}}
 		>
-			<Stack.Screen name="Home" component={Home} />
+			<Stack.Screen name="Home" component={tab.Home} />
 			<Stack.Screen name="ShowAll" component={bg.ShowAll} />
 			<Stack.Screen name="FreshReleases" component={bg.FreshReleases} />
 			<Stack.Screen name="UpdateRadio" component={bg.UpdateRadio} />
@@ -132,7 +144,7 @@ export const SearchStack = () => {
 				}
 			}}
 		>
-			<Stack.Screen name="Search" component={Search} />
+			<Stack.Screen name="Search" component={tab.Search} />
 			<Stack.Screen name="SearchMore" component={bg.SearchMore} />
 			<Stack.Screen name="AlbumExplorer" component={bg.AlbumExplorer} />
 			<Stack.Screen name="ArtistExplorer" component={bg.ArtistExplorer} />
@@ -155,7 +167,7 @@ export const MixesStack = () => {
 
 	return (
 		<Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.primaryBack }, animation: 'none' }}>
-			<Stack.Screen name="Mixes" component={Mixes} />
+			<Stack.Screen name="Mixes" component={tab.Mixes} />
 			<Stack.Screen name="Playlist" component={bg.Playlist} />
 			<Stack.Screen name="EditPlaylist" component={bg.EditPlaylist} />
 			<Stack.Screen name="Album" component={bg.Album} />
@@ -186,7 +198,7 @@ export const PlaylistsStack = () => {
 				}
 			}}
 		>
-			<Stack.Screen name="Playlists" component={Playlists} />
+			<Stack.Screen name="Playlists" component={tab.Playlists} />
 			<Stack.Screen name="Favorited" component={bg.Favorited} />
 			{/* Pres */}
 			<Stack.Screen name="Album" component={bg.Album} />
@@ -219,10 +231,11 @@ export const SettingsStack = () => {
 				}
 			}}
 		>
-			<Stack.Screen name="Settings" component={Settings} />
+			<Stack.Screen name="Settings" component={tab.Settings} />
 			<Stack.Screen name="Connect" component={bg.Connect} />
 			<Stack.Screen name="Settings/AddServer" component={bg.AddServer} />
 			<Stack.Screen name="Settings/Home" component={bg.HomeSettings} />
+			<Stack.Screen name="Settings/Tabs" component={bg.TabsSettings} />
 			<Stack.Screen name="Settings/Playlists" component={bg.PlaylistsSettings} />
 			<Stack.Screen name="Settings/Cache" component={bg.CacheSettings} />
 			<Stack.Screen name="Settings/Theme" component={bg.ThemeSettings} />

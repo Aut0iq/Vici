@@ -14,15 +14,6 @@ import useKeyboardIsOpen from '~/utils/useKeyboardIsOpen'
 export const BAR_HEIGHT = 64
 export const BAR_MARGIN = 12
 
-// Свои иконки для вкладок
-const ICONS = {
-	HomeStack: 'home',
-	SearchStack: 'search',
-	MixesStack: 'magic',
-	PlaylistsStack: 'list-ul',
-	SettingsStack: 'gear',
-}
-
 const TabItem = ({ route, index, state, descriptors, navigation }) => {
 	const { t } = useTranslation()
 	const config = useConfig()
@@ -47,9 +38,9 @@ const TabItem = ({ route, index, state, descriptors, navigation }) => {
 			disabled={disabled}
 			style={({ pressed }) => [styles.tab, isFocused && styles.tabActive, { opacity: pressed ? 0.6 : 1 }]}
 		>
-			<Icon name={ICONS[route.name] || options.icon} size={19} color={color} style={{ height: 22 }} />
+			<Icon name={options.icon} size={19} color={color} style={{ height: 22 }} />
 			<Text numberOfLines={1} style={[styles.label, { color }]}>
-				{t(`tabs.${options.title}`)}
+				{t(options.label)}
 			</Text>
 		</Pressable>
 	)
@@ -76,16 +67,20 @@ const BottomBar = ({ state, descriptors, navigation }) => {
 				/> : null}
 				<View style={[StyleSheet.absoluteFill, styles.tint]} />
 				<GlassView radius={BAR_HEIGHT / 2} intensity={0.5} style={styles.bar}>
-					{state.routes.map((route, index) => (
-						<TabItem
-							key={route.key}
-							route={route}
-							state={state}
-							index={index}
-							descriptors={descriptors}
-							navigation={navigation}
-						/>
-					))}
+					{/* Скрытые из меню вкладки остаются в навигаторе ради свайпа, но кнопок им не рисуем */}
+					{state.routes
+						.map((route, index) => ({ route, index }))
+						.filter(({ route }) => descriptors[route.key].options.inBar !== false)
+						.map(({ route, index }) => (
+							<TabItem
+								key={route.key}
+								route={route}
+								state={state}
+								index={index}
+								descriptors={descriptors}
+								navigation={navigation}
+							/>
+						))}
 				</GlassView>
 			</View>
 		</View>

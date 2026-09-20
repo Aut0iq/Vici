@@ -4,15 +4,32 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 
 import { HomeStack, SearchStack, MixesStack, PlaylistsStack, SettingsStack } from '~/screens/Stacks'
-import { useSettings } from '~/contexts/settings'
+import { useSettings, tabSections } from '~/contexts/settings'
 import { useTheme } from '~/contexts/theme'
 import TabBar from '~/components/bar/TabBar'
 
 const Tab = createBottomTabNavigator()
 
+// Какой стек стоит за каждой вкладкой. Название и иконка живут в tabSections
+const STACKS = {
+	HomeStack,
+	SearchStack,
+	MixesStack,
+	PlaylistsStack,
+	SettingsStack,
+}
+
 const Navigation = () => {
 	const theme = useTheme()
 	const settings = useSettings()
+
+	// Пользователь сам собирает нижнее меню в «Настройки → Вкладки».
+	// В навигатор попадают и вкладки, скрытые из меню, но доступные свайпом
+	const tabs = React.useMemo(() => (
+		(settings.tabsOrder || [])
+			.map((tab) => ({ ...tab, section: tabSections.find((item) => item.id === tab.id) }))
+			.filter((tab) => tab.section && STACKS[tab.id] && (tab.enable || tab.swipe))
+	), [settings.tabsOrder])
 
 	return (
 		<NavigationContainer
@@ -47,11 +64,14 @@ const Navigation = () => {
 					}
 				}}
 			>
-				<Tab.Screen name="HomeStack" options={{ title: 'Home', icon: "home" }} component={HomeStack} />
-				<Tab.Screen name="SearchStack" options={{ title: 'Search', icon: "search" }} component={SearchStack} />
-				<Tab.Screen name="MixesStack" options={{ title: 'Mixes', icon: "magic" }} component={MixesStack} />
-				<Tab.Screen name="PlaylistsStack" options={{ title: 'Playlists', icon: "book" }} component={PlaylistsStack} />
-				<Tab.Screen name="SettingsStack" options={{ title: 'Settings', icon: "gear" }} component={SettingsStack} />
+				{tabs.map((tab) => (
+					<Tab.Screen
+						key={tab.id}
+						name={tab.id}
+						options={{ label: tab.section.label, icon: tab.section.icon, inBar: tab.enable }}
+						component={STACKS[tab.id]}
+					/>
+				))}
 			</Tab.Navigator>
 		</NavigationContainer>
 	)

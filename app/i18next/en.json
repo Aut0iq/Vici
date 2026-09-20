@@ -88,6 +88,13 @@
         "Allow background": "Allow background work",
         "Background allowed": "Background work allowed"
       },
+      "tabs": {
+        "Bottom bar": "Bottom bar",
+        "Bottom bar Description": "Tap a name to hide the tab from the bar or bring it back. The arrows icon puts the tab into swipe switching — a hidden tab can keep it. Drag the handle on the right to reorder. Settings can be hidden from the bar, but swiping to it cannot be turned off, otherwise there would be no way back in.",
+        "Swipe": "Swipe",
+        "Switch by swipe": "Switch by swipe",
+        "Swipe Description": "Swipe left or right to move to the next tab. In the middle of the screen the gesture gives way to horizontal lists; near the screen edges it always works."
+      },
       "theme": {
         "Player Theme": "Player Theme"
       },
@@ -198,6 +205,7 @@
     "Similar artists": "Similar artists",
     "Songs": "Songs",
     "Stream url": "Stream url",
+    "Tabs": "Tabs",
     "Theme": "Theme",
     "Top songs": "Top songs",
     "Unpin playlist": "Unpin playlist",

@@ -47,6 +47,9 @@ yarn-error.*
 !modules/*/android/**
 !modules/*/ios/
 !modules/*/ios/**
+
+# ...но вывод Gradle внутри нативных модулей — нет
+modules/*/android/build/
 .node_modules
 node_modules
 dist

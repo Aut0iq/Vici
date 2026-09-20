@@ -16,6 +16,9 @@ web-build/
 *.key
 *.mobileprovision
 
+# Настройки Claude Code — локальные, в репозиторий не идут
+.claude/
+
 # Metro
 .metro-health-check*
 

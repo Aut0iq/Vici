@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Pressable, Image, StyleSheet, ScrollView } from 'react-native'
+import { View, Pressable, Image, StyleSheet, ScrollView, Platform, useWindowDimensions } from 'react-native'
 import Text from '~/components/Text'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -14,6 +14,9 @@ import pkg from '~/../package.json'
 import size from '~/styles/size'
 import mainStyles from '~/styles/main'
 import ImageError from '~/components/ImageError'
+import AmbientBackground from '~/components/player/AmbientBackground'
+import { BlurView } from 'expo-blur'
+import { USE_BLUR } from '~/components/GlassView'
 
 const FavoritedItem = ({ navigation, t }) => {
 	const theme = useTheme()
@@ -173,8 +176,16 @@ const CurrentCover = () => {
 	)
 }
 
+// Обложка занимает всю ширину колонки, поэтому именно ширина задаёт её размер.
+// Содержимому экранов при этом всегда остаётся не меньше 900 точек
+const COVER_SIZE = 500
+const CONTENT_MIN = 900
+
 const SideBar = ({ state, descriptors, navigation }) => {
 	const insets = useSafeAreaInsets()
+	const { width } = useWindowDimensions()
+	const song = useSong()
+	const barWidth = Math.max(250, Math.min(COVER_SIZE, width - CONTENT_MIN))
 	const config = useConfig()
 	const theme = useTheme()
 	const [hoverIndex, setHoverIndex] = React.useState(-1)
@@ -186,7 +197,16 @@ const SideBar = ({ state, descriptors, navigation }) => {
 	}, [refresh])
 
 	return (
-		<View style={styles.container(insets, theme)}>
+		<View style={styles.container(insets, theme, barWidth)}>
+			{/* Тот же фон, что и в главном окне: цвета обложки, только темнее и размытее */}
+			<AmbientBackground song={song?.songInfo} />
+			{USE_BLUR ? <BlurView
+				intensity={25}
+				tint="dark"
+				experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
+				style={StyleSheet.absoluteFill}
+			/> : null}
+			<View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.55)' }]} pointerEvents="none" />
 			<View
 				style={{
 					flexDirection: 'row',
@@ -256,6 +276,8 @@ const SideBar = ({ state, descriptors, navigation }) => {
 const styles = StyleSheet.create({
 	cover: (theme) => ({
 		width: '100%',
+		aspectRatio: 1,
+		flexShrink: 0,
 		borderTopWidth: 1,
 		borderTopColor: theme.tertiaryBack,
 	}),
@@ -264,12 +286,12 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		backgroundColor: theme.secondaryBack,
 	}),
-	container: (insets, theme) => ({
+	container: (insets, theme, barWidth) => ({
 		flexDirection: 'column',
-		backgroundColor: theme.primaryBack,
+		backgroundColor: 'transparent',
 		height: '100%',
 		maxHeight: '100vh',
-		width: 250,
+		width: barWidth,
 		paddingLeft: insets.left,
 		paddingRight: insets.right,
 		borderEndWidth: 1,

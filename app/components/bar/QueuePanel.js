@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Pressable, ScrollView, StyleSheet } from 'react-native'
+import { View, Pressable, ScrollView, StyleSheet, Platform } from 'react-native'
 import Text from '~/components/Text'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -11,6 +11,9 @@ import { useTheme } from '~/contexts/theme'
 import { urlCover } from '~/utils/url'
 import { QUEUE_WIDTH } from '~/utils/useIsDesktop'
 import ImageError from '~/components/ImageError'
+import AmbientBackground from '~/components/player/AmbientBackground'
+import { BlurView } from 'expo-blur'
+import { USE_BLUR } from '~/components/GlassView'
 import IconButton from '~/components/button/IconButton'
 import Player from '~/utils/player'
 import size from '~/styles/size'
@@ -69,6 +72,15 @@ const QueuePanel = () => {
 	if (!queue.length) return null
 	return (
 		<View style={styles.container(insets, theme)}>
+			{/* Тот же фон, что и в главном окне: цвета обложки, только темнее и размытее */}
+			<AmbientBackground song={song?.songInfo} />
+			{USE_BLUR ? <BlurView
+				intensity={25}
+				tint="dark"
+				experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
+				style={StyleSheet.absoluteFill}
+			/> : null}
+			<View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.55)' }]} pointerEvents="none" />
 			<View style={styles.header(theme)}>
 				<Text numberOfLines={1} style={{ color: theme.primaryText, fontSize: size.text.medium, fontWeight: 'bold', flex: 1 }}>
 					{t('Queue')}
@@ -107,7 +119,7 @@ const styles = StyleSheet.create({
 		width: QUEUE_WIDTH,
 		height: '100%',
 		paddingTop: insets.top,
-		backgroundColor: theme.primaryBack,
+		backgroundColor: 'transparent',
 		borderStartWidth: 1,
 		borderStartColor: theme.tertiaryBack,
 	}),

@@ -10,8 +10,13 @@ import IconButton from '~/components/button/IconButton'
 const KEY_PRESET = 'visualizer.preset'
 const GOLD = '#E6BD55'
 
-// Визуализатор внутри плеера: слева обложка, справа эта панель
-const VisualizerPane = ({ active = true }) => {
+// Панель визуализатора есть только в вебе — на телефоне butterchurn живёт
+// в отдельном экране и получает волну от нативного модуля
+export const hasVisualizerPane = true
+
+// Визуализатор внутри плеера: слева обложка, справа эта панель.
+// То, что передано детьми, рисуется поверх картинки — например, текст песни
+const VisualizerPane = ({ active = true, children }) => {
 	const canvas = React.useRef(null)
 	const [saved, setSaved] = React.useState(undefined)
 
@@ -31,6 +36,13 @@ const VisualizerPane = ({ active = true }) => {
 	return (
 		<View style={styles.container}>
 			<canvas ref={canvas} style={{ width: '100%', height: '100%', display: 'block' }} />
+			{children ? (
+				<View style={StyleSheet.absoluteFill}>
+					{/* Размываем и притеняем картинку под текстом, чтобы его было видно */}
+					<div style={{ position: 'absolute', inset: 0, backdropFilter: 'blur(9px)', WebkitBackdropFilter: 'blur(9px)', background: 'rgba(11,7,12,0.42)' }} />
+					<View style={styles.children}>{children}</View>
+				</View>
+			) : null}
 			<View style={styles.overlay} pointerEvents="box-none">
 				<Text numberOfLines={1} style={styles.preset}>{presetName}</Text>
 				<GlassView radius={19} style={styles.round}>
@@ -47,6 +59,12 @@ const styles = StyleSheet.create({
 		overflow: 'hidden',
 		borderRadius: 12,
 		backgroundColor: '#0B070C',
+	},
+	children: {
+		flex: 1,
+		justifyContent: 'center',
+		paddingHorizontal: 24,
+		paddingBottom: 40,
 	},
 	overlay: {
 		position: 'absolute',

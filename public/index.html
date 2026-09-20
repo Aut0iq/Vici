@@ -88,6 +88,32 @@
           background-color: black;
         }
       }*/
+
+    /* Системная полоса прокрутки Windows выбивается из тёмного оформления,
+       поэтому рисуем свою: тонкую, без подложки, с золотом при наведении */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(246, 240, 232, 0.18) transparent;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(246, 240, 232, 0.18);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(230, 189, 85, 0.45);
+    }
   </style>
 </head>
 

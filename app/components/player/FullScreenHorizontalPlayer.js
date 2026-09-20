@@ -13,6 +13,7 @@ import FavoritedButton from '~/components/button/FavoritedButton'
 import IconButton from '~/components/button/IconButton'
 import ImageError from '~/components/ImageError'
 import Lyric from '~/components/player/Lyric'
+import VisualizerPane from '~/components/player/VisualizerPane'
 import mainStyles from '~/styles/main'
 import OptionsQueue from '~/components/options/OptionsQueue'
 import PlayButton from '~/components/button/PlayButton'
@@ -25,7 +26,8 @@ import ConnectButton from '~/components/button/ConnectButton'
 const preview = {
 	COVER: 0,
 	QUEUE: 1,
-	LYRICS: 2
+	LYRICS: 2,
+	VISUALIZER: 3
 }
 
 const color = {
@@ -156,6 +158,12 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 						</View>
 					</SlideControl>
 					{
+						isPreview == preview.VISUALIZER &&
+						<View style={{ flex: 1, maxWidth: '50%', alignSelf: 'stretch' }}>
+							<VisualizerPane active={true} />
+						</View>
+					}
+					{
 						isPreview == preview.QUEUE &&
 						<View style={{ flex: 1, maxWidth: '50%', justifyContent: 'flex-end' }}>
 							<OptionsQueue
@@ -230,6 +238,12 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 							size={size.icon.medium}
 							color={isPreview == preview.LYRICS ? theme.primaryTouch : color.primary}
 							onPress={() => setIsPreview(isPreview == preview.LYRICS ? preview.COVER : preview.LYRICS)}
+						/>
+						<IconButton
+							icon="signal"
+							size={size.icon.small}
+							color={isPreview == preview.VISUALIZER ? theme.primaryTouch : color.primary}
+							onPress={() => setIsPreview(isPreview == preview.VISUALIZER ? preview.COVER : preview.VISUALIZER)}
 						/>
 					</View>
 					<View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', gap: 25, minWidth: 222 }}>

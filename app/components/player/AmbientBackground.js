@@ -9,7 +9,9 @@ import { urlCover } from '~/utils/url'
 const INK = '#0E0A0F'
 
 // Настройки размытия фона (можно менять под себя):
-// BLUR_SIZE — размер копии обложки в пикселях: чем меньше, тем сильнее размытие (16–32)
+// BLUR_SIZE — размер копии обложки в пикселях: чем меньше, тем сильнее размытие (16–32).
+//   Размытие делает именно растягивание крошечной копии, а не фильтр: фильтр blur
+//   в браузере съедает края картинки, и они проступают светлыми полосами
 // BLUR_RADIUS — дополнительное размытие этой копии (0–6)
 // BLUR_SCALE — увеличение, чтобы спрятать края размытой картинки (1.2–1.5)
 const BLUR_SIZE = 18
@@ -67,7 +69,7 @@ const AmbientBackground = ({ song }) => {
 	// Для цветов берём обложку 100px. Для фона — крошечную 32px: при растягивании
 	// на весь экран она сама превращается в плавные пятна без «лесенок».
 	const uri = song ? urlCover(config, song, 100) : null
-	const blurUri = song ? urlCover(config, song, Platform.OS === 'web' ? 300 : BLUR_SIZE) : null
+	const blurUri = song ? urlCover(config, song, BLUR_SIZE) : null
 	const key = song?.coverArt || song?.albumId || song?.id
 	const [failed, setFailed] = React.useState(false)
 	React.useEffect(() => setFailed(false), [blurUri])
@@ -88,13 +90,13 @@ const AmbientBackground = ({ song }) => {
 	}, [uri])
 
 	return (
-		<View style={[StyleSheet.absoluteFill, { backgroundColor: INK }]} pointerEvents="none">
+		<View style={[StyleSheet.absoluteFill, { backgroundColor: INK, overflow: 'hidden' }]} pointerEvents="none">
 			{/* Сама обложка, сильно размытая и чуть увеличенная.
 			    Если трека нет или обложка не загрузилась — только цветные переливы Vici */}
 			{blurUri && !failed ? (
 				<Image
 					source={{ uri: blurUri }}
-					blurRadius={Platform.OS === 'web' ? 90 : BLUR_RADIUS}
+					blurRadius={BLUR_RADIUS}
 					onError={() => setFailed(true)}
 					style={[StyleSheet.absoluteFill, { width: '100%', height: '100%', transform: [{ scale: BLUR_SCALE }] }]}
 				/>

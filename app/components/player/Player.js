@@ -2,11 +2,12 @@ import React from 'react'
 import { useWindowDimensions, Linking } from 'react-native'
 
 import { useSettings } from '~/contexts/settings'
-import { useSong } from '~/contexts/song'
+import { useSong, useSongDispatch } from '~/contexts/song'
 import { useConfig } from '~/contexts/config'
 import { updateWidget } from '~/widget'
 import { addDeviceConnectedListener, isExternalConnected } from '~/../modules/audio-route'
 import logger from '~/utils/logger'
+import PlayerUtils from '~/utils/player'
 import useIsDesktop from '~/utils/useIsDesktop'
 import BoxDesktopPlayer from '~/components/player/BoxDesktopPlayer'
 import BoxPlayer from '~/components/player/BoxPlayer'
@@ -15,6 +16,7 @@ import FullScreenPlayer from '~/components/player/FullScreenPlayer'
 
 const Player = ({ state }) => {
 	const song = useSong()
+	const songDispatch = useSongDispatch()
 	const settings = useSettings()
 	const { height, width } = useWindowDimensions()
 	const isDesktop = useIsDesktop()
@@ -47,10 +49,10 @@ const Player = ({ state }) => {
 			if (!connected || cancelled) return
 			setTimeout(() => {
 				const current = global.song
-				if (!current?.queue?.length || current.state === Player.State.Playing) return
+				if (!current?.queue?.length || current.state === PlayerUtils.State.Playing) return
 				logger.info('Player', 'Headphones already connected on start, resuming')
-				if (current.isSongLoad) Player.resumeSong()
-				else Player.playSong(global.config || config, songDispatch, current.queue, current.index)
+				if (current.isSongLoad) PlayerUtils.resumeSong()
+				else PlayerUtils.playSong(global.config || config, songDispatch, current.queue, current.index)
 			}, 1500)
 		})
 		return () => { cancelled = true }
@@ -61,13 +63,13 @@ const Player = ({ state }) => {
 		if (!settings.playOnHeadphonesConnect) return
 		return addDeviceConnectedListener(({ type }) => {
 			const current = global.song
-			if (!current?.queue?.length || current.state === Player.State.Playing) return
+			if (!current?.queue?.length || current.state === PlayerUtils.State.Playing) return
 			logger.info('Player', `Audio device connected (${type}), resuming`)
 			// Небольшая пауза: звуковому выходу нужно время, чтобы переключиться на наушники
 			setTimeout(() => {
-				if (global.song?.state === Player.State.Playing) return
-				if (global.song?.isSongLoad) Player.resumeSong()
-				else Player.playSong(global.config || config, songDispatch, global.song.queue, global.song.index)
+				if (global.song?.state === PlayerUtils.State.Playing) return
+				if (global.song?.isSongLoad) PlayerUtils.resumeSong()
+				else PlayerUtils.playSong(global.config || config, songDispatch, global.song.queue, global.song.index)
 			}, 1200)
 		})
 	}, [settings.playOnHeadphonesConnect])

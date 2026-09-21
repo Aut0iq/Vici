@@ -1,4 +1,5 @@
 import TrackPlayer, { AppKilledPlaybackBehavior, Capability, RepeatMode, State, useProgress, Event, useTrackPlayerEvents } from 'react-native-track-player'
+import { AppState } from 'react-native'
 import * as FileSystem from 'expo-file-system'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
@@ -37,7 +38,21 @@ const initPlayer = async (songDispatch) => {
 			backBuffer: 0,
 		})
 	} catch (error) {
-		if (error?.code === 'android_cannot_setup_player_in_background') return
+		// Android не разрешает поднимать плеер, пока приложение считается фоновым:
+		// так бывает, когда его открыло правило про наушники, перезапустила система
+		// или оно вернулось после падения. Раньше мы просто сдавались, и до ручного
+		// перезапуска не игралось вообще ничего — теперь ждём возвращения на экран
+		if (error?.code === 'android_cannot_setup_player_in_background') {
+			logger.info('Player', 'Cannot setup player in background, waiting for the app to become active')
+			return new Promise((resolve) => {
+				const subscription = AppState.addEventListener('change', (state) => {
+					if (state !== 'active') return
+					subscription.remove()
+					resolve(initPlayer(songDispatch))
+				})
+			})
+		}
+		logger.error('Player', error)
 	}
 	songDispatch({ type: 'init' })
 	await TrackPlayer.updateOptions({

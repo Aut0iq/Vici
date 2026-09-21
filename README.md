@@ -17,6 +17,30 @@
 
 ---
 
+## Скриншоты
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/desktop-library.webp" alt="Фонотека в настольной версии"></td>
+    <td width="50%"><img src="docs/desktop-player.webp" alt="Плеер с визуализатором"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Фонотека: боковое меню, обложка играющего трека, очередь</sub></td>
+    <td align="center"><sub>Полноэкранный плеер: обложка слева, визуализатор справа</sub></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/phone-home.jpg" alt="Главная на телефоне"></td>
+    <td width="50%"><img src="docs/phone-player.jpg" alt="Плеер на телефоне"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Главная: продолжить слушать и разделы фонотеки</sub></td>
+    <td align="center"><sub>Плеер с обложкой и вращающейся пластинкой</sub></td>
+  </tr>
+</table>
+
 ## Возможности
 
 ### Внешний вид

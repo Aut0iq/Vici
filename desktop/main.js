@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Tray, shell, nativeImage } = require('electron')
+const { app, BrowserWindow, Menu, Tray, shell, nativeImage, dialog } = require('electron')
 const { autoUpdater } = require('electron-updater')
 const http = require('node:http')
 const fs = require('node:fs')
@@ -36,6 +36,13 @@ const PORTS = [47821, 47822, 47823]
 let tray = null
 let window = null
 let quitting = false
+// Версия, которая уже скачана и ждёт установки
+let updateReady = null
+
+// Приложение живёт в трее и почти никогда не завершается, поэтому стандартное
+// «установить при выходе» не срабатывало: обновление скачивалось и лежало без дела.
+// Проверяем раз в несколько часов, а готовое обновление предлагаем поставить сразу
+const UPDATE_CHECK_INTERVAL = 4 * 60 * 60 * 1000
 
 // Отдаём сборку по http, а не через file://: так работают fetch, история навигации
 // и всё остальное, что браузер запрещает локальным файлам
@@ -110,21 +117,56 @@ const showWindow = () => {
 	window.focus()
 }
 
+const installUpdate = () => {
+	quitting = true
+	// Тихая установка и сразу запуск новой версии
+	autoUpdater.quitAndInstall(true, true)
+}
+
+const buildTrayMenu = () => Menu.buildFromTemplate([
+	{ label: 'Открыть Vici', click: showWindow },
+	// Если в окне с предложением нажали «Позже», обновиться можно отсюда
+	...(updateReady ? [{ label: `Обновить до ${updateReady} и перезапустить`, click: installUpdate }] : []),
+	{ type: 'separator' },
+	{
+		label: 'Выход',
+		click: () => {
+			quitting = true
+			app.quit()
+		},
+	},
+])
+
 const createTray = () => {
 	tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')).resize({ width: 16, height: 16 }))
 	tray.setToolTip('Vici')
-	tray.setContextMenu(Menu.buildFromTemplate([
-		{ label: 'Открыть Vici', click: showWindow },
-		{ type: 'separator' },
-		{
-			label: 'Выход',
-			click: () => {
-				quitting = true
-				app.quit()
-			},
-		},
-	]))
+	tray.setContextMenu(buildTrayMenu())
 	tray.on('click', showWindow)
+}
+
+const setupUpdates = () => {
+	autoUpdater.on('update-downloaded', async (info) => {
+		updateReady = info.version
+		tray?.setContextMenu(buildTrayMenu())
+		// Без родительского окна: оно может быть спрятано в трей, и тогда окно
+		// с вопросом тоже осталось бы невидимым
+		const { response } = await dialog.showMessageBox({
+			type: 'info',
+			buttons: ['Перезапустить', 'Позже'],
+			defaultId: 0,
+			cancelId: 1,
+			title: 'Обновление Vici',
+			message: `Доступна новая версия ${info.version}`,
+			detail: 'Она уже скачана. Перезапустить Vici сейчас, чтобы установить? Можно и позже — через меню значка в трее.',
+		})
+		if (response === 0) installUpdate()
+	})
+	// Без слушателя ошибка сети при проверке обновлений роняла бы процесс
+	autoUpdater.on('error', (error) => console.error('Update error', error))
+
+	const check = () => autoUpdater.checkForUpdates().catch((error) => console.error('Update check failed', error))
+	check()
+	setInterval(check, UPDATE_CHECK_INTERVAL)
 }
 
 // Второй запуск не поднимает вторую копию, а возвращает уже открытое окно
@@ -137,7 +179,7 @@ if (!app.requestSingleInstanceLock()) {
 		createTray()
 		await createWindow(await startServer())
 		// В распакованном виде обновляться неоткуда, проверяем только собранное приложение
-		if (app.isPackaged) autoUpdater.checkForUpdatesAndNotify()
+		if (app.isPackaged) setupUpdates()
 	})
 
 	app.on('before-quit', () => { quitting = true })

@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Pressable, ScrollView, StyleSheet, Platform } from 'react-native'
+import { View, Pressable, FlatList, StyleSheet, Platform } from 'react-native'
 import Text from '~/components/Text'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -66,7 +66,7 @@ const QueuePanel = () => {
 	React.useEffect(() => {
 		if (song?.index === undefined || song?.index < 0) return
 		const offset = Math.max(0, (song.index - 3) * ITEM_HEIGHT)
-		scroll.current?.scrollTo({ y: offset, animated: true })
+		scroll.current?.scrollToOffset({ offset, animated: true })
 	}, [song?.index])
 
 	if (!queue.length) return null
@@ -96,17 +96,27 @@ const QueuePanel = () => {
 					onPress={() => Player.setRepeat(songDispatch, song?.actionEndOfSong === 'random' ? 'next' : 'random')}
 				/>
 			</View>
-			<ScrollView ref={scroll} showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
-				{queue.map((item, index) => (
+			{/* Список виртуальный: строки и их обложки грузятся только для видимой части.
+			    На медленной сети полсотни обложек разом тормозили всё остальное */}
+			<FlatList
+				ref={scroll}
+				data={queue}
+				extraData={song?.index}
+				keyExtractor={(item, index) => `${item?.id || 'song'}-${index}`}
+				getItemLayout={(_, index) => ({ length: ITEM_HEIGHT, offset: ITEM_HEIGHT * index, index })}
+				initialNumToRender={15}
+				windowSize={5}
+				showsVerticalScrollIndicator={false}
+				style={{ flex: 1 }}
+				renderItem={({ item, index }) => (
 					<QueueItem
-						key={`${item?.id || 'song'}-${index}`}
 						item={item}
 						index={index}
 						isCurrent={index === song?.index}
 						onPress={() => Player.setIndex(config, songDispatch, queue, index)}
 					/>
-				))}
-			</ScrollView>
+				)}
+			/>
 		</View>
 	)
 }

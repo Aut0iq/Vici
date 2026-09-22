@@ -7,7 +7,7 @@ const source = path.join(__dirname, '..', 'dist')
 const target = path.join(__dirname, 'web')
 
 if (!fs.existsSync(source)) {
-	console.error('Нет папки dist. Сначала соберите веб-версию: npm run export:web:desktop')
+	console.error('Нет папки dist. Сначала соберите веб-версию: npm run export:web')
 	process.exit(1)
 }
 

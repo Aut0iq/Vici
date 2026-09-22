@@ -119,7 +119,7 @@ jobs:
         run: node desktop/version-from-tag.js "${{ steps.version.outputs.version }}"
 
       - name: Собрать веб-версию
-        run: npm run export:web:desktop
+        run: npm run export:web
 
       - name: Перенести сборку в desktop/web
         run: node desktop/sync-web.js

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Tray, shell, nativeImage, dialog } = require('electron')
+const { app, BrowserWindow, Menu, Tray, shell, nativeImage, dialog, session } = require('electron')
 const { autoUpdater } = require('electron-updater')
 const http = require('node:http')
 const fs = require('node:fs')
@@ -75,6 +75,17 @@ const startServer = () => new Promise((resolve, reject) => {
 	}
 	tryListen(0)
 })
+
+// Service worker кэширует саму сборку приложения, и после обновления он ещё один
+// запуск отдавал бы прежний интерфейс. Поэтому при смене версии снимаем его
+// регистрацию. Кэши обложек, запросов и треков лежат отдельно и остаются на месте
+const resetServiceWorkerOnUpdate = async () => {
+	const marker = path.join(app.getPath('userData'), 'last-version')
+	const previous = fs.existsSync(marker) ? fs.readFileSync(marker, 'utf8') : null
+	if (previous === app.getVersion()) return
+	await session.defaultSession.clearStorageData({ storages: ['serviceworkers'] })
+	fs.writeFileSync(marker, app.getVersion())
+}
 
 const createWindow = async (url) => {
 	window = new BrowserWindow({
@@ -177,6 +188,7 @@ if (!app.requestSingleInstanceLock()) {
 
 	app.whenReady().then(async () => {
 		createTray()
+		await resetServiceWorkerOnUpdate()
 		await createWindow(await startServer())
 		// В распакованном виде обновляться неоткуда, проверяем только собранное приложение
 		if (app.isPackaged) setupUpdates()

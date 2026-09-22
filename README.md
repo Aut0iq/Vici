@@ -120,17 +120,6 @@ npm run desktop
 npm run export:desktop
 ```
 
-### Автоматические релизы
-
-APK и установщик для Windows собираются GitHub Actions при отправке тега:
-
-```bash
-git tag v2026.09.21
-git push origin v2026.09.21
-```
-
-Через 20–30 минут на странице Releases появится новая версия с обоими файлами.
-
 ## Благодарности
 
 - [Castafiore](https://github.com/sawyerf/Castafiore) от **sawyerf** — проект, на основе которого создан Vici.

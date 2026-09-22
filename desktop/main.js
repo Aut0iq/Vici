@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Tray, session, shell, nativeImage } = require('electron')
+const { app, BrowserWindow, Menu, Tray, shell, nativeImage } = require('electron')
 const { autoUpdater } = require('electron-updater')
 const http = require('node:http')
 const fs = require('node:fs')
@@ -29,6 +29,10 @@ const MIME = {
 	'.woff2': 'font/woff2',
 }
 
+// Запасные порты нужны только если первый занят чем-то посторонним.
+// На запасном порту настройки будут свои, но это лучше, чем не запуститься
+const PORTS = [47821, 47822, 47823]
+
 let tray = null
 let window = null
 let quitting = false
@@ -51,21 +55,19 @@ const startServer = () => new Promise((resolve, reject) => {
 		response.writeHead(200, { 'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream' })
 		fs.createReadStream(file).pipe(response)
 	})
-	server.on('error', reject)
-	// Порт 0 — система сама выдаст свободный
-	server.listen(0, '127.0.0.1', () => resolve(`http://127.0.0.1:${server.address().port}`))
-})
-
-// Last.fm не разрешает запросы со страницы, поэтому заголовок дописываем сами.
-// Скроббл уходит обычным POST с формой, предварительный запрос браузер не делает
-const allowLastFm = () => {
-	session.defaultSession.webRequest.onHeadersReceived(
-		{ urls: ['https://ws.audioscrobbler.com/*'] },
-		(details, callback) => callback({
-			responseHeaders: { ...details.responseHeaders, 'Access-Control-Allow-Origin': ['*'] },
+	// Порт постоянный: настройки, сервер и очередь хранятся в localStorage,
+	// а он привязан к адресу вместе с портом. Со случайным портом каждый запуск
+	// выглядел для браузера новым сайтом, и приложение забывало подключение
+	const tryListen = (index) => {
+		const port = PORTS[index]
+		server.once('error', (error) => {
+			if (error.code === 'EADDRINUSE' && index + 1 < PORTS.length) tryListen(index + 1)
+			else reject(error)
 		})
-	)
-}
+		server.listen(port, '127.0.0.1', () => resolve(`http://127.0.0.1:${port}`))
+	}
+	tryListen(0)
+})
 
 const createWindow = async (url) => {
 	window = new BrowserWindow({
@@ -132,7 +134,6 @@ if (!app.requestSingleInstanceLock()) {
 	app.on('second-instance', showWindow)
 
 	app.whenReady().then(async () => {
-		allowLastFm()
 		createTray()
 		await createWindow(await startServer())
 		// В распакованном виде обновляться неоткуда, проверяем только собранное приложение

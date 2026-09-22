@@ -1,5 +1,5 @@
 import React from 'react'
-import { Modal, View, Image, FlatList, Pressable, StyleSheet, useWindowDimensions, Platform } from 'react-native'
+import { Modal, View, FlatList, Pressable, StyleSheet, Platform, Animated } from 'react-native'
 import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Icon from 'react-native-vector-icons/FontAwesome'
@@ -14,6 +14,7 @@ import FavoritedButton from '~/components/button/FavoritedButton'
 import IconButton from '~/components/button/IconButton'
 import ImageError from '~/components/ImageError'
 import Lyric from '~/components/player/Lyric'
+import AmbientBackground from '~/components/player/AmbientBackground'
 import VisualizerPane, { hasVisualizerPane } from '~/components/player/VisualizerPane'
 import mainStyles from '~/styles/main'
 import OptionsQueue from '~/components/options/OptionsQueue'
@@ -86,7 +87,14 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 	const theme = useTheme()
 	const volume = Player.updateVolume()
 	const scroll = React.useRef(null)
-	const { height } = useWindowDimensions()
+
+	// Правая половина открывается под визуализатор, текст или очередь.
+	// Пока она закрыта, обложка стоит по центру; при открытии плавно уезжает влево
+	const hasPane = isVisualizer || isPreview === preview.LYRICS || isPreview === preview.QUEUE
+	const pane = React.useRef(new Animated.Value(hasPane ? 1 : 0)).current
+	React.useEffect(() => {
+		Animated.timing(pane, { toValue: hasPane ? 1 : 0, duration: 320, useNativeDriver: false }).start()
+	}, [hasPane])
 
 	const [stars] = useCachedFirst([], 'getStarred2', null, (json, setData) => {
 		setData(json?.starred2?.song || [])
@@ -94,7 +102,7 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 
 	React.useEffect(() => {
 		// if (isPreview == preview.LYRICS) setIsPreview(preview.COVER)
-		if (isPreview == preview.QUEUE) scroll.current.scrollToIndex({ index: song.index, animated: false, viewOffset: 0, viewPosition: 0.5 })
+		if (isPreview == preview.QUEUE && !isVisualizer) scroll.current?.scrollToIndex({ index: song.index, animated: false, viewOffset: 0, viewPosition: 0.5 })
 	}, [song.index, song.songInfo])
 
 	return (
@@ -103,41 +111,48 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 			navigationBarTranslucent={Platform.OS === 'android' && parseInt(Platform.Version, 10) > 34 ? false : true}
 			onRequestClose={() => setFullScreen(false)}
 		>
-			<Image
-				source={{ uri: urlCover(config, song?.songInfo) }}
-				style={styles.backgroundImage}
-				blurRadius={5}
-			/>
+			{/* Тот же фон, что и в главном окне: цвета обложки, мягко притемнённые */}
+			<AmbientBackground song={song?.songInfo} />
+			<View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.35)' }]} />
 			<View style={{
 				flex: 1,
 				width: '100%',
 				height: '100%',
-				backgroundColor: 'rgba(0, 0, 0, 0.6)',
 				paddingTop: insets.top + 10 < 50 ? 50 : insets.top + 10,
 				paddingBottom: insets.bottom + 10 < 50 ? 50 : insets.bottom + 10,
 				paddingStart: insets.left + 10 < 50 ? 50 : insets.left + 10,
 				paddingEnd: insets.right + 10 < 50 ? 50 : insets.right + 10,
 				gap: 20,
 			}}>
-				{isVisualizer ? (
-					<View style={{ flex: 1, flexDirection: 'row', gap: 20, minHeight: 0 }}>
-						{/* Левая половина — обложка целиком, без карточки в углу */}
-						<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, minWidth: 0 }}>
+				<View style={{ flex: 1, flexDirection: 'row', minHeight: 0 }}>
+					{/* Обложка: по центру, пока правая половина закрыта. Свайп по ней переключает трек */}
+					<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, minWidth: 0 }}>
+						<SlideControl style={styles.coverSlot}>
 							<ImageError style={styles.imageCoverLarge} source={{ uri: urlCover(config, song?.songInfo) }} />
-							<View style={{ alignItems: 'center', maxWidth: '90%' }}>
-								<Text numberOfLines={1} style={styles.titleCenter}>{song?.songInfo?.title}</Text>
-								<Text numberOfLines={1} style={styles.artistCenter}>{song?.songInfo?.artist}</Text>
-								<FavoritedButton
-									id={song?.songInfo?.id}
-									isFavorited={stars.some(s => s.id === song.songInfo.id)}
-									rating={song.songInfo?.userRating ?? song.songInfo?.rating ?? 0}
-									size={size.icon.medium}
-									style={{ padding: 0, marginTop: 10 }}
-								/>
-							</View>
+						</SlideControl>
+						<View style={{ alignItems: 'center', maxWidth: '90%' }}>
+							<Text numberOfLines={1} style={styles.titleCenter}>{song?.songInfo?.title}</Text>
+							<Text numberOfLines={1} style={styles.artistCenter}>{song?.songInfo?.artist}</Text>
+							<FavoritedButton
+								id={song?.songInfo?.id}
+								isFavorited={stars.some(s => s.id === song.songInfo.id)}
+								rating={song.songInfo?.userRating ?? song.songInfo?.rating ?? 0}
+								size={size.icon.medium}
+								style={{ padding: 0, marginTop: 10 }}
+							/>
 						</View>
-						{/* Правая половина — визуализатор, текст песни ложится поверх него */}
-						<View style={{ flex: 1, minWidth: 0 }}>
+					</View>
+					{/* Правая половина: визуализатор (текст ложится поверх), текст или очередь */}
+					<Animated.View
+						style={{
+							flex: pane,
+							opacity: pane,
+							marginStart: pane.interpolate({ inputRange: [0, 1], outputRange: [0, 20] }),
+							minWidth: 0,
+							overflow: 'hidden',
+						}}
+					>
+						{isVisualizer ? (
 							<VisualizerPane active={true}>
 								{isPreview == preview.LYRICS ? (
 									<Lyric
@@ -151,122 +166,85 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 									/>
 								) : null}
 							</VisualizerPane>
-						</View>
-					</View>
-				) : (
-					<>
-				{
-					isPreview == preview.LYRICS &&
-					<View style={{ flex: 2, alignItems: 'center' }}>
-						<Lyric
-							song={song}
-							sizeText={30}
-							color={{
-								active: color.primary,
-								inactive: color.secondary
-							}}
-							style={{
-								width: '100%',
-								maxWidth: 700,
-							}}
-						/>
-					</View>
-				}
-				<View
-					style={{
-						flex: isPreview === preview.LYRICS ? undefined : 1,
-						display: isPreview === preview.LYRICS && height < 800 ? 'none' : 'flex',
-						flexDirection: 'row',
-					}}
-				>
-					<SlideControl
-						style={{
-							flex: 2,
-							justifyContent: 'flex-start',
-							alignItems: 'flex-end',
-							flexDirection: 'row',
-						}}
-					>
-						<ImageError style={styles.imageCover} source={{ uri: urlCover(config, song?.songInfo) }} />
-						<View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
-							<FavoritedButton
-								id={song?.songInfo?.id}
-								isFavorited={stars.some(s => s.id === song.songInfo.id)}
-								rating={song.songInfo?.userRating ?? song.songInfo?.rating ?? 0}
-								size={size.icon.medium}
-								style={{ padding: 0, paddingBottom: 10, marginStart: 20, width: 'min-content' }}
-							/>
-							<Text numberOfLines={1} style={styles.title}>{song?.songInfo?.title}</Text>
-							<Text numberOfLines={1} style={styles.artist}>{song?.songInfo?.artist}</Text>
-						</View>
-					</SlideControl>
-					{
-						isPreview == preview.QUEUE &&
-						<View style={{ flex: 1, maxWidth: '50%', justifyContent: 'flex-end' }}>
-							<OptionsQueue
-								queue={song.queue}
-								indexOptions={indexOptions}
-								setIndexOptions={setIndexOptions}
-								closePlayer={() => setFullScreen(false)}
-							/>
-							<FlatList
-								ref={scroll}
-								onLayout={() => scroll.current.scrollToIndex({ index: song.index, animated: false, viewOffset: 0, viewPosition: 0.5 })}
-								style={{ height: '100%' }}
-								contentContainerStyle={{ width: '100%', minHeight: '100%', justifyContent: 'flex-end' }}
-								getItemLayout={(data, index) => ({ length: size.image.small + 10, offset: (size.image.small + 10) * index, index })}
-								showsVerticalScrollIndicator={false}
-								onScrollToIndexFailed={() => { }}
-								data={song.queue}
-								keyExtractor={(_, index) => index}
-								renderItem={({ item, index }) => (
-									<Pressable
-										key={item.id}
-										style={({ pressed }) => ([mainStyles.opacity({ pressed }), {
-											flexDirection: 'row',
-											alignItems: 'center',
-											marginBottom: 10,
-										}])}
-										onPress={() => Player.setIndex(config, songDispatch, song.queue, index)}
-										onLongPress={() => setIndexOptions(index)}
-										onContextMenu={(ev) => {
-											ev.preventDefault()
-											return setIndexOptions(index)
-										}}
-									>
-										<View style={{ flex: 1, flexDirection: 'column' }}>
-											<Text numberOfLines={1} style={{ color: song.index === index ? theme.primaryTouch : color.primary, fontSize: size.text.medium, marginBottom: 2, textAlign: 'right' }}>
-												{item.title}
-											</Text>
-											<Text numberOfLines={1} style={{ color: color.secondary, fontSize: size.text.small, textAlign: 'right' }}>
-												{item.artist}
-											</Text>
-										</View>
-
-										<View style={[mainStyles.coverSmall(theme), { overflow: 'hidden', marginStart: 10 }]}>
-											{song.index === index && (
-												<View style={{
-													position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1,
-													backgroundColor: 'rgba(0, 0, 0, 0.3)',
-													justifyContent: 'center', alignItems: 'center'
+						) : null}
+						{!isVisualizer && isPreview == preview.LYRICS ? (
+							<View style={{ flex: 1, justifyContent: 'center' }}>
+								<Lyric
+									song={song}
+									sizeText={26}
+									color={{
+										active: color.primary,
+										inactive: color.secondary
+									}}
+									style={{ width: '100%' }}
+								/>
+							</View>
+						) : null}
+						{!isVisualizer && isPreview == preview.QUEUE ? (
+							<View style={{ flex: 1, justifyContent: 'flex-end' }}>
+									<OptionsQueue
+										queue={song.queue}
+										indexOptions={indexOptions}
+										setIndexOptions={setIndexOptions}
+										closePlayer={() => setFullScreen(false)}
+									/>
+									<FlatList
+										ref={scroll}
+										onLayout={() => scroll.current.scrollToIndex({ index: song.index, animated: false, viewOffset: 0, viewPosition: 0.5 })}
+										style={{ height: '100%' }}
+										contentContainerStyle={{ width: '100%', minHeight: '100%', justifyContent: 'flex-end' }}
+										getItemLayout={(data, index) => ({ length: size.image.small + 10, offset: (size.image.small + 10) * index, index })}
+										showsVerticalScrollIndicator={false}
+										onScrollToIndexFailed={() => { }}
+										data={song.queue}
+										keyExtractor={(_, index) => index}
+										renderItem={({ item, index }) => (
+											<Pressable
+												key={item.id}
+												style={({ pressed }) => ([mainStyles.opacity({ pressed }), {
+													flexDirection: 'row',
+													alignItems: 'center',
+													marginBottom: 10,
+												}])}
+												onPress={() => Player.setIndex(config, songDispatch, song.queue, index)}
+												onLongPress={() => setIndexOptions(index)}
+												onContextMenu={(ev) => {
+													ev.preventDefault()
+													return setIndexOptions(index)
 												}}
-												>
-													<Icon name="align-center" size={19} color={'white'} style={{ height: 19, transform: [{ rotate: '90deg' }] }} />
+											>
+												<View style={{ flex: 1, flexDirection: 'column' }}>
+													<Text numberOfLines={1} style={{ color: song.index === index ? theme.primaryTouch : color.primary, fontSize: size.text.medium, marginBottom: 2, textAlign: 'right' }}>
+														{item.title}
+													</Text>
+													<Text numberOfLines={1} style={{ color: color.secondary, fontSize: size.text.small, textAlign: 'right' }}>
+														{item.artist}
+													</Text>
 												</View>
-											)}
-											<ImageError
-												style={[mainStyles.coverSmall(theme)]}
-												source={{ uri: urlCover(config, item, 100) }}
-											/>
-										</View>
-									</Pressable>
-								)}
-							/>
-						</View>
-					}
+
+												<View style={[mainStyles.coverSmall(theme), { overflow: 'hidden', marginStart: 10 }]}>
+													{song.index === index && (
+														<View style={{
+															position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1,
+															backgroundColor: 'rgba(0, 0, 0, 0.3)',
+															justifyContent: 'center', alignItems: 'center'
+														}}
+														>
+															<Icon name="align-center" size={19} color={'white'} style={{ height: 19, transform: [{ rotate: '90deg' }] }} />
+														</View>
+													)}
+													<ImageError
+														style={[mainStyles.coverSmall(theme)]}
+														source={{ uri: urlCover(config, item, 100) }}
+													/>
+												</View>
+											</Pressable>
+										)}
+									/>
+							</View>
+						) : null}
+					</Animated.View>
 				</View>
-					</>
-				)}
 				<View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, maxWidth: '100%' }}>
 					<TimeBar />
 				</View>
@@ -374,36 +352,17 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 }
 
 const styles = StyleSheet.create({
-	backgroundImage: {
-		flex: 1,
-		width: '100%',
-		height: '100%',
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		bottom: 0,
-		right: 0,
-		zIndex: -1,
-		backgroundColor: '#000',
-	},
-	title: {
-		color: color.primary,
-		fontSize: size.title.medium,
-		fontWeight: 'bold',
-		textAlign: 'left',
-		marginHorizontal: 20,
-	},
-	artist: {
-		color: color.primary,
-		fontSize: size.text.large,
-		textAlign: 'left',
-		margin: 20,
-		marginTop: 0,
-	},
-	imageCoverLarge: {
+	coverSlot: {
 		width: '82%',
 		maxWidth: 520,
+		maxHeight: '72%',
 		aspectRatio: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	imageCoverLarge: {
+		width: '100%',
+		height: '100%',
 		borderRadius: 14,
 		backgroundColor: 'rgba(0, 0, 0, 0.5)',
 	},
@@ -418,14 +377,6 @@ const styles = StyleSheet.create({
 		fontSize: size.text.large,
 		textAlign: 'center',
 		marginTop: 4,
-	},
-	imageCover: {
-		height: 200,
-		maxHeight: '100%',
-		width: 'auto',
-		aspectRatio: 1,
-		borderRadius: 5,
-		backgroundColor: 'rgba(0, 0, 0, 0.5)',
 	},
 })
 

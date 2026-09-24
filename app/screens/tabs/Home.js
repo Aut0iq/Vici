@@ -22,6 +22,7 @@ import ImageError from '~/components/ImageError'
 import Player from '~/utils/player'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import size from '~/styles/size'
+import logger from '~/utils/logger'
 
 
 // Карточка «Продолжить слушать»: то, что сейчас в очереди
@@ -97,7 +98,8 @@ const Home = () => {
 			.then((json) => {
 				playSong(config, songDispatch, json.randomSongs.song, 0)
 			})
-			.catch(() => { })
+			// Раньше кнопка при ошибке просто ничего не делала, и причины было не найти
+			.catch((error) => logger.error('Home', `Random song failed: ${error?.message || error}`))
 	}
 
 	const forceRefresh = (rotate = () => { }) => {
@@ -118,7 +120,7 @@ const Home = () => {
 					setStatusRefresh()
 				}
 			})
-			.catch(() => { })
+			.catch((error) => logger.error('Home', `Scan status failed: ${error?.message || error}`))
 	}
 
 	const refreshServer = () => {
@@ -127,7 +129,7 @@ const Home = () => {
 			.then(() => {
 				getStatusRefresh()
 			})
-			.catch(() => { })
+			.catch((error) => logger.error('Home', `Scan start failed: ${error?.message || error}`))
 	}
 
 	return (

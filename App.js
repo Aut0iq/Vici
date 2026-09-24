@@ -9,11 +9,15 @@ import '~/i18next/i18next'
 import { version } from '~/../package.json'
 import AppProvider from '~/contexts'
 import logger from '~/utils/logger'
+import installGlobalLogging from '~/utils/globalLogging'
 import Navigation from '~/components/Navigation'
 
 
 global.maxBitRate = 0
 global.streamFormat = 'mp3'
+
+// Ставим до отрисовки, чтобы в «Logs» попало и то, что случится при запуске
+installGlobalLogging()
 
 const App = () => {
 	// Загружаем шрифты Vici. Если не получилось — приложение всё равно запустится со стандартным шрифтом

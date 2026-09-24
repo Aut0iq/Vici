@@ -19,6 +19,11 @@ const debug = (source, ...message) => {
 	console.debug(`[${source}]`, ...message)
 }
 
+const warn = (source, ...message) => {
+	log('warn', message, source)
+	console.warn(`[${source}]`, ...message)
+}
+
 const error = (source, ...message) => {
 	log('error', message, source)
 	console.error(`[${source}]`, ...message)
@@ -30,6 +35,7 @@ const get = () => {
 
 export default {
 	log,
+	warn,
 	error,
 	info,
 	debug,

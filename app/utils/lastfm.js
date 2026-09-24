@@ -59,10 +59,19 @@ const call = async (method, params, { secret = null, post = false } = {}) => {
 		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 		body,
 	} : undefined)
-	const json = await res.json().catch(() => null)
+	const text = await res.text().catch(() => '')
+	let json = null
+	try {
+		json = JSON.parse(text)
+	} catch {
+		// Ответ не JSON — разберёмся ниже по коду и телу
+	}
 	if (!json || json.error) {
-		const error = new Error(json?.message || `Last.fm error ${res.status}`)
+		// Если ответ не разобрался, кладём в сообщение код и начало тела:
+		// иначе причина отказа остаётся невидимой и в логах, и на экране
+		const error = new Error(json?.message || `HTTP ${res.status}: ${text.slice(0, 200) || 'пустой ответ'}`)
 		error.code = json?.error
+		error.status = res.status
 		throw error
 	}
 	return json
@@ -113,7 +122,9 @@ export const getStats = async () => {
 	let stats = { count: 0, lastAt: null }
 	try {
 		stats = { ...stats, ...JSON.parse(await AsyncStorage.getItem(KEY_STATS)) }
-	} catch { }
+	} catch {
+		// Статистики ещё нет или она повреждена — покажем нули
+	}
 	const queue = await readQueue()
 	return { ...stats, queued: queue.length }
 }
@@ -125,10 +136,21 @@ const addToStats = async (added) => {
 			count: (stats.count || 0) + added,
 			lastAt: Date.now(),
 		}))
-	} catch { }
+	} catch {
+		// Счётчик — вещь необязательная, из-за него скроббл терять нельзя
+	}
 }
 
+const MAX_BATCH = 50
+
 const sendScrobble = async (items) => {
+	// Отправляем частями: больше 50 треков за раз Last.fm не принимает
+	for (let from = 0; from < items.length; from += MAX_BATCH) {
+		await sendBatch(items.slice(from, from + MAX_BATCH))
+	}
+}
+
+const sendBatch = async (items) => {
 	const params = { ...authParams() }
 	items.forEach((item, i) => {
 		params[`artist[${i}]`] = item.artist
@@ -153,7 +175,25 @@ export const updateNowPlaying = async (song) => {
 			duration: song.duration ? Math.round(song.duration) : '',
 		}, { secret: account.secret, post: true })
 	} catch (error) {
-		logger.warn('LastFM', `Now playing failed: ${error.message}`)
+		logger.error('LastFM', `Now playing failed: ${error.message}`)
+	}
+}
+
+// Отправить накопившееся, не дожидаясь следующего трека
+export const flushQueue = async () => {
+	await loadAccount()
+	if (!isConnected()) return 0
+	const queue = await readQueue()
+	if (!queue.length) return 0
+	try {
+		await sendScrobble(queue)
+		await addToStats(queue.length)
+		await writeQueue([])
+		logger.info('LastFM', `Queue sent (${queue.length})`)
+		return queue.length
+	} catch (error) {
+		logger.error('LastFM', `Queue not sent: ${error.message}`)
+		return 0
 	}
 }
 
@@ -178,10 +218,10 @@ export const scrobble = async (song, timestamp) => {
 		logger.info('LastFM', `Scrobbled ${item.artist} - ${item.track}`)
 	} catch (error) {
 		// Ошибки сети — отложим, ошибки данных (неверная сессия и т.п.) — не копим
-		if (error.code) logger.warn('LastFM', `Scrobble rejected: ${error.message}`)
+		if (error.code) logger.error('LastFM', `Scrobble rejected (${error.code}): ${error.message}`)
 		else {
 			await writeQueue(batch)
-			logger.warn('LastFM', `Scrobble queued (${batch.length})`)
+			logger.info('LastFM', `Scrobble queued (${batch.length}): ${error.message}`)
 		}
 	}
 }

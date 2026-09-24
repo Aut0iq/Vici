@@ -100,7 +100,13 @@ export const createSession = async (apiKey, secret, token) => {
 	return value
 }
 
-export const disconnect = () => saveAccount(null)
+// Выход из аккаунта. Ключ приложения при этом сохраняем: он не привязан
+// к учётной записи, а без него войти заново нечем — пришлось бы снова искать
+// его на last.fm. Раньше выход стирал всё, и поля оставались пустыми
+export const disconnect = async () => {
+	if (!account?.apiKey) return saveAccount(null)
+	await saveAccount({ apiKey: account.apiKey, secret: account.secret })
+}
 
 const authParams = () => ({
 	api_key: account.apiKey,

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import Text from '~/components/Text'
 import { useTheme } from '~/contexts/theme'
-import { loadAccount, requestToken, createSession, disconnect, getStats } from '~/utils/lastfm'
+import { loadAccount, requestToken, createSession, disconnect, getStats, flushQueue } from '~/utils/lastfm'
 import ButtonText from '~/components/settings/ButtonText'
 import Header from '~/components/Header'
 import mainStyles from '~/styles/main'
@@ -39,6 +39,10 @@ const LastFm = () => {
 			setAccount(value)
 			setApiKey(value.apiKey || '')
 			setSecret(value.secret || '')
+			// Пробуем отправить накопившееся: иначе очередь ждала бы следующего трека
+			flushQueue().then((sent) => {
+				if (sent) getStats().then(setStats)
+			})
 		})
 	}, [])
 

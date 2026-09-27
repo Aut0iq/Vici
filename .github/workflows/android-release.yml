@@ -1,9 +1,3 @@
-# Автосборка Vici: APK для Android и установщик для Windows.
-# Как выпустить версию: git tag v2026.09.18 && git push origin v2026.09.18
-# Через ~20–30 минут на странице Releases появятся APK и exe: Obtainium предложит
-# обновление на телефоне, а настольная версия обновится сама.
-# Можно запустить и вручную: вкладка Actions → Release → Run workflow.
-
 name: Release
 
 on:
@@ -84,8 +78,6 @@ jobs:
           files: vici-${{ steps.version.outputs.version }}.apk
           generate_release_notes: true
 
-  # Установщик для Windows: та же веб-версия приложения, упакованная в Electron.
-  # Запускается после Android, чтобы релиз уже существовал и файлы легли в него
   desktop:
     needs: build
     runs-on: windows-latest

@@ -125,10 +125,13 @@ export const songReducer = (state, action) => {
 				newQueue.splice(action.index, 0, action.track)
 			}
 
+			const inserted = (action.index === null || action.index >= state.queue.length) ? newQueue.length - 1 : action.index
 			return newSong(state, {
 				queue: newQueue,
 				index: (typeof action.index === 'number' && state.index >= action.index) ? state.index + 1 : state.index,
-				randomIndex: state.randomIndex?.length ? [...state.randomIndex, newQueue.length - 1] : [],
+				randomIndex: state.randomIndex?.length
+					? [...state.randomIndex.map((i) => (i >= inserted ? i + 1 : i)), inserted]
+					: [],
 			}, true)
 		}
 		case 'setRating': {
@@ -163,7 +166,9 @@ export const songReducer = (state, action) => {
 				queue: newQueue,
 				index: newIndex,
 				songInfo: newQueue[newIndex] || null,
-				randomIndex: state.randomIndex.filter((i) => i < newQueue.length),
+				randomIndex: (state.randomIndex || [])
+					.filter((i) => i !== action.index)
+					.map((i) => (i > action.index ? i - 1 : i)),
 			}, true)
 		}
 		case 'setActionEndOfSong':

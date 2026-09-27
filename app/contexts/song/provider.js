@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Platform, AppState } from 'react-native'
 
 import Player from '~/utils/player'
+import { getApi } from '~/utils/api'
 import logger from '~/utils/logger'
 import State from '~/utils/playerState'
 import { queueWithout } from '~/utils/tools'
@@ -33,6 +34,8 @@ export const SongProvider = ({ children }) => {
 		}
 	}, [])
 
+	useEndlessQueue(song, dispatch)
+
 	return (
 		<SongDispatchContext.Provider value={dispatch}>
 			<SongContext.Provider value={song}>
@@ -40,6 +43,35 @@ export const SongProvider = ({ children }) => {
 			</SongContext.Provider>
 		</SongDispatchContext.Provider>
 	)
+}
+
+const ENDLESS_BATCH = 50
+const ENDLESS_THRESHOLD = 5
+
+const remainingTracks = (song) => {
+	if (song.actionEndOfSong === 'random' && song.randomIndex?.length) {
+		const position = song.randomIndex.indexOf(song.index)
+		if (position !== -1) return song.randomIndex.length - 1 - position
+	}
+	return song.queue.length - 1 - song.index
+}
+
+const useEndlessQueue = (song, dispatch) => {
+	const loading = React.useRef(false)
+
+	React.useEffect(() => {
+		if (!song.endless || !song.queue?.length || loading.current) return
+		if (remainingTracks(song) > ENDLESS_THRESHOLD) return
+		loading.current = true
+		getApi(global.config, 'getRandomSongs', { ...song.endless, size: ENDLESS_BATCH })
+			.then((json) => {
+				const known = new Set(global.song?.queue?.map((track) => track.id))
+				const tracks = (json.randomSongs?.song || []).filter((track) => !known.has(track.id))
+				if (tracks.length) dispatch({ type: 'appendToQueue', tracks })
+			})
+			.catch((error) => logger.warn('EndlessQueue', `Random songs not loaded: ${error?.message || error}`))
+			.finally(() => { loading.current = false })
+	}, [song.endless, song.index, song.queue?.length, song.actionEndOfSong])
 }
 
 const convertTrack = (track) => {
@@ -91,6 +123,7 @@ export const songReducer = (state, action) => {
 				index: action.song.index || 0,
 				actionEndOfSong: action.song.actionEndOfSong || 'next',
 				randomIndex: action.song.randomIndex || [],
+				endless: action.song.endless || null,
 				isSongLoad: action.isSongLoad || false,
 			})
 		case 'setQueue': {
@@ -99,7 +132,19 @@ export const songReducer = (state, action) => {
 				songInfo: newQueue[action.index],
 				index: action.index,
 				queue: newQueue,
+				endless: action.endless || null,
 				isSongLoad: true,
+			}, true)
+		}
+		case 'appendToQueue': {
+			if (!state.queue?.length || !action.tracks?.length) return state
+			const start = state.queue.length
+			const tracks = action.tracks.map((track) => convertTrack(track))
+			return newSong(state, {
+				queue: [...state.queue, ...tracks],
+				randomIndex: state.randomIndex?.length
+					? [...state.randomIndex, ...tracks.map((_, i) => start + i)]
+					: [],
 			}, true)
 		}
 		case 'setIndex':
@@ -201,5 +246,6 @@ export const defaultSong = {
 	index: 0,
 	actionEndOfSong: 'next',
 	randomIndex: [],
+	endless: null,
 	state: State.Stopped,
 }

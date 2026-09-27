@@ -92,7 +92,7 @@ const Home = () => {
 	const clickRandomSong = () => {
 		getApiNetworkFirst(config, 'getRandomSongs', 'size=50')
 			.then((json) => {
-				playSong(config, songDispatch, json.randomSongs.song, 0)
+				playSong(config, songDispatch, json.randomSongs.song, 0, {})
 			})
 			.catch((error) => logger.error('Home', `Random song failed: ${error?.message || error}`))
 	}

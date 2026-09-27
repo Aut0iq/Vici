@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, ScrollView, StyleSheet, Pressable, Platform } from 'react-native'
+import { View, ScrollView, StyleSheet, Pressable } from 'react-native'
 import Text from '~/components/Text'
 import { useNavigation } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -82,7 +82,6 @@ const ContinueCard = ({ onRandom }) => {
 }
 
 const Home = () => {
-	const { t } = useTranslation()
 	const navigation = useNavigation()
 	const insets = useSafeAreaInsets()
 	const songDispatch = useSongDispatch()

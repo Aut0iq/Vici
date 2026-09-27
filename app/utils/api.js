@@ -63,7 +63,7 @@ export const getCachedAndApi = async (config, path, query = '', setData = () => 
 
 	let json = null
 	const key = getUrl(config, path, query)
-	json = await getJsonCache('api', key)
+	json = await getJsonCache('api', key).catch(() => null)
 	if (json) setData(json, 'cache')
 	json = await getApi(config, path, query, true)
 		.then((json) => {
@@ -71,7 +71,7 @@ export const getCachedAndApi = async (config, path, query = '', setData = () => 
 			return json
 		})
 		.catch(() => { return null })
-	await setJsonCache('api', key, json)
+	await setJsonCache('api', key, json).catch((error) => logger.error('getCachedAndApi', `cache write failed: ${error?.message || error}`))
 }
 
 export const refreshApi = (config, path, query = '') => {
@@ -79,6 +79,7 @@ export const refreshApi = (config, path, query = '') => {
 		getApi(config, path, query)
 			.then((json) => {
 				setJsonCache('api', getUrl(config, path, query), json)
+					.catch(() => { })
 					.then(() => resolve(json))
 			})
 			.catch((error) => {
@@ -183,6 +184,7 @@ export const getApiCacheFirst = (config, path, query = '') => {
 				else getApi(config, path, query)
 					.then((json) => {
 						setJsonCache('api', key, json)
+							.catch(() => { })
 							.then(() => {
 								resolve(json)
 							})
@@ -193,6 +195,7 @@ export const getApiCacheFirst = (config, path, query = '') => {
 				getApi(config, path, query)
 					.then((json) => {
 						setJsonCache('api', key, json)
+							.catch(() => { })
 							.then(() => {
 								resolve(json)
 							})

@@ -14,9 +14,7 @@ export const clearCache = async () => {
 		'lyrics',
 		'apiLongResponse',
 	]
-	keys.forEach(async (key) => {
-		await window.caches.delete(key)
-	})
+	await Promise.all(keys.map((key) => window.caches.delete(key)))
 }
 
 export const clearSongCache = async () => {

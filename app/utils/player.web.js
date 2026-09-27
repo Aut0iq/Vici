@@ -4,7 +4,7 @@ import * as serviceWorkerRegistration from '~/services/serviceWorkerRegistration
 
 import { getApi } from '~/utils/api'
 import { urlStream, urlCover } from './url'
-import { nextRandomIndex, prevRandomIndex, saveQueue } from '~/utils/tools'
+import { nextRandomIndex, prevRandomIndex, queueWithout, saveQueue } from '~/utils/tools'
 import State from '~/utils/playerState'
 import logger from '~/utils/logger'
 
@@ -323,8 +323,13 @@ export const resetAudio = (songDispatch) => {
 	sound.currentTime = 0
 }
 
-export const removeFromQueue = async (songDispatch, index) => {
+export const removeFromQueue = async (config, song, songDispatch, index) => {
+	if (!song.queue || song.queue.length <= 1 || index >= song.queue.length) return
 	songDispatch({ type: 'removeFromQueue', index })
+	if (index !== song.index) return
+	const next = queueWithout(song, index)
+	await loadSong(config, next.queue, next.index)
+	saveQueue(config, next.queue, next.index)
 }
 
 export const addToQueue = (songDispatch, track, index = null) => {

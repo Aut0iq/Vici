@@ -78,7 +78,7 @@ const OptionsQueue = ({ queue, indexOptions, setIndexOptions, closePlayer }) => 
 	}
 
 	const removeFromQueueOpt = () => {
-		removeFromQueue(songDispatch, indexOptions)
+		removeFromQueue(config, song, songDispatch, indexOptions)
 		refOption.current.close()
 	}
 
@@ -123,7 +123,7 @@ const OptionsQueue = ({ queue, indexOptions, setIndexOptions, closePlayer }) => 
 					name: t('Remove from queue'),
 					icon: 'trash',
 					onPress: removeFromQueueOpt,
-					hidden: song.index === indexOptions
+					hidden: !queue || queue.length <= 1
 				}
 			]} />
 	)

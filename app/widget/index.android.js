@@ -6,6 +6,7 @@ import { getColors } from 'react-native-image-colors'
 import { urlCover } from '~/utils/url'
 import { songReducer } from '~/contexts/song'
 import Player from '~/utils/player'
+import logger from '~/utils/logger'
 import State from '~/utils/playerState'
 import { ViciWidget, WIDGET_NAME, DEFAULT_COLORS } from '~/widget/ViciWidget'
 
@@ -71,7 +72,9 @@ export const updateWidget = async (config, song) => {
 			renderWidget: (widgetInfo) => <ViciWidget {...state} height={widgetInfo?.height} />,
 			widgetNotFound: () => { },
 		})
-	} catch { }
+	} catch (error) {
+		logger.error('Widget', `Update failed: ${error?.message || error}`)
+	}
 }
 
 // Кнопки виджета работают так же, как кнопки в уведомлении плеера
@@ -81,7 +84,7 @@ const dispatch = (action) => {
 }
 
 const widgetTaskHandler = async ({ widgetInfo, widgetAction, clickAction, renderWidget }) => {
-	const state = await readState()
+	let state = await readState()
 
 	if (widgetAction === 'WIDGET_CLICK' && global.song?.songInfo) {
 		try {
@@ -90,15 +93,20 @@ const widgetTaskHandler = async ({ widgetInfo, widgetAction, clickAction, render
 					await Player.pauseSong()
 					state.isPlaying = false
 				} else {
-					await Player.resumeSong()
+					if (global.song.isSongLoad) await Player.resumeSong()
+					else await Player.playSong(global.config, dispatch, global.song.queue, global.song.index)
 					state.isPlaying = true
 				}
-			} else if (clickAction === 'NEXT') {
-				await Player.nextSong(global.config, global.song, dispatch)
-			} else if (clickAction === 'PREV') {
-				await Player.previousSong(global.config, global.song, dispatch)
+				await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+			} else if (clickAction === 'NEXT' || clickAction === 'PREV') {
+				if (clickAction === 'NEXT') await Player.nextSong(global.config, global.song, dispatch)
+				else await Player.previousSong(global.config, global.song, dispatch)
+				await updateWidget(global.config, global.song)
+				state = await readState()
 			}
-		} catch { }
+		} catch (error) {
+			logger.error('Widget', `${clickAction} failed: ${error?.message || error}`)
+		}
 	}
 
 	if (widgetAction !== 'WIDGET_DELETED') renderWidget(<ViciWidget {...state} height={widgetInfo?.height} />)

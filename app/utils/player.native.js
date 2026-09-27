@@ -75,9 +75,9 @@ export const downloadNextSong = async (queue, currentIndex) => {
 	return getPlayer().downloadNextSong(queue, currentIndex)
 }
 
-export const playSong = async (config, songDispatch, queue, index) => {
+export const playSong = async (config, songDispatch, queue, index, endless = null) => {
 	await loadSong(config, queue, index)
-	songDispatch({ type: 'setQueue', queue, index })
+	songDispatch({ type: 'setQueue', queue, index, endless })
 	songDispatch({ type: 'setActionEndOfSong', action: 'next' })
 	saveQueue(config, queue, index)
 }

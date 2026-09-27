@@ -63,7 +63,7 @@ const Genre = ({ route: { params: { name, albumCount = 0, songCount = 0 } } }) =
 			.then((json) => {
 				const songs = json.randomSongs?.song
 				if (!songs) return
-				playSong(config, songDispatch, songs, 0)
+				playSong(config, songDispatch, songs, 0, { genre: name })
 			})
 			.catch(() => { })
 	}

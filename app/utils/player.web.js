@@ -198,9 +198,9 @@ const loadSong = async (config, queue, index) => {
 	})
 }
 
-export const playSong = async (config, songDispatch, queue, index) => {
+export const playSong = async (config, songDispatch, queue, index, endless = null) => {
 	await loadSong(config, queue, index)
-	songDispatch({ type: 'setQueue', queue, index })
+	songDispatch({ type: 'setQueue', queue, index, endless })
 	setRepeat(songDispatch, 'next')
 	saveQueue(config, queue, index)
 }

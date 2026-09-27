@@ -1,14 +1,9 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
 node_modules/
 
-# Expo
 .expo/
 dist/
 web-build/
 
-# Native
 *.orig.*
 *.jks
 *.p8
@@ -16,42 +11,33 @@ web-build/
 *.key
 *.mobileprovision
 
-# Настройки Claude Code — локальные, в репозиторий не идут
 .claude/
 
-# Metro
 .metro-health-check*
 
-# debug
 npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
 .DS_Store
 *.pem
 
-# local env files
 .env*.local
 
-# typescript
 *.tsbuildinfo
 
 *.aab
 *.apk
 *.zip
-# Папки нативных проектов создаются командой prebuild и в репозиторий не попадают
 /android
 /ios
 /android/**
 
-# ...но собственные нативные модули в modules/ нужны для сборки
 !modules/*/android/
 !modules/*/android/**
 !modules/*/ios/
 !modules/*/ios/**
 
-# ...но вывод Gradle внутри нативных модулей — нет
 modules/*/android/build/
 .node_modules
 node_modules

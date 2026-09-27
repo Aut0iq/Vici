@@ -16,7 +16,7 @@ export const parseLrc = (lrc) => {
 			times.push(parseInt(match[1], 10) * 60 + parseInt(match[2], 10) + fraction)
 		}
 		if (!times.length) continue
-		const text = rawLine.replace(TAG, '').trim()
+		const text = rawLine.replace(TAG, '').replace(/<\d{1,3}:\d{1,2}(?:[.:]\d{1,3})?>/g, '').replace(/\s{2,}/g, ' ').trim()
 		for (const time of times) lyrics.push({ time: Math.max(0, time - offset), text })
 	}
 	return lyrics.sort((a, b) => a.time - b.time)

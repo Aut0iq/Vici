@@ -47,7 +47,7 @@ const query = (params) => Object.entries(params)
 	.join('&')
 
 // 1. Текст, который хранит сам Navidrome (из тегов файла или .lrc рядом с ним)
-const fromNavidrome = async (config, song) => {
+const fromNavidrome = async (config, song, status) => {
 	try {
 		const res = await getApi(config, 'getLyricsBySongId', { id: song.id })
 		const list = res?.lyricsList?.structuredLyrics || []
@@ -61,30 +61,36 @@ const fromNavidrome = async (config, song) => {
 		}
 		const plain = list.find((l) => l.line?.length)
 		if (plain) return fromPlain(plain.line.map((l) => l.value || '').join('\n'))
-	} catch { }
+	} catch (error) {
+		if (!error?.isApiError) status.failed = true
+	}
 	return null
 }
 
 // 2–3. LRCLIB: сначала точный запрос, потом поиск с проверкой исполнителя и длительности
-const fromLrcLib = async (song, signal) => {
+const fromLrcLib = async (song, signal, status) => {
+	const soft = (promise) => promise.catch((error) => {
+		if (error?.name !== 'AbortError') status.failed = true
+		return null
+	})
 	const duration = Math.round(song.duration || 0)
 	const title = cleanTitle(song.title)
 
-	const exact = await fetchJson(`https://lrclib.net/api/get?${query({
+	const exact = await soft(fetchJson(`https://lrclib.net/api/get?${query({
 		track_name: title,
 		artist_name: song.artist,
 		album_name: song.album,
 		duration: duration || undefined,
-	})}`, signal).catch(() => null)
+	})}`, signal))
 	if (exact && (!duration || !exact.duration || Math.abs(exact.duration - duration) <= DURATION_TOLERANCE)) {
 		const result = fromSynced(exact.syncedLyrics) || fromPlain(exact.plainLyrics)
 		if (result) return result
 	}
 
-	const found = await fetchJson(`https://lrclib.net/api/search?${query({
+	const found = await soft(fetchJson(`https://lrclib.net/api/search?${query({
 		track_name: title,
 		artist_name: song.artist,
-	})}`, signal).catch(() => null)
+	})}`, signal))
 	if (!Array.isArray(found) || !found.length) return null
 
 	const wantTitle = normalize(title)
@@ -115,8 +121,10 @@ export const fetchLyrics = async (config, song, { signal } = {}) => {
 		if (cached?.miss && Date.now() - cached.miss < MISS_TTL) return null
 	} catch { }
 
-	const result = (await fromNavidrome(config, song)) || (await fromLrcLib(song, signal))
+	const status = { failed: false }
+	const result = (await fromNavidrome(config, song, status)) || (await fromLrcLib(song, signal, status))
 	if (signal?.aborted) return null
+	if (!result && status.failed) return null
 
 	AsyncStorage.setItem(key, JSON.stringify(result || { miss: Date.now() })).catch(() => { })
 	return result

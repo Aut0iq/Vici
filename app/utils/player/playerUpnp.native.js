@@ -7,6 +7,7 @@ import UpnpEvent, { Events } from '~/utils/remote/upnpEvents'
 import State from '~/utils/playerState'
 
 let device = null
+let lastVolume = 1.0
 
 const initPlayer = async (_songDispatch) => { }
 
@@ -81,12 +82,10 @@ const setVolume = async (volume) => {
 	if (volume > 1) volume = 1
 	if (volume < 0) volume = 0
 	await UPNP.setVolume(device, volume * 100)
+	lastVolume = volume
 }
 
-const getVolume = async () => {
-	const status = await UPNP.getDeviceStatus(device)
-	return status ? status.volume / 100 : 1.0
-}
+const getVolume = async () => lastVolume
 
 const unloadSong = async () => { }
 const tuktuktuk = async (_songDispatch) => { }

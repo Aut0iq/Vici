@@ -13,6 +13,7 @@ import { useSong, useSongDispatch } from '~/contexts/song'
 import { urlCover } from '~/utils/url'
 import OptionsPopup from '~/components/popup/OptionsPopup'
 import size from '~/styles/size'
+import logger from '~/utils/logger'
 
 const OptionsSongsList = ({ songs, indexOptions, setIndexOptions, onUpdate = () => { }, idPlaylist = null }) => {
 	const { t } = useTranslation()
@@ -131,7 +132,10 @@ const OptionsSongsList = ({ songs, indexOptions, setIndexOptions, onUpdate = () 
 	const downloadSong = async () => {
 		refOption.current.close()
 		fetch(urlStream(config, songs[indexOptions].id))
-			.then((res) => res.blob())
+			.then((res) => {
+				if (!res.ok) throw new Error(`HTTP ${res.status}`)
+				return res.blob()
+			})
 			.then((data) => {
 				const a = document.createElement('a')
 				a.download = `${songs[indexOptions].artist} - ${songs[indexOptions].title}.mp3`
@@ -141,7 +145,7 @@ const OptionsSongsList = ({ songs, indexOptions, setIndexOptions, onUpdate = () 
 				})
 				a.click()
 			})
-			.catch(() => { })
+			.catch((error) => logger.error('downloadSong', error?.message || error))
 	}
 
 	const shareSong = () => {

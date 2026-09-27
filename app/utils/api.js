@@ -30,6 +30,7 @@ export const getApi = (config, path, query = '') => {
 		fetch(url)
 			.then(res => {
 				if (res.status !== 200) {
+					logger.error('getApi', `/rest/${path}: HTTP ${res.status}`)
 					reject({ message: `Connection failed (HTTP ${res.status})`, isApiError: false })
 					return null
 				} else {
@@ -79,7 +80,7 @@ export const refreshApi = (config, path, query = '') => {
 		getApi(config, path, query)
 			.then((json) => {
 				setJsonCache('api', getUrl(config, path, query), json)
-					.catch(() => { })
+					.catch((error) => logger.warn('refreshApi', `cache write failed: ${error?.message || error}`))
 					.then(() => resolve(json))
 			})
 			.catch((error) => {
@@ -169,7 +170,7 @@ export const getApiCacheFirst = (config, path, query = '') => {
 				else getApi(config, path, query)
 					.then((json) => {
 						setJsonCache('api', key, json)
-							.catch(() => { })
+							.catch((error) => logger.warn('getApiCacheFirst', `cache write failed: ${error?.message || error}`))
 							.then(() => {
 								resolve(json)
 							})
@@ -180,7 +181,7 @@ export const getApiCacheFirst = (config, path, query = '') => {
 				getApi(config, path, query)
 					.then((json) => {
 						setJsonCache('api', key, json)
-							.catch(() => { })
+							.catch((error) => logger.warn('getApiCacheFirst', `cache write failed: ${error?.message || error}`))
 							.then(() => {
 								resolve(json)
 							})
@@ -197,7 +198,8 @@ export const getApiNetworkFirst = (config, path, query = '') => {
 			.then((json) => {
 				setJsonCache('api', key, json)
 					.then(() => resolve(json))
-					.catch(() => {
+					.catch((error) => {
+						logger.warn('getApiNetworkFirst', `cache write failed: ${error?.message || error}`)
 						resolve(json)
 					})
 			})

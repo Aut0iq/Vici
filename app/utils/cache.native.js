@@ -41,7 +41,7 @@ export const deleteSongCache = async (_config, songId, streamFormat, _maxBitrate
 		.then(() => {
 			global.listCacheSong = global.listCacheSong.filter(file => file !== `${songId}.${streamFormat}`)
 		})
-		.catch(() => { })
+		.catch((error) => logger.warn('deleteSongCache', `${songId}: ${error?.message || error}`))
 }
 
 export const getListCacheSong = async () => {

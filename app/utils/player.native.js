@@ -1,4 +1,4 @@
-import { nextRandomIndex, prevRandomIndex, saveQueue } from '~/utils/tools'
+import { nextRandomIndex, prevRandomIndex, queueWithout, saveQueue } from '~/utils/tools'
 import CastPlayer from '~/utils/player/playerCast'
 import LocalPlayer from '~/utils/player/playerLocal'
 import State from '~/utils/playerState'
@@ -152,8 +152,13 @@ export const resetAudio = (songDispatch) => {
 	return getPlayer().resetAudio(songDispatch)
 }
 
-export const removeFromQueue = async (songDispatch, index) => {
+export const removeFromQueue = async (config, song, songDispatch, index) => {
+	if (!song.queue || song.queue.length <= 1 || index >= song.queue.length) return
 	songDispatch({ type: 'removeFromQueue', index })
+	if (index !== song.index) return
+	const next = queueWithout(song, index)
+	await loadSong(config, next.queue, next.index)
+	saveQueue(config, next.queue, next.index)
 }
 
 export const addToQueue = (songDispatch, track, index = null) => {

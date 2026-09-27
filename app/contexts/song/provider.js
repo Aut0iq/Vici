@@ -5,6 +5,7 @@ import { Platform, AppState } from 'react-native'
 import Player from '~/utils/player'
 import logger from '~/utils/logger'
 import State from '~/utils/playerState'
+import { queueWithout } from '~/utils/tools'
 import { SongContext, SongDispatchContext } from '~/contexts/song/context'
 
 export const SongProvider = ({ children }) => {
@@ -152,20 +153,13 @@ export const songReducer = (state, action) => {
 			}, true)
 		}
 		case 'removeFromQueue': {
-			if (!state.queue || state.queue.length <= action.index) return state
-			const newQueue = [...state.queue]
-			let newIndex = state.index
-
-			newQueue.splice(action.index, 1)
-			if (newIndex >= action.index) newIndex--
-			if (newIndex < 0) newIndex = 0
+			if (!state.queue || state.queue.length <= 1 || state.queue.length <= action.index) return state
+			const { queue, index, randomIndex } = queueWithout(state, action.index)
 			return newSong(state, {
-				queue: newQueue,
-				index: newIndex,
-				songInfo: newQueue[newIndex] || null,
-				randomIndex: (state.randomIndex || [])
-					.filter((i) => i !== action.index)
-					.map((i) => (i > action.index ? i - 1 : i)),
+				queue,
+				index,
+				songInfo: queue[index] || null,
+				randomIndex,
 			}, true)
 		}
 		case 'setActionEndOfSong':

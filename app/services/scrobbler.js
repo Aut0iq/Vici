@@ -32,8 +32,8 @@ const submit = () => {
 	const { id, startedAt, info } = current
 	getApi(global.config, 'scrobble', { id, submission: true, time: startedAt })
 		.then(() => logger.info('Scrobble', `Scrobbled ${id}`))
-		.catch(() => { })
-	scrobbleLastFm(info, startedAt).catch(() => { })
+		.catch((error) => logger.error('Scrobble', `Navidrome scrobble failed: ${error?.message || error}`))
+	scrobbleLastFm(info, startedAt).catch((error) => logger.error('Scrobble', `Last.fm scrobble failed: ${error?.message || error}`))
 }
 
 // Ставим таймер на момент, когда трек наберёт порог прослушивания

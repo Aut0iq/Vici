@@ -15,6 +15,7 @@ import GlassView from '~/components/GlassView'
 import ImageError from '~/components/ImageError'
 import mainStyles from '~/styles/main'
 import Player from '~/utils/player'
+import logger from '~/utils/logger'
 import RotateIconButton from '~/components/button/RotateIconButton'
 import size from '~/styles/size'
 
@@ -40,7 +41,7 @@ const MixCard = ({ mix, navigation }) => {
 				const songs = json?.playlist?.entry || []
 				if (songs.length) Player.playSong(config, songDispatch, songs, 0)
 			})
-			.catch(() => { })
+			.catch((error) => logger.error('Mixes', `Play mix failed: ${error?.message || error}`))
 			.finally(() => setIsLoading(false))
 	}
 

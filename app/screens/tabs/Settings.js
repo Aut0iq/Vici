@@ -161,7 +161,7 @@ const Settings = ({ navigation }) => {
 							t('Reset Settings'),
 							'Are you sure you want to reset all settings?',
 							() => setSettings({
-								...defaultSettings,
+								...JSON.parse(JSON.stringify(defaultSettings)),
 								servers: setting.servers
 							})
 						)

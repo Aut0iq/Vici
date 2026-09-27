@@ -107,7 +107,7 @@ const readQueue = async () => {
 		return []
 	}
 }
-const writeQueue = (queue) => AsyncStorage.setItem(KEY_QUEUE, JSON.stringify(queue.slice(-MAX_QUEUE))).catch(() => { })
+const writeQueue = (queue) => AsyncStorage.setItem(KEY_QUEUE, JSON.stringify(queue.slice(-MAX_QUEUE))).catch((error) => logger.warn('LastFM', `Queue not saved: ${error?.message || error}`))
 
 export const getStats = async () => {
 	let stats = { count: 0, lastAt: null }

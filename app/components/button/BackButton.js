@@ -7,7 +7,6 @@ import GlassView from '~/components/GlassView'
 import IconButton from '~/components/button/IconButton'
 import size from '~/styles/size'
 
-// Круглая стеклянная кнопка поверх экрана (для темы Vici)
 export const GlassCircleButton = ({ icon, onPress, side = 'left', iconSize = 18 }) => {
 	const insets = useSafeAreaInsets()
 	return (

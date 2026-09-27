@@ -102,8 +102,6 @@ const PlaylistItem = ({ item, navigation, t }) => {
 	)
 }
 
-// Пункт бокового меню. Отдельный компонент, потому что набор вкладок
-// меняется в настройках, а хуки внутри map ломались бы при смене их числа
 const NavItem = ({ route, index, isFocused, options, navigation, isHover, setHoverIndex }) => {
 	const { t } = useTranslation()
 	const config = useConfig()
@@ -154,7 +152,6 @@ const NavItem = ({ route, index, isFocused, options, navigation, isHover, setHov
 	)
 }
 
-// Обложка того, что играет сейчас — внизу бокового меню, во всю его ширину
 const CurrentCover = () => {
 	const config = useConfig()
 	const theme = useTheme()
@@ -176,8 +173,6 @@ const CurrentCover = () => {
 	)
 }
 
-// Обложка занимает всю ширину колонки, поэтому именно ширина задаёт её размер.
-// Содержимому экранов при этом всегда остаётся не меньше 900 точек
 const COVER_SIZE = 500
 const CONTENT_MIN = 900
 
@@ -198,7 +193,6 @@ const SideBar = ({ state, descriptors, navigation }) => {
 
 	return (
 		<View style={styles.container(insets, theme, barWidth)}>
-			{/* Тот же фон, что и в главном окне: цвета обложки, только темнее и размытее */}
 			<AmbientBackground song={song?.songInfo} />
 			{USE_BLUR ? <BlurView
 				intensity={25}
@@ -225,7 +219,6 @@ const SideBar = ({ state, descriptors, navigation }) => {
 					<Text style={{ color: theme.secondaryText, fontSize: size.text.small }}>Version {pkg.version}</Text>
 				</View>
 			</View>
-			{/* Скрытые из меню вкладки остаются в навигаторе ради свайпа, но кнопок им не рисуем */}
 			{state.routes
 				.map((route, index) => ({ route, index }))
 				.filter(({ route }) => descriptors[route.key].options.inBar !== false)

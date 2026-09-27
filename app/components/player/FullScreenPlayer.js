@@ -28,7 +28,6 @@ import Visualizer from '~/components/player/Visualizer'
 import GlassView from '~/components/GlassView'
 import AmbientBackground from '~/components/player/AmbientBackground'
 
-// Цвета Vici
 const VICI = {
 	ink: '#0E0A0F',
 	gold: '#E6BD55',
@@ -44,7 +43,6 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 	UIManager.setLayoutAnimationEnabledExperimental(true)
 }
 
-// Очередь воспроизведения (открывается кнопкой слева от «назад»)
 const Queue = ({ song, stars, setFullScreen, width, height }) => {
 	const scroll = React.useRef(null)
 	const config = useConfig()
@@ -125,7 +123,6 @@ const TimeBar = () => {
 	)
 }
 
-// Круглая «стеклянная» кнопка
 const GlassButton = ({ icon, onPress, iconSize = 18 }) => (
 	<GlassView radius={21} style={{ width: 42, height: 42 }}>
 		<IconButton
@@ -154,7 +151,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 	const [isVisualizer, setIsVisualizer] = React.useState(false)
 	const useNative = Platform.OS !== 'web'
 
-	// Анимации жестов: сдвиг всего плеера и выезжающая панель с текстом
 	const drag = React.useRef(new Animated.Value(0)).current
 	const sheet = React.useRef(new Animated.Value(0)).current
 	const sheetDrag = React.useRef(new Animated.Value(0)).current
@@ -163,13 +159,11 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 	isQueueRef.current = isQueue
 	isLyricsOpenRef.current = isLyricsOpen
 
-	// Свернуть плеер: уезжает вниз и превращается в мини-плеер
 	const closePlayer = () => {
 		Animated.timing(drag, { toValue: height, duration: 220, easing: Easing.in(Easing.cubic), useNativeDriver: useNative })
 			.start(() => setFullScreen(false))
 	}
 
-	// Панель с текстом песни
 	const openLyrics = () => {
 		setIsLyricsOpen(true)
 		sheetDrag.setValue(0)
@@ -186,7 +180,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 	const isVertical = (g) => Math.abs(g.dy) > 14 && Math.abs(g.dy) > Math.abs(g.dx) * 1.6
 	const isHorizontal = (g) => Math.abs(g.dx) > 14 && Math.abs(g.dx) > Math.abs(g.dy) * 1.6
 
-	// Обложка: лёг ли палец на неё (для свайпа влево/вправо) и её сдвиг
 	const coverX = React.useRef(new Animated.Value(0)).current
 	const touchOnCover = React.useRef(false)
 	const startsOnCover = () => touchOnCover.current
@@ -210,8 +203,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 		Animated.spring(coverX, { toValue: 0, bounciness: 6, useNativeDriver: useNative }).start()
 	}
 
-	// Один обработчик на весь экран:
-	// вниз — свернуть, вверх — текст песни (в любом месте), влево/вправо по обложке — сменить трек
 	const playerPan = React.useRef(PanResponder.create({
 		onMoveShouldSetPanResponderCapture: (_, g) => canSwipe(g),
 		onMoveShouldSetPanResponder: (_, g) => canSwipe(g),
@@ -225,8 +216,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 			gestureMode.current = null
 			touchOnCover.current = false
 			if (mode === 'horizontal') {
-				// Берём самое свежее состояние плеера, а не то, что было при прошлой отрисовке —
-				// поэтому быстрые свайпы туда-обратно срабатывают сразу
 				const current = global.song || song
 				const cfg = global.config || config
 				if (g.dx < -60 || (g.dx < -20 && g.vx < -0.6)) Player.nextSong(cfg, current, songDispatch)
@@ -248,7 +237,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 		},
 	})).current
 
-	// На панели с текстом: потянуть за верхнюю часть вниз — закрыть
 	const sheetPan = React.useRef(PanResponder.create({
 		onStartShouldSetPanResponder: () => true,
 		onMoveShouldSetPanResponder: (_, g) => isVertical(g),
@@ -287,12 +275,10 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 				style={{ flex: 1, backgroundColor: VICI.ink, overflow: 'hidden', transform: [{ translateY: drag }] }}
 				{...playerPan.panHandlers}
 			>
-				{/* Фон в цветах обложки */}
 				<AmbientBackground song={song.songInfo} />
 
 				<View style={{ flex: 1, paddingTop: insets.top + 8, paddingBottom: insets.bottom + 14, alignItems: 'center' }}>
 					<View style={{ width: '100%', maxWidth: 500, flex: 1 }}>
-						{/* Верхняя панель */}
 						<View style={styles.topBar}>
 							<GlassButton icon="chevron-down" onPress={closePlayer} />
 							<Pressable onPress={goToAlbum} style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
@@ -302,7 +288,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 							<GlassButton icon="ellipsis-h" onPress={() => setIsOpt(true)} />
 						</View>
 
-						{/* Обложка с пластинкой (или очередь) и управление — одним блоком по центру */}
 						<View style={{ flex: 1, justifyContent: isQueue ? 'flex-start' : 'center' }}>
 							{isQueue ? (
 								<View style={{ flex: 1, alignItems: 'center' }}>
@@ -321,7 +306,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 								/>
 							)}
 
-						{/* Название и исполнитель по центру */}
 						<View style={styles.meta}>
 							<Pressable onPress={goToAlbum} style={{ maxWidth: '100%' }}>
 								<Text numberOfLines={1} style={styles.title}>{song.songInfo.title}</Text>
@@ -356,7 +340,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 
 						<TimeBar />
 
-						{/* Управление */}
 						<View style={styles.controls}>
 							<IconButton
 								icon="bars"
@@ -405,7 +388,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 						</View>
 						</View>
 
-						{/* Подсказка: текст песни открывается свайпом вверх или нажатием */}
 						<Pressable onPress={openLyrics} style={({ pressed }) => [styles.lyricsHint, { opacity: pressed ? 0.6 : 1 }]}>
 							<Icon name="chevron-up" size={12} color={VICI.text3} />
 							<Text style={styles.lyricsHintText}>{t('Lyrics')}</Text>
@@ -413,7 +395,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 					</View>
 				</View>
 
-				{/* Панель с текстом песни (свайп вверх) */}
 				{isLyricsOpen && (
 					<>
 						<Animated.View
@@ -442,7 +423,6 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 								sizeText={20}
 								activeSizeText={26}
 								gap={22}
-								// Сверху небольшой отступ, снизу большой — чтобы последние строки тоже могли встать по центру
 								paddingTop={12}
 								paddingBottom={Math.round(height * 0.4)}
 								color={{ active: VICI.gold, inactive: VICI.text3 }}

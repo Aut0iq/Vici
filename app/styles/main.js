@@ -4,12 +4,11 @@ import size from "~/styles/size"
 export default StyleSheet.create({
 	mainContainer: (theme) => ({
 		flex: 1,
-		// В теме Vici фон рисует ScreenBackground, поэтому здесь прозрачно
 		backgroundColor: theme.ambient ? 'transparent' : theme.primaryBack,
 	}),
 	contentMainContainer: (insets, statusBar = true) => ({
 		paddingTop: statusBar ? insets.top : 0,
-		paddingBottom: insets.bottom + 180, // место под парящие мини-плеер и меню
+		paddingBottom: insets.bottom + 180,
 		paddingStart: insets.left,
 		paddingEnd: insets.right,
 	}),
@@ -49,7 +48,6 @@ export default StyleSheet.create({
 	coverSmall: theme => ({
 		height: size.image.small,
 		width: size.image.small,
-		// marginStart: 10,
 		borderRadius: 12,
 		overflow: 'hidden',
 		backgroundColor: theme.secondaryBack,

@@ -17,11 +17,9 @@ const toRgb = (hex) => {
 	if (typeof hex !== 'string' || !/^#[0-9a-f]{6}$/i.test(hex) || hex.toLowerCase() === MISSING) return null
 	return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
 }
-// Смешиваем цвет обложки с тёмным фоном Vici, чтобы текст на виджете всегда читался
 const mix = (rgb, amount) => rgb.map((c, i) => Math.round(c * (1 - amount) + INK[i] * amount))
 const rgba = (rgb, a) => `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${a})`
 
-// Цвета виджета из обложки — те же, что у фона плеера
 const pickWidgetColors = async (uri, key) => {
 	if (!uri) return DEFAULT_COLORS
 	try {
@@ -29,7 +27,6 @@ const pickWidgetColors = async (uri, key) => {
 		const main = toRgb(res.vibrant) || toRgb(res.dominant) || toRgb(res.lightVibrant)
 		const second = toRgb(res.darkVibrant) || toRgb(res.darkMuted) || toRgb(res.muted) || main
 		if (!main) return DEFAULT_COLORS
-		// Сплошной цвет: плавный градиент на виджетах Android рисуется ступеньками
 		return {
 			background: rgba(mix(main, 0.5), 1),
 			edge: rgba(mix(second, 0.2), 0.6),
@@ -49,7 +46,6 @@ const readState = async () => {
 	}
 }
 
-// Вызывается из приложения при смене трека или паузе: запоминаем и перерисовываем виджет
 export const updateWidget = async (config, song) => {
 	const info = song?.songInfo
 	const cover = info ? urlCover(config, info, 300) : null
@@ -62,7 +58,6 @@ export const updateWidget = async (config, song) => {
 		artist: info?.artist || '',
 		cover,
 		isPlaying: song?.state === State.Playing,
-		// Цвета пересчитываем только при смене трека, на паузе берём прежние
 		colors: sameTrack && previous.colors?.background ? previous.colors : await pickWidgetColors(colorUri, info?.coverArt || info?.albumId || info?.id),
 	}
 	try {
@@ -77,7 +72,6 @@ export const updateWidget = async (config, song) => {
 	}
 }
 
-// Кнопки виджета работают так же, как кнопки в уведомлении плеера
 const dispatch = (action) => {
 	if (global.songDispatch) global.songDispatch(action)
 	else if (global.song) songReducer(global.song, action)

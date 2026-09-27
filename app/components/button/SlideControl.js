@@ -25,7 +25,6 @@ const SlideControl = ({ children, style }) => {
 			else if (move > 100) position.setValue(100)
 			else position.setValue(move)
 		},
-		// Если жест перехватил плеер (свайп вверх/вниз) — вернуть обложку на место
 		onPanResponderTerminate: () => {
 			startMove.current = 0
 			Animated.timing(position, {
@@ -60,7 +59,7 @@ const SlideControl = ({ children, style }) => {
 	return (
 		<Animated.View
 			style={[style, {
-				touchAction: 'none', // this fix bug on iOS PWA
+				touchAction: 'none',
 				transform: [{ translateX: position }]
 			}]}
 			{...panResponder.panHandlers}

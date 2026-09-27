@@ -8,9 +8,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
-// Читает спектр звука, который сейчас играет, и отдаёт его в JavaScript.
-// Работает через системный Visualizer: он требует разрешения на запись звука,
-// хотя микрофон при этом не используется.
 private const val WAVE_SIZE = 512
 
 class AudioVisualizerModule : Module() {
@@ -68,12 +65,10 @@ class AudioVisualizerModule : Module() {
       visualizer?.enabled = false
       visualizer?.release()
     } catch (e: Exception) {
-      // устройство уже освобождено
     }
     visualizer = null
   }
 
-  // Волна: 512 значений 0..255, как ждёт butterchurn
   private fun toWave(waveform: ByteArray): List<Int> {
     val out = ArrayList<Int>(WAVE_SIZE)
     val step = max(1, waveform.size / WAVE_SIZE)
@@ -86,7 +81,6 @@ class AudioVisualizerModule : Module() {
     return out
   }
 
-  // Спектр: величины по частотам, сгруппированные по логарифмической шкале (как слышит ухо)
   private fun toBands(fft: ByteArray): List<Float> {
     val bins = fft.size / 2
     val magnitudes = FloatArray(bins)
@@ -103,7 +97,6 @@ class AudioVisualizerModule : Module() {
       var sum = 0f
       for (i in from until min(to, bins)) sum += magnitudes[i]
       val average = sum / (to - from)
-      // Приводим к 0..1: высокие частоты тише, поэтому немного их поднимаем
       val boost = 1f + band.toFloat() / bandCount * 1.6f
       result.add(min(1f, (average / 40f) * boost))
     }
@@ -115,7 +108,6 @@ class AudioVisualizerModule : Module() {
     return (bins.toFloat().pow(ratio)).toInt().coerceIn(1, bins - 1)
   }
 
-  // Общая громкость по низким частотам — по ней удобно ловить бит
   private fun level(fft: ByteArray): Float {
     val bins = fft.size / 2
     var sum = 0f

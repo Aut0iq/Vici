@@ -25,7 +25,6 @@ import size from '~/styles/size'
 import logger from '~/utils/logger'
 
 
-// Карточка «Продолжить слушать»: то, что сейчас в очереди
 const ContinueCard = ({ onRandom }) => {
 	const { t } = useTranslation()
 	const song = useSong()
@@ -35,7 +34,6 @@ const ContinueCard = ({ onRandom }) => {
 	const songDispatch = useSongDispatch()
 	const isPlaying = song?.state === Player.State.Playing
 
-	// Та же логика, что у кнопки воспроизведения
 	const onContinue = () => {
 		if (!song.isSongLoad) Player.playSong(config, songDispatch, song.queue, song.index)
 		else if (isPlaying) Player.pauseSong()
@@ -44,7 +42,6 @@ const ContinueCard = ({ onRandom }) => {
 
 	return (
 		<GlassView radius={26} intensity={0.55} style={styles.card}>
-			{/* Красный край планеты, как на иконке */}
 			<View pointerEvents="none" style={styles.planet} />
 			<View style={styles.cardRow}>
 				{info ? (
@@ -97,7 +94,6 @@ const Home = () => {
 			.then((json) => {
 				playSong(config, songDispatch, json.randomSongs.song, 0)
 			})
-			// Раньше кнопка при ошибке просто ничего не делала, и причины было не найти
 			.catch((error) => logger.error('Home', `Random song failed: ${error?.message || error}`))
 	}
 
@@ -133,7 +129,6 @@ const Home = () => {
 
 	return (
 		<View style={{ flex: 1, backgroundColor: theme.primaryBack }}>
-			{/* Фон в цветах текущего трека, приглушённый */}
 			<AmbientBackground song={song?.songInfo} />
 			<View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.35)' }]} />
 		<ScrollView vertical={true}

@@ -13,7 +13,6 @@ export const SongProvider = ({ children }) => {
 	React.useEffect(() => {
 		if (!song.isInit) {
 			if (Platform.OS === 'android') {
-				// Если приложение уже на экране, событие 'change' может не прийти — запускаем плеер сразу
 				if (AppState.currentState === 'active') {
 					Player.initPlayer(dispatch)
 					return
@@ -42,7 +41,6 @@ export const SongProvider = ({ children }) => {
 	)
 }
 
-// Convert track Object to save cache space
 const convertTrack = (track) => {
 	return {
 		id: track.id,
@@ -60,7 +58,6 @@ const convertTrack = (track) => {
 		size: track.size,
 		index: track.index,
 		mediaType: track.mediaType,
-		// radio
 		homePageUrl: track.homePageUrl,
 		name: track.name,
 		streamUrl: track.streamUrl,
@@ -176,7 +173,6 @@ export const songReducer = (state, action) => {
 			if (action.action === 'random') {
 				if (state.queue?.length) {
 					const allIndex = state.queue.map((_, index) => index)
-					// generate list of random index
 					const randomIndex = []
 					while (randomIndex.length < state.queue.length) {
 						const index = Math.floor(Math.random() * allIndex.length)

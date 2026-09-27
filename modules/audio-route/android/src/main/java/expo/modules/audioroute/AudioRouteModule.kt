@@ -13,8 +13,6 @@ import android.os.Looper
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-// Следит за подключением наушников и колонок (Bluetooth, провод, USB)
-// и сообщает об этом в JavaScript
 class AudioRouteModule : Module() {
   private var deviceCallback: AudioDeviceCallback? = null
   private var skipFirstCallback = true
@@ -39,9 +37,6 @@ class AudioRouteModule : Module() {
     else -> "wired"
   }
 
-  // Открывает системный экран: из текущей активности, если она есть, иначе новой задачей.
-  // Ловим Throwable, а не Exception: прошивки бросают из startActivity что угодно,
-  // и вылет приложения из-за настроек батареи недопустим.
   private fun startSystemScreen(intent: Intent): Boolean {
     val activity = appContext.currentActivity
     val context = activity ?: appContext.reactContext ?: return false
@@ -59,16 +54,12 @@ class AudioRouteModule : Module() {
 
     Events("onDeviceConnected")
 
-    // Отключены ли для приложения ограничения батареи
     AsyncFunction("isIgnoringBatteryOptimizations") {
       val context = appContext.reactContext ?: return@AsyncFunction false
       val power = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
       power?.isIgnoringBatteryOptimizations(context.packageName) ?: false
     }
 
-    // Открывает системный экран «Оптимизация батареи», где ограничение снимают вручную.
-    // Прямой диалог ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS не используем: на Samsung
-    // он валил приложение. Если экрана в прошивке нет — показываем страницу приложения.
     AsyncFunction("openBatteryOptimizationSettings") {
       val context = appContext.reactContext ?: return@AsyncFunction false
       val fallbacks = listOf(
@@ -91,8 +82,6 @@ class AudioRouteModule : Module() {
       skipFirstCallback = true
       val callback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
-          // Система сразу после подписки сообщает об уже подключённых устройствах — это пропускаем,
-          // иначе музыка включалась бы при каждом запуске приложения
           if (skipFirstCallback) {
             skipFirstCallback = false
             return

@@ -40,7 +40,6 @@ const CustomFlat = ({ data, renderItem, style = { width: '100%' }, contentContai
 		}
 	}
 
-	// https://github.com/facebook/react-native/issues/39421
 	if (!data || data.length === 0) return null
 
 	return (

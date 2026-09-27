@@ -10,17 +10,12 @@ import IconButton from '~/components/button/IconButton'
 const KEY_PRESET = 'visualizer.preset'
 const GOLD = '#E6BD55'
 
-// Панель визуализатора есть только в вебе — на телефоне butterchurn живёт
-// в отдельном экране и получает волну от нативного модуля
 export const hasVisualizerPane = true
 
-// Визуализатор внутри плеера: слева обложка, справа эта панель.
-// То, что передано детьми, рисуется поверх картинки — например, текст песни
 const VisualizerPane = ({ active = true, children }) => {
 	const canvas = React.useRef(null)
 	const [saved, setSaved] = React.useState(undefined)
 
-	// Ждём сохранённый пресет, чтобы открыть тот же, что и в прошлый раз
 	React.useEffect(() => {
 		AsyncStorage.getItem(KEY_PRESET)
 			.then((value) => setSaved(value || ''))
@@ -38,7 +33,6 @@ const VisualizerPane = ({ active = true, children }) => {
 			<canvas ref={canvas} style={{ width: '100%', height: '100%', display: 'block' }} />
 			{children ? (
 				<View style={StyleSheet.absoluteFill}>
-					{/* Размываем и притеняем картинку под текстом, чтобы его было видно */}
 					<div style={{ position: 'absolute', inset: 0, backdropFilter: 'blur(9px)', WebkitBackdropFilter: 'blur(9px)', background: 'rgba(11,7,12,0.42)' }} />
 					<View style={styles.children}>{children}</View>
 				</View>

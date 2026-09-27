@@ -77,7 +77,6 @@ const OptionsSongsList = ({ songs, indexOptions, setIndexOptions, onUpdate = () 
 				{
 					name: t('Go to artist'),
 				},
-				// ...(songs[indexOptions].albumArtists?.filter((artist) => songs[indexOptions].artists.findIndex((a) => a.id === artist.id)).map(artistOpt) || []),
 				...songs[indexOptions].artists.map(artistOpt)
 			])
 		} else {

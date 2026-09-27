@@ -2,16 +2,10 @@ import { getApi } from '~/utils/api'
 import logger from '~/utils/logger'
 import { scrobble as scrobbleLastFm, updateNowPlaying } from '~/utils/lastfm'
 
-// Скробблинг по правилам Last.fm:
-// трек засчитывается, если он длиннее 30 секунд и прослушан наполовину или хотя бы 4 минуты.
-// Засчитывается и пропущенный трек, если порог уже пройден — не только доигравший до конца.
-// Скробблы уходят в Navidrome (API scrobble), а если в настройках подключён Last.fm —
-// ещё и напрямую с телефона в Last.fm.
-
 const MIN_DURATION = 30
 const MAX_THRESHOLD = 240
 
-let current = null // { id, duration, startedAt, playedMs, playingSince, submitted, timer }
+let current = null
 
 const thresholdMs = (duration) => {
 	if (!duration || duration < MIN_DURATION) return null
@@ -36,7 +30,6 @@ const submit = () => {
 	scrobbleLastFm(info, startedAt).catch((error) => logger.error('Scrobble', `Last.fm scrobble failed: ${error?.message || error}`))
 }
 
-// Ставим таймер на момент, когда трек наберёт порог прослушивания
 const schedule = () => {
 	if (!current) return
 	clearTimeout(current.timer)
@@ -52,7 +45,6 @@ const pause = () => {
 	clearTimeout(current.timer)
 }
 
-// Новый трек: предыдущий засчитываем (если набрал порог), новый отмечаем как «сейчас играет»
 export const onTrackStart = (id, duration, isPlaying = true) => {
 	if (!id) return
 	const info = global.song?.songInfo?.id === id ? global.song.songInfo : null
@@ -77,7 +69,6 @@ export const onTrackStart = (id, duration, isPlaying = true) => {
 	schedule()
 }
 
-// Играет / пауза / буферизация
 export const onPlayingChange = (isPlaying) => {
 	if (!current) return
 	if (isPlaying && !current.playingSince) {
@@ -89,7 +80,6 @@ export const onPlayingChange = (isPlaying) => {
 	}
 }
 
-// Трек доиграл до конца: засчитываем; при повторе трека начинаем новое прослушивание
 export const onTrackEnd = (willRepeat = false) => {
 	if (!current) return
 	pause()

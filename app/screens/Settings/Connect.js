@@ -121,7 +121,6 @@ const Connect = ({ navigation }) => {
 						style={({ pressed }) => ([mainStyles.opacity({ pressed }), settingStyles.optionItem(theme, true)])}
 						delayLongPress={3000}
 						onPress={() => { navigation.navigate('Settings/AddServer') }}
-						// Add demo server for testing purposes
 						onLongPress={() => {
 							setSettings({
 								...settings,

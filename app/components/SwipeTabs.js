@@ -4,29 +4,21 @@ import { useNavigation } from '@react-navigation/native'
 
 import { useSettings } from '~/contexts/settings'
 
-// Жест считаем горизонтальным, только если он заметно длиннее по X, чем по Y:
-// иначе переключение срабатывало бы при обычной прокрутке страницы
 const MIN_DISTANCE = 20
 const DIRECTION_RATIO = 2
-// Насколько далеко нужно увести палец, чтобы вкладка сменилась
 const SWITCH_DISTANCE = 60
-// У самых краёв экрана жест забираем даже у горизонтальных каруселей:
-// в середине экрана они важнее, а край всегда свободен
 const EDGE_ZONE = 40
 
 const isHorizontal = (gesture) => (
 	Math.abs(gesture.dx) > MIN_DISTANCE && Math.abs(gesture.dx) > Math.abs(gesture.dy) * DIRECTION_RATIO
 )
 
-// Переключение вкладок свайпом влево и вправо.
-// Порядок и набор берём у самого навигатора, чтобы он совпадал с нижним меню
 const SwipeTabs = ({ children }) => {
 	const navigation = useNavigation()
 	const settings = useSettings()
 	const { width } = useWindowDimensions()
 	const enabled = settings.tabSwipe !== false && !settings.isDesktop
 
-	// PanResponder создаётся один раз, поэтому свежие значения держим в ссылках
 	const stateRef = React.useRef({})
 	stateRef.current = { enabled, width, tabsOrder: settings.tabsOrder, navigation }
 
@@ -65,7 +57,6 @@ const SwipeTabs = ({ children }) => {
 	)
 }
 
-// Оборачивает корневой экран вкладки, чтобы по нему работал свайп
 export const withSwipe = (Screen) => {
 	const Wrapped = (props) => (
 		<SwipeTabs>

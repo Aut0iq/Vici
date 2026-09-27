@@ -47,7 +47,6 @@ import { useTheme } from '~/contexts/theme'
 import { withBackground } from '~/components/ScreenBackground'
 import { withSwipe } from '~/components/SwipeTabs'
 
-// Внутренние экраны получают фон Vici (цвета текущего трека)
 const bg = Object.fromEntries(Object.entries({
 	AddServer,
 	Album,
@@ -82,7 +81,6 @@ const bg = Object.fromEntries(Object.entries({
 	UpdateRadio,
 }).map(([name, Screen]) => [name, withBackground(Screen)]))
 
-// Корневые экраны вкладок: по ним работает переключение свайпом
 const tab = Object.fromEntries(Object.entries({
 	Home,
 	Mixes,
@@ -113,7 +111,6 @@ export const HomeStack = () => {
 			<Stack.Screen name="ShowAll" component={bg.ShowAll} />
 			<Stack.Screen name="FreshReleases" component={bg.FreshReleases} />
 			<Stack.Screen name="UpdateRadio" component={bg.UpdateRadio} />
-			{/* Pres */}
 			<Stack.Screen name="Album" component={bg.Album} />
 			<Stack.Screen name="Artist" component={bg.Artist} />
 			<Stack.Screen name="ArtistAlbums" component={bg.ArtistAlbums} />
@@ -149,7 +146,6 @@ export const SearchStack = () => {
 			<Stack.Screen name="AlbumExplorer" component={bg.AlbumExplorer} />
 			<Stack.Screen name="ArtistExplorer" component={bg.ArtistExplorer} />
 			<Stack.Screen name="SongExplorer" component={bg.SongExplorer} />
-			{/* Pres */}
 			<Stack.Screen name="Album" component={bg.Album} />
 			<Stack.Screen name="Artist" component={bg.Artist} />
 			<Stack.Screen name="ArtistAlbums" component={bg.ArtistAlbums} />
@@ -200,7 +196,6 @@ export const PlaylistsStack = () => {
 		>
 			<Stack.Screen name="Playlists" component={tab.Playlists} />
 			<Stack.Screen name="Favorited" component={bg.Favorited} />
-			{/* Pres */}
 			<Stack.Screen name="Album" component={bg.Album} />
 			<Stack.Screen name="Artist" component={bg.Artist} />
 			<Stack.Screen name="ArtistAlbums" component={bg.ArtistAlbums} />

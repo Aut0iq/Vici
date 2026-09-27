@@ -41,7 +41,6 @@ export const getJsonCache = async (cacheName, url) => {
 }
 
 export const setJsonCache = async (_cacheName, _key, _json) => {
-	// Service worker already do this
 }
 
 export const isSongCached = async (config, songId, streamFormat, maxBitrate) => {

@@ -22,8 +22,6 @@ const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null
 
 	const songId = song?.songInfo?.id
 
-	// Загружаем текст. Если трек успели переключить, ответ для старого трека игнорируется —
-	// поэтому тексты больше не путаются между песнями.
 	React.useEffect(() => {
 		if (!songId) return
 		const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
@@ -56,7 +54,6 @@ const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null
 		}
 	}, [songId])
 
-	// Текущая строка по времени трека
 	React.useEffect(() => {
 		if (!lyrics.synced || !lyrics.lines.length) return
 		let index = lyrics.lines.findIndex((ly) => ly.time > time.position) - 1

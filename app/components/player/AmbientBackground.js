@@ -8,21 +8,13 @@ import { urlCover } from '~/utils/url'
 
 const INK = '#0E0A0F'
 
-// Настройки размытия фона (можно менять под себя):
-// BLUR_SIZE — размер копии обложки в пикселях: чем меньше, тем сильнее размытие (16–32).
-//   Размытие делает именно растягивание крошечной копии, а не фильтр: фильтр blur
-//   в браузере съедает края картинки, и они проступают светлыми полосами
-// BLUR_RADIUS — дополнительное размытие этой копии (0–6)
-// BLUR_SCALE — увеличение, чтобы спрятать края размытой картинки (1.2–1.5)
 const BLUR_SIZE = 18
 const BLUR_RADIUS = 4
 const BLUR_SCALE = 1.35
 const MISSING = '#010101'
 
-// Цвета Vici — если не получилось взять цвета из обложки
 const FALLBACK = { a: '#7a2a45', b: '#6d5a2a' }
 
-// '#RRGGBB' + прозрачность -> 'rgba(r,g,b,a)'
 const withAlpha = (hex, alpha) => {
 	if (typeof hex !== 'string' || !/^#?[0-9a-f]{6}/i.test(hex)) return `rgba(0,0,0,${alpha})`
 	const h = hex.replace('#', '')
@@ -31,7 +23,6 @@ const withAlpha = (hex, alpha) => {
 
 const firstColor = (...list) => list.find((c) => c && c.toLowerCase() !== MISSING)
 
-// Выбираем два цвета из результата библиотеки (на разных платформах поля разные)
 const pickColors = (res) => {
 	if (!res) return FALLBACK
 	if (res.platform === 'ios') {
@@ -60,14 +51,11 @@ const Wash = ({ colors, style }) => (
 	</Animated.View>
 )
 
-// Фон плеера: размытая обложка трека, подкрашенная её же яркими цветами
 const AmbientBackground = ({ song }) => {
 	const config = useConfig()
 	const [colors, setColors] = React.useState(FALLBACK)
 	const [prevColors, setPrevColors] = React.useState(FALLBACK)
 	const fade = React.useRef(new Animated.Value(1)).current
-	// Для цветов берём обложку 100px. Для фона — крошечную 32px: при растягивании
-	// на весь экран она сама превращается в плавные пятна без «лесенок».
 	const uri = song ? urlCover(config, song, 100) : null
 	const blurUri = song ? urlCover(config, song, BLUR_SIZE) : null
 	const key = song?.coverArt || song?.albumId || song?.id
@@ -91,8 +79,6 @@ const AmbientBackground = ({ song }) => {
 
 	return (
 		<View style={[StyleSheet.absoluteFill, { backgroundColor: INK, overflow: 'hidden' }]} pointerEvents="none">
-			{/* Сама обложка, сильно размытая и чуть увеличенная.
-			    Если трека нет или обложка не загрузилась — только цветные переливы Vici */}
 			{blurUri && !failed ? (
 				<Image
 					source={{ uri: blurUri }}
@@ -101,17 +87,14 @@ const AmbientBackground = ({ song }) => {
 					style={[StyleSheet.absoluteFill, { width: '100%', height: '100%', transform: [{ scale: BLUR_SCALE }] }]}
 				/>
 			) : null}
-			{/* Лёгкое затемнение, чтобы светлые обложки не превращались в серую кашу */}
 			<View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.38)' }]} />
 			<Wash colors={prevColors} />
 			<Wash colors={colors} style={{ opacity: fade }} />
-			{/* Плавное затемнение к низу, чтобы кнопки и текст хорошо читались */}
 			<LinearGradient
 				colors={['rgba(14,10,15,0)', 'rgba(14,10,15,0.5)', 'rgba(14,10,15,0.9)']}
 				locations={[0.4, 0.72, 1]}
 				style={StyleSheet.absoluteFill}
 			/>
-			{/* Мелкое зерно поверх всего: убирает полосы на плавных переходах */}
 			<Image
 				source={require('~/../assets/noise.png')}
 				resizeMode="repeat"

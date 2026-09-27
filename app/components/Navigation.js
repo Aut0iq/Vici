@@ -13,7 +13,6 @@ import useIsDesktop from '~/utils/useIsDesktop'
 
 const Tab = createBottomTabNavigator()
 
-// Какой стек стоит за каждой вкладкой. Название и иконка живут в tabSections
 const STACKS = {
 	HomeStack,
 	SearchStack,
@@ -27,8 +26,6 @@ const Navigation = () => {
 	const settings = useSettings()
 	const isDesktop = useIsDesktop()
 
-	// Пользователь сам собирает нижнее меню в «Настройки → Вкладки».
-	// В навигатор попадают и вкладки, скрытые из меню, но доступные свайпом
 	const tabs = React.useMemo(() => (
 		(settings.tabsOrder || [])
 			.map((tab) => ({ ...tab, section: tabSections.find((item) => item.id === tab.id) }))
@@ -39,7 +36,6 @@ const Navigation = () => {
 		<View style={{ flex: 1, flexDirection: 'row', minWidth: 0 }}>
 		<View style={{ flex: 1, minWidth: 0 }}>
 		<NavigationContainer
-			// Тёмный фон навигации: без него при переходах между экранами просвечивает белый
 			theme={{
 				...DarkTheme,
 				colors: {

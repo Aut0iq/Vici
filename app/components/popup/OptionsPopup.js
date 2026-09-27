@@ -137,7 +137,6 @@ const OptionsPopup = ({ ref, visible, close, options, item = null }) => {
 				<Animated.View
 					onLayout={onLayout}
 					style={theme.glass ? {
-						// Тема Vici: парящая стеклянная панель со скруглёнными углами
 						marginHorizontal: 10,
 						marginBottom: (insets.bottom > 10 ? insets.bottom : 10),
 						paddingTop: 10,

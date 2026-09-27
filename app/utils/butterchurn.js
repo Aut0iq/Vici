@@ -1,9 +1,6 @@
 import { Asset } from 'expo-asset'
 import * as FileSystem from 'expo-file-system'
 
-// Готовим папку с butterchurn и пресетами, чтобы показать их в WebView.
-// Файлы копируются один раз и затем берутся из кэша.
-
 const DIR = FileSystem.cacheDirectory + 'butterchurn/'
 
 const FILES = [
@@ -38,7 +35,6 @@ const collect = () => {
 const presets = collect()
 const names = Object.keys(presets)
 
-// Пресеты с полётом сквозь геометрию, разгоном на бит и туннелями — они идут первыми
 const preferred = [
 	'Eo.S. + Phat - cubetrace - v2',
 	'Aderrasi - Contortion (Escher′s Tunnel Mix)',
@@ -53,11 +49,6 @@ const preferred = [
 const playlist = preferred.length ? preferred.concat(names.filter((n) => !preferred.includes(n))) : names
 let index = 0
 
-// Пресеты MilkDrop рисуются в пропорциях 4:3 и в своём «родном» размере.
-// Режимы показа:
-//   native  — оригинальный размер, по центру, края уходят за экран (как в Feishin на большом окне)
-//   cover   — вписать по ширине с обрезкой сверху и снизу
-//   contain — показать целиком, с полями
 const ASPECT = 4 / 3
 const NATIVE_WIDTH = 1024
 let fit = 'native'
@@ -82,12 +73,9 @@ const layout = () => {
 	canvas.style.width = baseW + 'px'
 	canvas.style.height = baseH + 'px'
 	canvas.style.transform = 'translate(-50%,-50%) scale(' + k + ')'
-	// Ограничиваем буфер рисования, чтобы не терять кадры на телефоне
 	const scale = Math.min(dpr, 1600 / baseW)
 	const w = Math.floor(baseW * scale)
 	const h = Math.floor(baseH * scale)
-	// Размер самого холста обязательно держим равным размеру, в котором рисует butterchurn:
-	// иначе видно только нижний левый угол картинки, увеличенный во весь экран
 	canvas.width = w
 	canvas.height = h
 	if (visualizer) visualizer.setRendererSize(w, h)
@@ -123,7 +111,6 @@ const post = (data) => {
 
 addEventListener('resize', layout)
 
-// Звук приходит из приложения: система отдаёт волну того, что сейчас играет
 const samples = 512
 let wave = new Uint8Array(samples).fill(128)
 
@@ -135,7 +122,6 @@ window.vici = (data) => {
 	if (data.preset === 'next') setPreset(index + 1)
 	if (data.preset === 'prev') setPreset(index - 1)
 	if (data.preset === 'random') setPreset(Math.floor(Math.random() * playlist.length))
-	// Первый пресет: либо тот, что был выбран в прошлый раз, либо первый в списке
 	if (data.presetName !== undefined) startWith(data.presetName)
 	if (data.fit) {
 		fit = data.fit
@@ -149,7 +135,6 @@ const render = () => {
 	requestAnimationFrame(render)
 }
 
-// Не включаем пресет сразу: сначала спрашиваем приложение, какой был выбран в прошлый раз
 let started = false
 const startWith = (name) => {
 	if (started) return

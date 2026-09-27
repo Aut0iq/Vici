@@ -3,13 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getApi } from '~/utils/api'
 import { parseLrc } from '~/utils/lrc'
 
-// Свой загрузчик текстов песен.
-// Порядок: кэш → Navidrome (OpenSubsonic) → LRCLIB (точное совпадение) → LRCLIB (поиск с проверкой длительности).
-// Результат: { synced: boolean, lines: [{ time: number|null, text }] } или null, если текста нет.
-
 const CACHE_PREFIX = 'lyrics.v2/'
-const MISS_TTL = 3 * 24 * 60 * 60 * 1000 // «не найдено» перепроверяем раз в 3 дня
-const DURATION_TOLERANCE = 3 // секунд
+const MISS_TTL = 3 * 24 * 60 * 60 * 1000
+const DURATION_TOLERANCE = 3
 
 const normalize = (s = '') => s
 	.toLowerCase()
@@ -46,7 +42,6 @@ const query = (params) => Object.entries(params)
 	.map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
 	.join('&')
 
-// 1. Текст, который хранит сам Navidrome (из тегов файла или .lrc рядом с ним)
 const fromNavidrome = async (config, song, status) => {
 	try {
 		const res = await getApi(config, 'getLyricsBySongId', { id: song.id })
@@ -67,7 +62,6 @@ const fromNavidrome = async (config, song, status) => {
 	return null
 }
 
-// 2–3. LRCLIB: сначала точный запрос, потом поиск с проверкой исполнителя и длительности
 const fromLrcLib = async (song, signal, status) => {
 	const soft = (promise) => promise.catch((error) => {
 		if (error?.name !== 'AbortError') status.failed = true

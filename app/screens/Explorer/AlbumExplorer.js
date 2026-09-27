@@ -45,7 +45,6 @@ const AlbumExplorer = () => {
 			})
 	}, [type, offset])
 
-	// Reset albums when type changes
 	React.useEffect(() => {
 		setAlbums([])
 		setOffset(0)

@@ -35,8 +35,6 @@ const ShowAll = ({ navigation, route: { params: { section } } }) => {
 		if (section.type === 'artist_all') return navigation.navigate('Artist', { id: item.id, name: item.name })
 	}
 
-	// I try to use FlatList instead of ScrollView but it glitched and numColumns can't be useState
-	// in doc it says that Flatlist is not compatible with flexWrap
 	return (
 		<ScrollView
 			vertical={true}

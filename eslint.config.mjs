@@ -2,7 +2,6 @@ import globals from "globals";
 import pluginJs from "@eslint/js";
 import pluginReact from "eslint-plugin-react";
 
-/** @type {import('eslint').Linter.Config[]} */
 export default [
   pluginJs.configs.recommended,
   pluginReact.configs.flat.recommended,
@@ -24,8 +23,8 @@ export default [
     },
     rules: {
       "react/prop-types": "off",
-      // "react/react-in-jsx-scope": "off",
       "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "no-empty": ["error", { allowEmptyCatch: true }],
       "semi": ["error", "never"]
     },
   }

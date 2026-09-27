@@ -1,9 +1,5 @@
 import logger from '~/utils/logger'
 
-// Падения и необработанные отказы промисов раньше можно было увидеть только
-// через adb: на экран «Настройки → Logs» попадало лишь то, что код записывал
-// туда сам. Здесь перехватываем и то, и другое — уже без участия кода вокруг.
-
 const describe = (error) => {
 	if (!error) return 'unknown error'
 	if (typeof error === 'string') return error
@@ -11,7 +7,6 @@ const describe = (error) => {
 }
 
 const installErrorHandler = () => {
-	// ErrorUtils есть в React Native, window.onerror — в браузере
 	const errorUtils = global.ErrorUtils
 	if (errorUtils?.setGlobalHandler) {
 		const previous = errorUtils.getGlobalHandler?.()
@@ -28,7 +23,6 @@ const installErrorHandler = () => {
 }
 
 const installRejectionHandler = () => {
-	// Hermes отдаёт отказы промисов через свой трекер, браузер — событием
 	const hermes = global.HermesInternal
 	if (hermes?.enablePromiseRejectionTracker) {
 		hermes.enablePromiseRejectionTracker({
@@ -49,7 +43,6 @@ const installGlobalLogging = () => {
 		installErrorHandler()
 		installRejectionHandler()
 	} catch (error) {
-		// Сам перехватчик не должен мешать запуску приложения
 		logger.warn('Logger', `Global handlers not installed: ${error?.message || error}`)
 	}
 }

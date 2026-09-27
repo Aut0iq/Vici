@@ -1,10 +1,3 @@
-/**
- * SSDP Discovery using UDP Multicast (Standard UPNP Method)
- *
- * Sends M-SEARCH multicast to 239.255.255.250:1900 and listens for device responses.
- * Requires: react-native-udp package and CHANGE_WIFI_MULTICAST_STATE permission (Android)
- */
-
 import logger from '~/utils/logger'
 import dgram from 'react-native-udp'
 import { XMLParser } from 'fast-xml-parser'
@@ -128,16 +121,10 @@ const discoverViaSsdp = (timeout = 5000, onDeviceFound = null) => {
 	})
 }
 
-/**
- * Discover UPNP/DLNA devices on the network using SSDP and HTTP in parallel
- * @param {Function} onDeviceFound - Optional callback called when each device is found
- * @returns {Promise<Array>} Array of discovered devices
- */
 export const discoverDevices = async (onDeviceFound = null) => {
-	const foundDeviceIds = new Set() // Track devices already reported
+	const foundDeviceIds = new Set()
 
 	try {
-		// Create callback wrapper that deduplicates and calls user callback
 		const deviceCallback = (device) => {
 			if (device && device.id && !foundDeviceIds.has(device.id)) {
 				foundDeviceIds.add(device.id)
@@ -147,16 +134,13 @@ export const discoverDevices = async (onDeviceFound = null) => {
 			}
 		}
 
-		// Scan SSDP
 		const [ssdpDevices, httpDevices] = await discoverViaSsdp(5000, deviceCallback)
 
-		// Collect successful results
 		const ssdp = ssdpDevices?.status === 'fulfilled' ? ssdpDevices.value : []
 		const http = httpDevices?.status === 'fulfilled' ? httpDevices.value : []
 
 
 
-		// Combine and deduplicate devices (by id)
 		const allDevices = [...ssdp, ...http]
 		const uniqueDevices = Array.from(
 			new Map(allDevices.map(d => [d.id, d])).values()

@@ -29,7 +29,6 @@ const Album = ({ navigation, route: { params } }) => {
 		setStarred(json?.album?.starred)
 		setAlbum(json?.album)
 		setData(json?.album?.song.sort((a, b) => {
-			// sort by discNumber and track
 			if (a.discNumber < b.discNumber) return -1
 			if (a.discNumber > b.discNumber) return 1
 			if (a.track < b.track) return -1

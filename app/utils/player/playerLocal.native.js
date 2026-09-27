@@ -29,8 +29,6 @@ const initPlayer = async (songDispatch) => {
 	const song = await AsyncStorage.getItem('song')
 		.then((song) => song ? JSON.parse(song) : null)
 	try {
-		// Буфер: начинаем играть, когда загружено ~0.7 секунды звука (по умолчанию ExoPlayer ждёт 2.5 секунды),
-		// поэтому незакэшированные треки стартуют заметно быстрее
 		await TrackPlayer.setupPlayer({
 			minBuffer: 25,
 			maxBuffer: 60,
@@ -38,10 +36,6 @@ const initPlayer = async (songDispatch) => {
 			backBuffer: 0,
 		})
 	} catch (error) {
-		// Android не разрешает поднимать плеер, пока приложение считается фоновым:
-		// так бывает, когда его открыло правило про наушники, перезапустила система
-		// или оно вернулось после падения. Раньше мы просто сдавались, и до ручного
-		// перезапуска не игралось вообще ничего — теперь ждём возвращения на экран
 		if (error?.code === 'android_cannot_setup_player_in_background') {
 			logger.info('Player', 'Cannot setup player in background, waiting for the app to become active')
 			return new Promise((resolve) => {
@@ -77,7 +71,6 @@ const initPlayer = async (songDispatch) => {
 		progressUpdateEventInterval: -1,
 		icon: require('~/../assets/icon.png')
 	})
-	// Set the player to the current song
 	const activeTrack = await TrackPlayer.getActiveTrack()
 	if (song) songDispatch({ type: 'restore', song: song, isSongLoad: activeTrack != null })
 	TrackPlayer.setRepeatMode(RepeatMode.Off)
@@ -86,7 +79,6 @@ const initPlayer = async (songDispatch) => {
 }
 
 const useEvent = (song, songDispatch, _nextSong) => {
-	// Catch player events
 	useTrackPlayerEvents(
 		[
 			Event.PlaybackState,
@@ -167,12 +159,9 @@ const downloadSong = async (urlStream, id) => {
 
 const downloadNextSong = async (queue, currentIndex) => {
 	if (!global.isSongCaching) return
-	// Очередь ещё может быть не записана (трек загрузился раньше, чем обновилось состояние)
 	if (!Array.isArray(queue) || !queue.length || currentIndex === undefined || currentIndex === null) return
 	const maxIndex = Math.min(global.cacheNextSong, queue.length)
 
-	// Сначала соседние треки (следующий и предыдущий) — именно на них переключаются свайпом.
-	// Текущий не качаем: он и так уже играет по сети
 	const order = [1, -1]
 	for (let i = 2; i < maxIndex; i++) order.push(i)
 
@@ -207,8 +196,6 @@ const convertToTrack = async (track, config) => {
 	}
 }
 
-// Если треки переключают быстро, загружаем только последний выбранный —
-// без очереди из промежуточных загрузок
 let loadToken = 0
 const loadSong = async (config, queue, index) => {
 	const token = ++loadToken

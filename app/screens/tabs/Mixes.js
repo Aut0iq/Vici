@@ -19,8 +19,6 @@ import logger from '~/utils/logger'
 import RotateIconButton from '~/components/button/RotateIconButton'
 import size from '~/styles/size'
 
-// Миксом считаем плейлист, название которого заканчивается на «mix»
-// (например, «Agressive mix», «Energy Mix»)
 export const isMix = (playlist) => /\bmix$/i.test((playlist?.name || '').trim())
 const mixTitle = (name = '') => name.trim().replace(/\s*mix$/i, '') || name
 
@@ -32,7 +30,6 @@ const MixCard = ({ mix, navigation }) => {
 	const [isLoading, setIsLoading] = React.useState(false)
 	const minutes = Math.round((mix.duration || 0) / 60)
 
-	// Загружаем треки микса и сразу включаем с первого
 	const playMix = () => {
 		if (isLoading) return
 		setIsLoading(true)

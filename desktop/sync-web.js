@@ -1,5 +1,3 @@
-// Переносит веб-сборку приложения из ../dist в desktop/web, откуда её отдаёт main.js.
-// Отдельным шагом, потому что expo export всегда пишет в dist в корне проекта
 const fs = require('node:fs')
 const path = require('node:path')
 

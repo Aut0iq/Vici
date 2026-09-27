@@ -2,12 +2,6 @@ import React from 'react'
 import butterchurn from 'butterchurn'
 import butterchurnPresets from 'butterchurn-presets'
 
-// Визуализатор в вебе рисуется прямо на странице: butterchurn — веб-библиотека,
-// и звук ей можно отдать из того же <audio>, который играет музыку.
-// Нативного модуля, как на Android, здесь не нужно
-
-// createMediaElementSource можно вызвать для элемента только один раз за жизнь
-// страницы, поэтому звуковой граф держим одним экземпляром на всё приложение
 let graph = null
 
 const getGraph = () => {
@@ -18,8 +12,6 @@ const getGraph = () => {
 
 	const context = new Context()
 	const source = context.createMediaElementSource(element)
-	// Обязательно пускаем звук дальше в динамики: как только элемент попал
-	// в граф, его собственный выход отключается, и без этой связи музыка смолкнет
 	source.connect(context.destination)
 	graph = { context, source }
 	return graph
@@ -35,8 +27,6 @@ const pickPreset = (name) => {
 	return { name: chosen, preset: presets[chosen] }
 }
 
-// Запускает butterchurn на переданном canvas, пока active === true.
-// Возвращает название текущего пресета и способ переключить его
 const useButterchurn = (canvasRef, active, initialPreset) => {
 	const [presetName, setPresetName] = React.useState('')
 	const visualizer = React.useRef(null)
@@ -61,8 +51,6 @@ const useButterchurn = (canvasRef, active, initialPreset) => {
 
 		const audio = getGraph()
 		if (!audio) return
-		// Браузер запускает звуковой контекст только после действия пользователя,
-		// а визуализатор всегда открывают кликом — здесь это безопасно
 		audio.context.resume?.().catch(() => { })
 
 		const size = () => ({

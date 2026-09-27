@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as FileSystem from 'expo-file-system'
 import logger from '~/utils/logger'
 
-// API Cache
 export const getCache = async (_cacheName, _key) => {
 	return null
 }
@@ -17,7 +16,6 @@ export const setJsonCache = async (_cacheName, key, json) => {
 	await AsyncStorage.setItem(key, JSON.stringify(json))
 }
 
-// Song Cache
 export const isSongCached = async (_config, songId, streamFormat, _maxBitrate) => {
 	return global.listCacheSong?.includes(`${songId}.${streamFormat}`) ? true : false
 }
@@ -61,9 +59,6 @@ const getPathDir = () => {
 }
 
 export const initCacheSong = async () => {
-	// An error was in the past where folderCache was undefined
-	// So we need to rename it to avoid losing all cached songs
-	// This can be removed in the future 
 	const info = await FileSystem.getInfoAsync(`${FileSystem.documentDirectory}/cache/undefined/`)
 	if (info.exists) {
 		await FileSystem.moveAsync({
@@ -83,7 +78,6 @@ export const initCacheSong = async () => {
 	global.listCacheSong = await getListCacheSong() || []
 }
 
-// Cache Settings
 export const clearCache = async () => {
 	await AsyncStorage.multiRemove(
 		await AsyncStorage.getAllKeys()

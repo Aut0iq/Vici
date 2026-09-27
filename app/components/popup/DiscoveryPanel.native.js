@@ -35,7 +35,6 @@ const DiscoveryPanel = ({ visible, onClose }) => {
 		try {
 			discoverDevices((device) => {
 				setDevicesUpnp((prevDevices) => {
-					// Avoid duplicates
 					if (remote.selectedDevice?.id === device.id || prevDevices.find((d) => d.id === device.id)) {
 						return prevDevices
 					}
@@ -50,11 +49,9 @@ const DiscoveryPanel = ({ visible, onClose }) => {
 
 	const refresh = (rotate) => {
 		rotate()
-		// GoogleCast rescan
 		const discoveryManager = GoogleCast.getDiscoveryManager()
 		discoveryManager.stopDiscovery()
 		discoveryManager.startDiscovery()
-		// UPNP rescan
 		scanUpnpDevices()
 	}
 
@@ -89,7 +86,6 @@ const DiscoveryPanel = ({ visible, onClose }) => {
 						flex: 1,
 					}}
 				/>
-				{/* Header */}
 				<View style={{
 					width: "100%",
 					minHeight: '50%',

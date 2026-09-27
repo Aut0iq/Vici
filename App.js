@@ -16,11 +16,9 @@ import Navigation from '~/components/Navigation'
 global.maxBitRate = 0
 global.streamFormat = 'mp3'
 
-// Ставим до отрисовки, чтобы в «Logs» попало и то, что случится при запуске
 installGlobalLogging()
 
 const App = () => {
-	// Загружаем шрифты Vici. Если не получилось — приложение всё равно запустится со стандартным шрифтом
 	const [fontsLoaded, fontsError] = useFonts({
 		Manrope_400Regular,
 		Manrope_500Medium,
@@ -39,7 +37,6 @@ const App = () => {
 		else if (fontsLoaded) logger.info('Fonts', 'Fonts loaded')
 	}, [fontsLoaded, fontsError])
 
-	// Провайдеры (в том числе плеер) запускаем сразу, а интерфейс показываем после загрузки шрифтов
 	return (
 		<AppProvider>
 			<SafeAreaProvider initialMetrics={initialWindowMetrics}>

@@ -14,7 +14,6 @@ const objectToString = (obj) => {
 		if (obj instanceof Array) {
 			return obj.map(value => objectToString(value)).join(', ')
 		} else {
-			// return Object.keys(obj).map(key => `${key}: ${objectToString(obj[key])}`).join('\n')
 			return JSON.stringify(obj, null, 1)
 		}
 	} else if (typeof obj === 'boolean') {

@@ -8,12 +8,8 @@ import ImageError from '~/components/ImageError'
 import { LinearGradient } from 'expo-linear-gradient'
 import State from '~/utils/playerState'
 
-// Один оборот пластинки, в миллисекундах
 const TURN_DURATION = 8000
 
-// Обложка трека спереди, а за ней крутится пластинка.
-// coverSize — сторона обложки, width — ширина всей области.
-// translateX — сдвиг обложки при свайпе (жесты обрабатывает сам плеер), onDoubleTap — пауза
 const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, onCoverTouch = null }) => {
 	const config = useConfig()
 	const song = useSong()
@@ -24,12 +20,10 @@ const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, o
 	const cover = Math.round(coverSize)
 	const vinyl = Math.round(cover * 1.12)
 	const shift = Math.round(cover * 0.28)
-	// Сдвигаем обложку влево, чтобы обложка вместе с выглядывающей пластинкой стояли по центру
 	const coverLeft = Math.max(0, Math.round((width - (cover / 2 + shift + vinyl / 2)) / 2))
 	const coverTop = Math.round((vinyl - cover) / 2)
 	const vinylLeft = coverLeft + Math.round((cover - vinyl) / 2) + shift
 
-	// Крутим, пока играет музыка; на паузе останавливаемся там, где были
 	React.useEffect(() => {
 		if (!isPlaying) {
 			spin.stopAnimation()
@@ -60,7 +54,6 @@ const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, o
 
 	return (
 		<View style={{ width, height: vinyl }}>
-			{/* Неподвижная тень под пластинкой: если тень вращается вместе с ней, Android её перерисовывает и она мерцает */}
 			<View
 				style={[
 					circle(vinyl),
@@ -68,8 +61,6 @@ const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, o
 				]}
 			/>
 
-			{/* Пластинка. renderToHardwareTextureAndroid — рисуем её один раз и дальше только поворачиваем картинку,
-			    без перерисовки тонких дорожек на каждом кадре */}
 			<Animated.View
 				renderToHardwareTextureAndroid={true}
 				shouldRasterizeIOS={true}
@@ -86,14 +77,12 @@ const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, o
 					},
 				]}
 			>
-				{/* Дорожки */}
 				{[0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5].map((k, i) => (
 					<View
 						key={k}
 						style={[circle(vinyl * k), centered(vinyl * k), { borderWidth: 1, borderColor: i % 2 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.35)' }]}
 					/>
 				))}
-				{/* Блики: светлые сектора, которые вращаются вместе с пластинкой */}
 				<View
 					style={[
 						circle(vinyl),
@@ -115,17 +104,13 @@ const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, o
 						style={{ width: '100%', height: '100%' }}
 					/>
 				</View>
-				{/* Золотая риска у края — по ней хорошо видно вращение */}
 				<View style={{ position: 'absolute', left: vinyl / 2 - 2, top: vinyl * 0.04, width: 4, height: vinyl * 0.08, borderRadius: 2, backgroundColor: 'rgba(230,189,85,0.55)' }} />
-				{/* Наклейка в центре */}
 				<View style={[circle(vinyl * 0.4), centered(vinyl * 0.4), { backgroundColor: '#7a211d', borderWidth: 3, borderColor: '#0f0c0d' }]} />
 				<View style={[circle(vinyl * 0.2), centered(vinyl * 0.2), { borderWidth: 1, borderColor: 'rgba(230,189,85,0.45)' }]} />
 				<View style={[circle(8), centered(8), { backgroundColor: '#0c0a0b' }]} />
 			</Animated.View>
 
-			{/* Обложка: свайп влево/вправо — переключить трек, двойной тап — пауза */}
 			<Animated.View
-				// Сообщаем плееру, что палец лёг на обложку — тогда свайп влево/вправо переключит трек
 				onTouchStart={() => onCoverTouch?.(true)}
 				onTouchEnd={() => onCoverTouch?.(false)}
 				onTouchCancel={() => onCoverTouch?.(false)}

@@ -11,14 +11,10 @@ const ICON_PREV = svg('M5 5.5h2.5v13H5zM19 5.5v13L9 12z', '#F6F0E8')
 const ICON_NEXT = svg('M5 5.5v13L15 12zM16.5 5.5H19v13h-2.5z', '#F6F0E8')
 const ICON_NOTE = svg('M9 17.5a3 3 0 1 1-2-2.83V5l12-2v11.5a3 3 0 1 1-2-2.83V6.3L9 7.6z', GOLD)
 
-// Виджет 5×1: обложка, название, исполнитель и кнопки управления.
-// Нажатие на свободное место открывает приложение с плеером на весь экран.
 export const DEFAULT_COLORS = { background: 'rgba(34, 22, 30, 1)', edge: 'rgba(255, 255, 255, 0.12)' }
 
 export const ViciWidget = ({ title, artist, cover, isPlaying, colors, height = 64 }) => {
-	// Обложка занимает почти всю высоту виджета
 	const coverSize = Math.max(40, Math.min(Math.round(height) - 12, 120))
-	// Старые сохранённые цвета (с градиентом) не подходят — берём цвета по умолчанию
 	const palette = colors?.background ? colors : DEFAULT_COLORS
 	return (
 	<FlexWidget

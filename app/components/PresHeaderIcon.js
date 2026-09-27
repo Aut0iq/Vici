@@ -13,7 +13,6 @@ const PresHeaderIcon = ({ title, subTitle, icon, onPressOption = null, children 
 	const theme = useTheme()
 	const insets = useSafeAreaInsets()
 
-	// Тема Vici: иконка в стеклянном квадрате по центру
 	if (theme.glass) return (
 		<>
 			<BackButton />

@@ -60,7 +60,6 @@ const HorizontalAlbums = ({ albums, year = false, onPress = () => { } }) => {
 const styles = StyleSheet.create({
 	album: {
 		width: size.image.large,
-		// height: 210,
 		alignItems: 'center',
 	},
 	albumCover: {

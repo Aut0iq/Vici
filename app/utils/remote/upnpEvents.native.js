@@ -32,8 +32,3 @@ export default {
 	listenerCount,
 
 }
-// Events: 
-// 'stateChanged' - payload: { device, state }
-// 'trackAdded' - payload: { device, track }
-// 'trackEnded' - payload: { device }
-// 'progressChanged' - payload: { device, position, duration }

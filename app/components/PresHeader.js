@@ -15,7 +15,6 @@ const PresHeader = ({ title, subTitle, imgSrc, onPressTitle = null, onPressOptio
 	const insets = useSafeAreaInsets()
 	const { width } = useWindowDimensions()
 
-	// Тема Vici: обложка по центру со скруглением, круглые стеклянные кнопки
 	if (theme.glass) {
 		const cover = Math.min(Math.round(width * 0.62), 300)
 		return (

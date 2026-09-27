@@ -3,16 +3,13 @@ import md5 from 'md5'
 
 import logger from '~/utils/logger'
 
-// Прямая отправка скробблов в Last.fm с телефона (без участия сервера Navidrome).
-// Ключ и секрет приложения, а также ключ сессии хранятся только на устройстве.
-
 const API = 'https://ws.audioscrobbler.com/2.0/'
 const KEY_ACCOUNT = 'lastfm.account'
 const KEY_QUEUE = 'lastfm.queue'
 const KEY_STATS = 'lastfm.stats'
 const MAX_QUEUE = 100
 
-let account = null // { apiKey, secret, sessionKey, username }
+let account = null
 let loaded = false
 
 export const loadAccount = async () => {
@@ -37,7 +34,6 @@ const saveAccount = async (value) => {
 
 export const isConnected = () => !!account?.sessionKey
 
-// Подпись запроса по правилам Last.fm: md5 от всех параметров по алфавиту + секрет
 const sign = (params, secret) => {
 	const base = Object.keys(params)
 		.filter((k) => k !== 'format' && k !== 'callback')
@@ -63,12 +59,8 @@ const call = async (method, params, { secret = null, post = false } = {}) => {
 	let json = null
 	try {
 		json = JSON.parse(text)
-	} catch {
-		// Ответ не JSON — разберёмся ниже по коду и телу
-	}
+	} catch { }
 	if (!json || json.error) {
-		// Если ответ не разобрался, кладём в сообщение код и начало тела:
-		// иначе причина отказа остаётся невидимой и в логах, и на экране
 		const error = new Error(json?.message || `HTTP ${res.status}: ${text.slice(0, 200) || 'пустой ответ'}`)
 		error.code = json?.error
 		error.status = res.status
@@ -77,7 +69,6 @@ const call = async (method, params, { secret = null, post = false } = {}) => {
 	return json
 }
 
-// Шаг 1: получаем токен и ссылку, по которой пользователь разрешает доступ
 export const requestToken = async (apiKey, secret) => {
 	const json = await call('auth.getToken', { api_key: apiKey }, { secret })
 	return {
@@ -86,7 +77,6 @@ export const requestToken = async (apiKey, secret) => {
 	}
 }
 
-// Шаг 2: обмениваем разрешённый токен на постоянный ключ сессии
 export const createSession = async (apiKey, secret, token) => {
 	const json = await call('auth.getSession', { api_key: apiKey, token }, { secret })
 	const value = {
@@ -100,9 +90,6 @@ export const createSession = async (apiKey, secret, token) => {
 	return value
 }
 
-// Выход из аккаунта. Ключ приложения при этом сохраняем: он не привязан
-// к учётной записи, а без него войти заново нечем — пришлось бы снова искать
-// его на last.fm. Раньше выход стирал всё, и поля оставались пустыми
 export const disconnect = async () => {
 	if (!account?.apiKey) return saveAccount(null)
 	await saveAccount({ apiKey: account.apiKey, secret: account.secret })
@@ -113,7 +100,6 @@ const authParams = () => ({
 	sk: account.sessionKey,
 })
 
-// Очередь на случай, когда нет сети: отправим при следующем удачном скроббле
 const readQueue = async () => {
 	try {
 		return JSON.parse(await AsyncStorage.getItem(KEY_QUEUE)) || []
@@ -123,14 +109,11 @@ const readQueue = async () => {
 }
 const writeQueue = (queue) => AsyncStorage.setItem(KEY_QUEUE, JSON.stringify(queue.slice(-MAX_QUEUE))).catch(() => { })
 
-// Сколько треков ушло в Last.fm и когда был последний
 export const getStats = async () => {
 	let stats = { count: 0, lastAt: null }
 	try {
 		stats = { ...stats, ...JSON.parse(await AsyncStorage.getItem(KEY_STATS)) }
-	} catch {
-		// Статистики ещё нет или она повреждена — покажем нули
-	}
+	} catch { }
 	const queue = await readQueue()
 	return { ...stats, queued: queue.length }
 }
@@ -142,15 +125,12 @@ const addToStats = async (added) => {
 			count: (stats.count || 0) + added,
 			lastAt: Date.now(),
 		}))
-	} catch {
-		// Счётчик — вещь необязательная, из-за него скроббл терять нельзя
-	}
+	} catch { }
 }
 
 const MAX_BATCH = 50
 
 const sendScrobble = async (items) => {
-	// Отправляем частями: больше 50 треков за раз Last.fm не принимает
 	for (let from = 0; from < items.length; from += MAX_BATCH) {
 		await sendBatch(items.slice(from, from + MAX_BATCH))
 	}
@@ -168,7 +148,6 @@ const sendBatch = async (items) => {
 	await call('track.scrobble', params, { secret: account.secret, post: true })
 }
 
-// «Сейчас слушает» в профиле Last.fm
 export const updateNowPlaying = async (song) => {
 	await loadAccount()
 	if (!isConnected() || !song?.title || !song?.artist) return
@@ -185,7 +164,6 @@ export const updateNowPlaying = async (song) => {
 	}
 }
 
-// Отправить накопившееся, не дожидаясь следующего трека
 export const flushQueue = async () => {
 	await loadAccount()
 	if (!isConnected()) return 0
@@ -203,7 +181,6 @@ export const flushQueue = async () => {
 	}
 }
 
-// Засчитать прослушивание. timestamp — время начала прослушивания в секундах
 export const scrobble = async (song, timestamp) => {
 	await loadAccount()
 	if (!isConnected() || !song?.title || !song?.artist) return
@@ -223,7 +200,6 @@ export const scrobble = async (song, timestamp) => {
 		if (queue.length) await writeQueue([])
 		logger.info('LastFM', `Scrobbled ${item.artist} - ${item.track}`)
 	} catch (error) {
-		// Ошибки сети — отложим, ошибки данных (неверная сессия и т.п.) — не копим
 		if (error.code) logger.error('LastFM', `Scrobble rejected (${error.code}): ${error.message}`)
 		else {
 			await writeQueue(batch)

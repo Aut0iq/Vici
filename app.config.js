@@ -3,8 +3,6 @@ if (process.env.IS_DEV === "true") {
 	packageName = "com.aut0iq.vici.dev"
 }
 
-// Номер сборки Android из версии: 2026.09.17 -> 26091700, 2026.09.17.1 -> 26091701.
-// Он растёт с каждой новой версией, поэтому обновления ставятся поверх без проблем
 const toVersionCode = (version) => {
 	const [y = '', m = '', d = '', build = '0'] = String(version || '').split('.')
 	const code = parseInt(`${y.slice(-2)}${m.padStart(2, '0')}${d.padStart(2, '0')}${build.padStart(2, '0')}`, 10)
@@ -22,7 +20,7 @@ module.exports = ({ config }) => {
 			orientation: "default",
 			icon: "./assets/icon.png",
 			userInterfaceStyle: "light",
-			newArchEnabled: false, // Disable New Architecture because react-native-track-player does not support it yet
+			newArchEnabled: false,
 			assetBundlePatterns: [
 				"**/*"
 			],

@@ -7,14 +7,12 @@ import logger from '~/utils/logger'
 import Player from '~/utils/player'
 
 const transfer = async (fromDevice, toDevice, config, song, songDispatch) => {
-	// Connect to new player
 	await Player.connect(toDevice, toDevice?.type || 'local')
 		.catch((error) => {
 			logger.error('RemoteProvider', 'Error connecting to new player:', error)
 			throw error
 		})
 
-	// Action on previous player
 	const savedState = await Player.saveState()
 	await Player.stopSong()
 		.catch((error) => logger.error('RemoteProvider', 'Error stopping previous player:', error))
@@ -23,7 +21,6 @@ const transfer = async (fromDevice, toDevice, config, song, songDispatch) => {
 
 	await Player.switchPlayer(toDevice?.type || 'local')
 
-	// Restore state on new player
 	try {
 		await Player.playSong(config, songDispatch, song.queue, song.index)
 		await Player.restoreState(savedState)
@@ -37,16 +34,13 @@ const transfer = async (fromDevice, toDevice, config, song, songDispatch) => {
 }
 
 const transferSameType = async (fromDevice, toDevice, config, song, songDispatch) => {
-	// Save state from previous player
 	const savedState = await Player.saveState()
 	await Player.disconnect(fromDevice)
 		.catch((error) => logger.error('RemoteProvider', 'Error disconnecting from previous player:', error))
 
-	// Connect to new player
 	await Player.connect(toDevice, toDevice?.type || 'local')
 	await Player.switchPlayer(toDevice?.type || 'local')
 
-	// Restore state on new player
 	await Player.playSong(config, songDispatch, song.queue, song.index)
 	await Player.restoreState(savedState)
 }

@@ -8,7 +8,6 @@ import { useSettings, useSetSettings, tabSections } from '~/contexts/settings'
 import { useTheme } from '~/contexts/theme'
 import settingStyles from '~/styles/settings'
 
-// Высота строки: по ней же считаем, на сколько позиций утащили вкладку
 const ROW_HEIGHT = 50
 
 const TabRow = ({ tab, section, index, isLast, offset, onToggle, onToggleSwipe, onGrab, onDrag, onDrop }) => {
@@ -45,7 +44,6 @@ const TabRow = ({ tab, section, index, isLast, offset, onToggle, onToggleSwipe, 
 				settingStyles.optionItem(theme, isLast),
 				{
 					cursor: 'pointer',
-					// Пока тащим эту строку — двигаем её саму, соседние уезжают на offset
 					transform: [{ translateY: offset === null ? position : offset }],
 				},
 			]}
@@ -59,7 +57,6 @@ const TabRow = ({ tab, section, index, isLast, offset, onToggle, onToggleSwipe, 
 				</View>
 				<Text style={{ color, flex: 1 }}>{t(section.label)}</Text>
 			</Pressable>
-			{/* Второй переключатель: попадает ли вкладка в переключение свайпом */}
 			<Pressable
 				onPress={() => onToggleSwipe(index)}
 				disabled={section.lockSwipe}
@@ -81,8 +78,6 @@ const TabRow = ({ tab, section, index, isLast, offset, onToggle, onToggleSwipe, 
 	)
 }
 
-// Список вкладок нижнего меню: нажатие на название показывает и прячет вкладку,
-// значок со стрелками — переключение свайпом, «гамбургер» справа перетаскивает
 const TabsOrder = () => {
 	const settings = useSettings()
 	const setSettings = useSetSettings()
@@ -122,7 +117,6 @@ const TabsOrder = () => {
 		setSettings({ ...settings, tabsOrder: newOrder })
 	}, [settings, tabs, setSettings])
 
-	// Насколько сдвинуть строку, пока тащат соседнюю. null — это сама перетаскиваемая строка
 	const offsetOf = (index) => {
 		if (index === indexMoving) return null
 		if (indexMoving === -1) return 0

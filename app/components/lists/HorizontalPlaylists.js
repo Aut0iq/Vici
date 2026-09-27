@@ -18,7 +18,6 @@ import ImageError from '~/components/ImageError'
 import Player from '~/utils/player'
 import size from '~/styles/size'
 
-// TODO: made this component beautiful
 const ItemPlaylist = ({ item }) => {
 	const { t } = useTranslation()
 	const theme = useTheme()

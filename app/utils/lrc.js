@@ -1,5 +1,3 @@
-// Разбор LRC: поддерживает [mm:ss], [mm:ss.x], [mm:ss.xx], [mm:ss.xxx],
-// несколько меток на одной строке и тег [offset:±ms]
 export const parseLrc = (lrc) => {
 	if (typeof lrc !== 'string' || !lrc.length) return []
 	const TAG = /\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g

@@ -72,7 +72,6 @@ const UpdateRadio = ({ navigation, route: { params } }) => {
 							<Icon name="feed" size={size.icon.large} color={theme.innerTouch} />
 						</View>
 						<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10 }}>
-							{/* {!error.length && <Icon name="circle" size={10} color={info ? 'green' : 'red'} />} */}
 							<Text style={{ color: error.length ? '#ff0000' : theme.primaryText, fontSize: size.text.medium, marginStart: 5 }}>
 								{error || t('Enter radio details')}
 							</Text>

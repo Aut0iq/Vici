@@ -28,7 +28,6 @@ const Player = ({ state }) => {
 		setFullScreen(false)
 	}, [state.index])
 
-	// Открытие из виджета (ссылка vici://player) — сразу плеер на весь экран
 	React.useEffect(() => {
 		const open = (url) => {
 			if (url && url.startsWith('vici://player')) setFullScreen(true)
@@ -38,9 +37,6 @@ const Player = ({ state }) => {
 		return () => sub.remove()
 	}, [])
 
-	// При первом запуске: если наушники уже подключены — продолжаем играть.
-	// Вместе с правилом Samsung «подключены наушники → открыть Vici» это даёт автозапуск,
-	// даже когда приложение было полностью закрыто
 	React.useEffect(() => {
 		if (!settings.playOnHeadphonesConnect || global.viciAutoPlayChecked) return
 		global.viciAutoPlayChecked = true
@@ -58,14 +54,12 @@ const Player = ({ state }) => {
 		return () => { cancelled = true }
 	}, [settings.playOnHeadphonesConnect])
 
-	// Подключили наушники или колонку — продолжаем играть (если включено в настройках)
 	React.useEffect(() => {
 		if (!settings.playOnHeadphonesConnect) return
 		return addDeviceConnectedListener(({ type }) => {
 			const current = global.song
 			if (!current?.queue?.length || current.state === PlayerUtils.State.Playing) return
 			logger.info('Player', `Audio device connected (${type}), resuming`)
-			// Небольшая пауза: звуковому выходу нужно время, чтобы переключиться на наушники
 			setTimeout(() => {
 				if (global.song?.state === PlayerUtils.State.Playing) return
 				if (global.song?.isSongLoad) PlayerUtils.resumeSong()
@@ -74,7 +68,6 @@ const Player = ({ state }) => {
 		})
 	}, [settings.playOnHeadphonesConnect])
 
-	// Держим виджет на рабочем столе в курсе: трек, обложка, пауза
 	React.useEffect(() => {
 		updateWidget(config, song)
 	}, [song?.songInfo?.id, song?.state, config?.url])

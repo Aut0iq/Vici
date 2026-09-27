@@ -1,9 +1,6 @@
 import React from 'react'
 import { StyleSheet } from 'react-native'
 
-// Шрифты Vici:
-// Manrope — основной шрифт интерфейса (есть кириллица)
-// Cinzel — римские буквы для надписи VICI (только латиница)
 export const FONTS = {
 	regular: 'Manrope_400Regular',
 	medium: 'Manrope_500Medium',
@@ -27,9 +24,6 @@ const BY_WEIGHT = {
 	'900': FONTS.extrabold,
 }
 
-// Подставляет нужное начертание Manrope по fontWeight.
-// Если в стиле уже указан свой шрифт — не трогаем (кроме слова 'display').
-// В Cinzel нет русских букв: для кириллицы подставляем жирный Manrope
 const CYRILLIC = /[\u0400-\u04FF]/
 const textOf = (children) => React.Children.toArray(children).filter((c) => typeof c === 'string' || typeof c === 'number').join('')
 

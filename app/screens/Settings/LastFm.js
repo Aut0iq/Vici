@@ -25,7 +25,6 @@ const LastFm = () => {
 	const [isBusy, setIsBusy] = React.useState(false)
 	const [stats, setStats] = React.useState(null)
 
-	// Счётчик отправленных треков: обновляем при открытии экрана и раз в 5 секунд
 	React.useEffect(() => {
 		const refresh = () => getStats().then(setStats)
 		refresh()
@@ -39,14 +38,12 @@ const LastFm = () => {
 			setAccount(value)
 			setApiKey(value.apiKey || '')
 			setSecret(value.secret || '')
-			// Пробуем отправить накопившееся: иначе очередь ждала бы следующего трека
 			flushQueue().then((sent) => {
 				if (sent) getStats().then(setStats)
 			})
 		})
 	}, [])
 
-	// Шаг 1: получаем токен и открываем страницу Last.fm, где вы разрешаете доступ
 	const openAuth = async () => {
 		setStatus(null)
 		setIsBusy(true)
@@ -60,7 +57,6 @@ const LastFm = () => {
 		setIsBusy(false)
 	}
 
-	// Шаг 2: после разрешения меняем токен на постоянный ключ сессии
 	const finishAuth = async () => {
 		setStatus(null)
 		setIsBusy(true)

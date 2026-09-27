@@ -68,7 +68,6 @@ const getClient = async () => {
 }
 
 const reload = async () => {
-	// await TrackPlayer.retry()
 }
 
 const pauseSong = async () => {
@@ -141,7 +140,6 @@ const setVolume = async (volume) => {
 }
 
 const getVolume = () => {
-	// return TrackPlayer.getVolume()
 	return 1
 }
 

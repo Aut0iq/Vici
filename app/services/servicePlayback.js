@@ -20,7 +20,6 @@ module.exports = async () => {
 	TrackPlayer.addEventListener(Event.RemoteNext, () => Player.nextSong(global.config, global.song, fakeSongDispatch))
 	TrackPlayer.addEventListener(Event.RemotePrevious, () => Player.previousSong(global.config, global.song, fakeSongDispatch))
 	TrackPlayer.addEventListener(Event.RemoteSeek, (event) => Player.setPosition(event.position))
-	// This handles the interruptions like calls or notifications
 	TrackPlayer.addEventListener(Event.RemoteDuck, (event) => {
 		clearTimeout(pauseTimer)
 		TrackPlayer.getPlaybackState()
@@ -72,7 +71,6 @@ module.exports = async () => {
 
 		if (event.track) onTrackStart(event.track.id, event.track.duration)
 	})
-	// Учёт времени прослушивания для скробблинга: считаем только время, когда реально играет
 	TrackPlayer.addEventListener(Event.PlaybackState, ({ state }) => {
 		onPlayingChange(state === State.Playing)
 	})

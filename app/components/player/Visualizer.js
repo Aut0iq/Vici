@@ -22,8 +22,6 @@ const BANDS = 28
 const KEY_PRESET = 'visualizer.preset'
 const GOLD = '#E6BD55'
 
-// Сама картинка рисуется в маленькой веб-странице: так эффекты работают плавно
-// и их легко менять, не пересобирая приложение.
 const Visualizer = ({ visible, close }) => {
 	const { t } = useTranslation()
 	const insets = useSafeAreaInsets()
@@ -34,14 +32,12 @@ const Visualizer = ({ visible, close }) => {
 	const [fit, setFit] = React.useState('native')
 	const savedPreset = React.useRef(null)
 
-	// Запоминаем выбранный пресет, чтобы в следующий раз открылся он же
 	React.useEffect(() => {
 		AsyncStorage.getItem(KEY_PRESET).then((value) => { savedPreset.current = value })
 	}, [])
 	const [error, setError] = React.useState(null)
 	const info = song?.songInfo
 
-	// Готовим страницу с butterchurn и пресетами MilkDrop
 	React.useEffect(() => {
 		if (!visible || source) return
 		prepareButterchurn()
@@ -49,7 +45,6 @@ const Visualizer = ({ visible, close }) => {
 			.catch((e) => setError(String(e?.message || e)))
 	}, [visible])
 
-	// Волна звука от системы -> в butterchurn
 	React.useEffect(() => {
 		if (!visible) return
 		let stop = null

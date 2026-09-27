@@ -46,7 +46,6 @@ const TabItem = ({ route, index, state, descriptors, navigation }) => {
 	)
 }
 
-// Нижнее меню: парящая стеклянная капсула, под которой видно контент
 const BottomBar = ({ state, descriptors, navigation }) => {
 	const insets = useSafeAreaInsets()
 	const config = useConfig()
@@ -67,7 +66,6 @@ const BottomBar = ({ state, descriptors, navigation }) => {
 				/> : null}
 				<View style={[StyleSheet.absoluteFill, styles.tint]} />
 				<GlassView radius={BAR_HEIGHT / 2} intensity={0.5} style={styles.bar}>
-					{/* Скрытые из меню вкладки остаются в навигаторе ради свайпа, но кнопок им не рисуем */}
 					{state.routes
 						.map((route, index) => ({ route, index }))
 						.filter(({ route }) => descriptors[route.key].options.inBar !== false)

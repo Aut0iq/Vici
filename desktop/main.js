@@ -4,12 +4,8 @@ const http = require('node:http')
 const fs = require('node:fs')
 const path = require('node:path')
 
-// Медиа-клавиши на клавиатуре и карточка трека в панели громкости Windows.
-// Страница уже выставляет navigator.mediaSession в app/utils/player.web.js,
-// Chromium внутри Electron подхватит её, если включить эти возможности
 app.commandLine.appendSwitch('enable-features', 'HardwareMediaKeyHandling,MediaSessionService')
 
-// Сюда npm run sync кладёт веб-сборку приложения
 const WEB_ROOT = path.join(__dirname, 'web')
 
 const MIME = {
@@ -29,27 +25,18 @@ const MIME = {
 	'.woff2': 'font/woff2',
 }
 
-// Запасные порты нужны только если первый занят чем-то посторонним.
-// На запасном порту настройки будут свои, но это лучше, чем не запуститься
 const PORTS = [47821, 47822, 47823]
 
 let tray = null
 let window = null
 let quitting = false
-// Версия, которая уже скачана и ждёт установки
 let updateReady = null
 
-// Приложение живёт в трее и почти никогда не завершается, поэтому стандартное
-// «установить при выходе» не срабатывало: обновление скачивалось и лежало без дела.
-// Проверяем раз в несколько часов, а готовое обновление предлагаем поставить сразу
 const UPDATE_CHECK_INTERVAL = 4 * 60 * 60 * 1000
 
-// Отдаём сборку по http, а не через file://: так работают fetch, история навигации
-// и всё остальное, что браузер запрещает локальным файлам
 const startServer = () => new Promise((resolve, reject) => {
 	const server = http.createServer((request, response) => {
 		let file = path.join(WEB_ROOT, decodeURIComponent(new URL(request.url, 'http://127.0.0.1').pathname))
-		// Наружу из папки со сборкой не выпускаем
 		if (!file.startsWith(WEB_ROOT)) {
 			response.writeHead(403).end()
 			return
@@ -62,9 +49,6 @@ const startServer = () => new Promise((resolve, reject) => {
 		response.writeHead(200, { 'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream' })
 		fs.createReadStream(file).pipe(response)
 	})
-	// Порт постоянный: настройки, сервер и очередь хранятся в localStorage,
-	// а он привязан к адресу вместе с портом. Со случайным портом каждый запуск
-	// выглядел для браузера новым сайтом, и приложение забывало подключение
 	const tryListen = (index) => {
 		const port = PORTS[index]
 		server.once('error', (error) => {
@@ -76,9 +60,6 @@ const startServer = () => new Promise((resolve, reject) => {
 	tryListen(0)
 })
 
-// Service worker кэширует саму сборку приложения, и после обновления он ещё один
-// запуск отдавал бы прежний интерфейс. Поэтому при смене версии снимаем его
-// регистрацию. Кэши обложек, запросов и треков лежат отдельно и остаются на месте
 const resetServiceWorkerOnUpdate = async () => {
 	const marker = path.join(app.getPath('userData'), 'last-version')
 	const previous = fs.existsSync(marker) ? fs.readFileSync(marker, 'utf8') : null
@@ -106,13 +87,11 @@ const createWindow = async (url) => {
 
 	window.once('ready-to-show', () => window.show())
 
-	// Ссылки на Github и Last.fm открываем в обычном браузере, а не внутри плеера
 	window.webContents.setWindowOpenHandler(({ url: target }) => {
 		shell.openExternal(target)
 		return { action: 'deny' }
 	})
 
-	// Крестик прячет окно в трей, музыка продолжает играть
 	window.on('close', (event) => {
 		if (quitting) return
 		event.preventDefault()
@@ -130,13 +109,11 @@ const showWindow = () => {
 
 const installUpdate = () => {
 	quitting = true
-	// Тихая установка и сразу запуск новой версии
 	autoUpdater.quitAndInstall(true, true)
 }
 
 const buildTrayMenu = () => Menu.buildFromTemplate([
 	{ label: 'Открыть Vici', click: showWindow },
-	// Если в окне с предложением нажали «Позже», обновиться можно отсюда
 	...(updateReady ? [{ label: `Обновить до ${updateReady} и перезапустить`, click: installUpdate }] : []),
 	{ type: 'separator' },
 	{
@@ -159,8 +136,6 @@ const setupUpdates = () => {
 	autoUpdater.on('update-downloaded', async (info) => {
 		updateReady = info.version
 		tray?.setContextMenu(buildTrayMenu())
-		// Без родительского окна: оно может быть спрятано в трей, и тогда окно
-		// с вопросом тоже осталось бы невидимым
 		const { response } = await dialog.showMessageBox({
 			type: 'info',
 			buttons: ['Перезапустить', 'Позже'],
@@ -172,7 +147,6 @@ const setupUpdates = () => {
 		})
 		if (response === 0) installUpdate()
 	})
-	// Без слушателя ошибка сети при проверке обновлений роняла бы процесс
 	autoUpdater.on('error', (error) => console.error('Update error', error))
 
 	const check = () => autoUpdater.checkForUpdates().catch((error) => console.error('Update check failed', error))
@@ -180,7 +154,6 @@ const setupUpdates = () => {
 	setInterval(check, UPDATE_CHECK_INTERVAL)
 }
 
-// Второй запуск не поднимает вторую копию, а возвращает уже открытое окно
 if (!app.requestSingleInstanceLock()) {
 	app.quit()
 } else {
@@ -190,11 +163,9 @@ if (!app.requestSingleInstanceLock()) {
 		createTray()
 		await resetServiceWorkerOnUpdate()
 		await createWindow(await startServer())
-		// В распакованном виде обновляться неоткуда, проверяем только собранное приложение
 		if (app.isPackaged) setupUpdates()
 	})
 
 	app.on('before-quit', () => { quitting = true })
-	// Окно живёт в трее, поэтому закрытие последнего окна приложение не завершает
 	app.on('window-all-closed', () => { })
 }

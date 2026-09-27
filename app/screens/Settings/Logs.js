@@ -43,7 +43,6 @@ const LogItem = ({ level, message, timestamp, source, isLast = false }) => {
 					borderRadius: size.radius.circle,
 					alignItems: 'center',
 				}}>
-					{/* <Text style={{ color: '#fff', fontSize: 12, textTransform: 'uppercase' }}>{level}</Text> */}
 				</View>
 				<Text style={[settingStyles.primaryText(theme), {
 					marginStart: 10,

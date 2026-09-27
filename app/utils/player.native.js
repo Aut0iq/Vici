@@ -127,8 +127,6 @@ export const tuktuktuk = async (songDispatch) => {
 
 export const setIndex = async (config, songDispatch, queue, index) => {
 	if (queue && index >= 0 && index < queue.length) {
-		// Сначала обновляем интерфейс, потом грузим трек.
-		// global.song меняем сразу, чтобы следующий быстрый свайп считал от нового трека
 		if (global.song) global.song = { ...global.song, index, songInfo: queue[index] }
 		songDispatch({ type: 'setIndex', index })
 		loadSong(config, queue, index)
@@ -158,7 +156,6 @@ export const removeFromQueue = async (songDispatch, index) => {
 	songDispatch({ type: 'removeFromQueue', index })
 }
 
-// when index is null, add to the end of the queue
 export const addToQueue = (songDispatch, track, index = null) => {
 	songDispatch({ type: 'addToQueue', track, index })
 }

@@ -35,7 +35,6 @@ const useEvent = (song, songDispatch, nextSong) => {
 }
 
 const reload = async () => {
-	// await TrackPlayer.retry()
 }
 
 const pauseSong = async () => {
@@ -114,7 +113,7 @@ const isVolumeSupported = () => {
 
 const resetAudio = (songDispatch) => {
 	songDispatch({ type: 'reset' })
-	UPNP.stop(device) // TODO: delete track
+	UPNP.stop(device)
 }
 
 const saveState = async () => {

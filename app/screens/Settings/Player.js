@@ -48,7 +48,6 @@ const PlayerSettings = () => {
 	const setSettings = useSetSettings()
 	const [batteryFree, setBatteryFree] = React.useState(null)
 
-	// Проверяем ограничения батареи при открытии экрана и после возврата из системных настроек
 	React.useEffect(() => {
 		const check = () => isIgnoringBatteryOptimizations().then(setBatteryFree)
 		check()

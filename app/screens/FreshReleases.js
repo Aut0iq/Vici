@@ -55,7 +55,6 @@ const AlbumExplorer = () => {
 			contentContainerStyle={[mainStyles.contentMainContainer(insets, false)]}
 			waitForInitialLayout={false}
 			recycleItems={true}
-			// estimatedItemSize={80}
 			ListHeaderComponent={
 				<View style={{ flex: 1 }}>
 					<PresHeaderIcon

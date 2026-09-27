@@ -50,8 +50,6 @@ const QueueItem = ({ item, index, isCurrent, onPress }) => {
 	)
 }
 
-// Очередь воспроизведения — колонка справа, как в настольных плеерах.
-// Показывается только в широком окне, на телефоне очередь открывается из плеера
 const QueuePanel = () => {
 	const { t } = useTranslation()
 	const insets = useSafeAreaInsets()
@@ -62,7 +60,6 @@ const QueuePanel = () => {
 	const scroll = React.useRef(null)
 	const queue = song?.queue || []
 
-	// Держим играющий трек в поле зрения, не мешая листать вручную
 	React.useEffect(() => {
 		if (song?.index === undefined || song?.index < 0) return
 		const offset = Math.max(0, (song.index - 3) * ITEM_HEIGHT)
@@ -72,7 +69,6 @@ const QueuePanel = () => {
 	if (!queue.length) return null
 	return (
 		<View style={styles.container(insets, theme)}>
-			{/* Тот же фон, что и в главном окне: цвета обложки, только темнее и размытее */}
 			<AmbientBackground song={song?.songInfo} />
 			{USE_BLUR ? <BlurView
 				intensity={25}
@@ -96,8 +92,6 @@ const QueuePanel = () => {
 					onPress={() => Player.setRepeat(songDispatch, song?.actionEndOfSong === 'random' ? 'next' : 'random')}
 				/>
 			</View>
-			{/* Список виртуальный: строки и их обложки грузятся только для видимой части.
-			    На медленной сети полсотни обложек разом тормозили всё остальное */}
 			<FlatList
 				ref={scroll}
 				data={queue}
@@ -121,7 +115,6 @@ const QueuePanel = () => {
 	)
 }
 
-// Высота строки нужна, чтобы отлистывать очередь к играющему треку
 const ITEM_HEIGHT = 56
 
 const styles = StyleSheet.create({

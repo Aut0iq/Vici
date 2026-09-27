@@ -24,7 +24,6 @@ const CustomScroll = ({ children, data, renderItem, style = { width: '100%' }, c
 		refScroll.current.scrollTo({ x: indexScroll.current, y: 0, animated: true, viewOffset: 10 })
 	}
 
-	// View is necessary to show the scroll helper
 	return (
 		<View>
 			{settings?.scrollHelper &&

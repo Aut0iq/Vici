@@ -71,8 +71,6 @@ const TimeBar = () => {
 	)
 }
 const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
-	// Держим выбор в настройках, а не в состоянии компонента: плеер размонтируется
-	// при закрытии, и иначе текст с визуализатором каждый раз выключались бы
 	const settings = useSettings()
 	const setSettings = useSetSettings()
 	const isPreview = settings.fullScreenPreview ?? preview.COVER
@@ -88,8 +86,6 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 	const volume = Player.updateVolume()
 	const scroll = React.useRef(null)
 
-	// Правая половина открывается под визуализатор, текст или очередь.
-	// Пока она закрыта, обложка стоит по центру; при открытии плавно уезжает влево
 	const hasPane = isVisualizer || isPreview === preview.LYRICS || isPreview === preview.QUEUE
 	const pane = React.useRef(new Animated.Value(hasPane ? 1 : 0)).current
 	React.useEffect(() => {
@@ -101,7 +97,6 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 	}, [song.songInfo?.id])
 
 	React.useEffect(() => {
-		// if (isPreview == preview.LYRICS) setIsPreview(preview.COVER)
 		if (isPreview == preview.QUEUE && !isVisualizer) scroll.current?.scrollToIndex({ index: song.index, animated: false, viewOffset: 0, viewPosition: 0.5 })
 	}, [song.index, song.songInfo])
 
@@ -111,7 +106,6 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 			navigationBarTranslucent={Platform.OS === 'android' && parseInt(Platform.Version, 10) > 34 ? false : true}
 			onRequestClose={() => setFullScreen(false)}
 		>
-			{/* Тот же фон, что и в главном окне: цвета обложки, мягко притемнённые */}
 			<AmbientBackground song={song?.songInfo} />
 			<View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.35)' }]} />
 			<View style={{
@@ -125,7 +119,6 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 				gap: 20,
 			}}>
 				<View style={{ flex: 1, flexDirection: 'row', minHeight: 0 }}>
-					{/* Обложка: по центру, пока правая половина закрыта. Свайп по ней переключает трек */}
 					<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, minWidth: 0 }}>
 						<SlideControl style={styles.coverSlot}>
 							<ImageError style={styles.imageCoverLarge} source={{ uri: urlCover(config, song?.songInfo) }} />
@@ -142,7 +135,6 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 							/>
 						</View>
 					</View>
-					{/* Правая половина: визуализатор (текст ложится поверх), текст или очередь */}
 					<Animated.View
 						style={{
 							flex: pane,

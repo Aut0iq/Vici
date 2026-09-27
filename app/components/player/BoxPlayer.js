@@ -19,7 +19,6 @@ import useKeyboardIsOpen from '~/utils/useKeyboardIsOpen'
 
 const HEIGHT = 62
 
-// Тонкая золотая полоска прогресса по нижнему краю
 const Progress = ({ color }) => {
 	const time = Player.updateTime()
 	const progress = time.duration > 0 && time.duration !== Infinity ? Math.min(1, time.position / time.duration) : 0
@@ -30,7 +29,6 @@ const Progress = ({ color }) => {
 	)
 }
 
-// Мини-плеер: стеклянная капсула над нижним меню
 const BoxPlayer = ({ setFullScreen }) => {
 	const song = useSong()
 	const songDispatch = useSongDispatch()

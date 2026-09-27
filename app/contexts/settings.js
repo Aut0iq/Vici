@@ -264,7 +264,7 @@ export const tabSections = [
 
 const getSettings = async () => {
 	const rawSettings = await AsyncStorage.getItem('settings')
-	if (rawSettings === null) return defaultSettings
+	if (rawSettings === null) return JSON.parse(JSON.stringify(defaultSettings))
 	try {
 		const data = JSON.parse(rawSettings)
 		if (data.homeOrderV2 && data?.homeOrderV2?.length !== defaultSettings.homeOrderV2.length) {
@@ -295,7 +295,7 @@ const getSettings = async () => {
 			homeOrder: undefined,
 		}
 	} catch {
-		return defaultSettings
+		return JSON.parse(JSON.stringify(defaultSettings))
 	}
 }
 

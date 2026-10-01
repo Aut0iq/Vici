@@ -17,7 +17,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Определить версию
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Создать релиз
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Vici ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+
   build:
+    needs: release
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -70,16 +93,14 @@ jobs:
       - name: Переименовать APK
         run: cp android/app/build/outputs/apk/release/app-release.apk "vici-${{ steps.version.outputs.version }}.apk"
 
-      - name: Опубликовать релиз
+      - name: Добавить APK в релиз
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: Vici ${{ steps.version.outputs.version }}
           files: vici-${{ steps.version.outputs.version }}.apk
-          generate_release_notes: true
 
   desktop:
-    needs: build
+    needs: release
     runs-on: windows-latest
     timeout-minutes: 60
 
@@ -134,7 +155,7 @@ jobs:
             desktop/release/latest.yml
 
   desktop-linux:
-    needs: build
+    needs: release
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -188,7 +209,7 @@ jobs:
             desktop/release/latest-linux.yml
 
   tui:
-    needs: build
+    needs: release
     runs-on: ubuntu-latest
     timeout-minutes: 15
 

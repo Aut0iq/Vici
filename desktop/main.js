@@ -126,7 +126,8 @@ const buildTrayMenu = () => Menu.buildFromTemplate([
 ])
 
 const createTray = () => {
-	tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')).resize({ width: 16, height: 16 }))
+	const traySize = process.platform === 'linux' ? 22 : 16
+	tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')).resize({ width: traySize, height: traySize }))
 	tray.setToolTip('Vici')
 	tray.setContextMenu(buildTrayMenu())
 	tray.on('click', showWindow)

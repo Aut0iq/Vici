@@ -1,4 +1,4 @@
-# Vici для Windows
+# Vici для Windows и Linux
 
 Настольная версия — это та же веб-сборка приложения, упакованная в Electron.
 Отдельного кода интерфейса здесь нет: `main.js` поднимает локальный http-сервер,
@@ -33,9 +33,16 @@ npx electron-builder --win --publish never --config.directories.output=C:\temp\v
 
 На windows-раннере GitHub Actions этой проблемы нет.
 
+Пакеты для Linux (`Vici-<версия>.AppImage` и `Vici-<версия>.deb`) собираются
+только на Linux:
+
+```
+npx electron-builder --linux --publish never
+```
+
 ## Что даёт обёртка
 
-- **Медиа-клавиши и карточка трека в панели громкости Windows.** Работают без
+- **Медиа-клавиши и карточка трека в панели громкости Windows (на Linux — через MPRIS).** Работают без
   единой строчки в интерфейсе: страница уже выставляет `navigator.mediaSession`
   в `app/utils/player.web.js`, а `main.js` включает `HardwareMediaKeyHandling`
   и `MediaSessionService`, которые Electron по умолчанию держит выключенными.

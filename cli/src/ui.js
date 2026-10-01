@@ -1,6 +1,6 @@
 import { style, fit, width, formatTime, size, draw } from './term.js'
 
-const TAB_IDS = ['home', 'artists', 'albums', 'playlists', 'search', 'queue']
+const TAB_IDS = ['home', 'artists', 'albums', 'playlists', 'search', 'queue', 'settings']
 const PAGE = 100
 const MORE_THRESHOLD = 10
 const SEEK_SECONDS = 10
@@ -25,12 +25,14 @@ const createView = (title, load = null, more = null) => ({
 })
 
 export class App {
-	constructor({ api, player, t, server, onQuit }) {
+	constructor({ api, player, t, session, actions, onQuit }) {
 		this.api = api
 		this.player = player
 		this.t = t
-		this.server = server
+		this.session = session
+		this.actions = actions
 		this.onQuit = onQuit
+		this.suspended = false
 		this.tab = 0
 		this.stacks = TAB_IDS.map(() => [])
 		this.input = null
@@ -43,8 +45,16 @@ export class App {
 		player.on('failure', (track) => this.notify(track ? `${t.failed}: ${track.title}` : t.networkError))
 	}
 
+	reset(t, session) {
+		this.t = t
+		this.session = session
+		this.stacks = TAB_IDS.map(() => [])
+		this.input = null
+		this.help = false
+	}
+
 	schedule() {
-		if (this.scheduled) return
+		if (this.scheduled || this.suspended) return
 		this.scheduled = true
 		setImmediate(() => {
 			this.scheduled = false
@@ -126,10 +136,28 @@ export class App {
 			view.hint = t.searchHint
 			return view
 		}
+		if (id === 'settings') {
+			const view = createView(t.settings)
+			view.settings = true
+			return view
+		}
 		const view = createView(t.queue)
 		view.hint = t.emptyQueue
 		view.queue = true
 		return view
+	}
+
+	settingsItems() {
+		const t = this.t
+		const session = this.session
+		return [
+			{ label: `${t.server}: ${session.url}` },
+			{ label: `${t.user}: ${session.username}` },
+			{ label: t.changeServer, play: () => this.actions.changeServer() },
+			{ label: t.signOut, play: () => this.actions.signOut() },
+			{ label: `${t.language}: ${t.languages[session.language]}`, play: () => this.actions.cycleLanguage() },
+			{ label: `${t.version}: ${session.version}` },
+		]
 	}
 
 	searchView(query) {
@@ -152,6 +180,7 @@ export class App {
 
 	get view() {
 		const view = this.stack[this.stack.length - 1]
+		if (view.settings) view.items = this.settingsItems()
 		if (view.queue) {
 			view.items = this.player.queue.map((song, index) => ({
 				label: song.title,
@@ -263,6 +292,7 @@ export class App {
 	}
 
 	key(text, key) {
+		if (this.suspended) return
 		if (key.ctrl && key.name === 'c') return this.onQuit()
 		if (this.help) {
 			this.help = false
@@ -307,8 +337,10 @@ export class App {
 
 	headerLines(cols) {
 		const t = this.t
-		const titles = TAB_IDS.map((id, index) => ` ${index + 1} ${t[id]} `)
 		const brand = ' VICI '
+		const full = TAB_IDS.map((id, index) => ` ${index + 1} ${t[id]} `)
+		const compact = full.reduce((total, title) => total + width(title), width(brand)) > cols
+		const titles = full.map((title, index) => (compact && index !== this.tab ? ` ${index + 1} ` : title))
 		let line = `${style.bold}${style.gold}${brand}${style.reset}`
 		let used = width(brand)
 		titles.forEach((title, index) => {
@@ -316,7 +348,7 @@ export class App {
 			line += index === this.tab ? `${style.bold}${style.gold}${title}${style.reset}` : `${style.muted}${title}${style.reset}`
 			used += width(title)
 		})
-		const server = ` ${this.server} `
+		const server = ` ${this.session.username}@${this.session.url.replace(/^https?:\/\//, '')} `
 		if (used + width(server) <= cols) line += `${' '.repeat(cols - used - width(server))}${style.muted}${server}`
 
 		let second = ''
@@ -431,6 +463,7 @@ export class App {
 	}
 
 	render() {
+		if (this.suspended) return
 		const { cols, rows } = size()
 		if (cols < MIN_COLS || rows < MIN_ROWS) {
 			draw([`${style.muted}${fit(this.t.tooSmall, cols)}`])

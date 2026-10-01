@@ -5,6 +5,14 @@ const en = {
 	playlists: 'Playlists',
 	search: 'Search',
 	queue: 'Queue',
+	settings: 'Settings',
+	server: 'Server',
+	user: 'User',
+	changeServer: 'Change server',
+	signOut: 'Sign out and quit',
+	language: 'Language',
+	languages: { auto: 'System', en: 'English', ru: 'Русский' },
+	version: 'Version',
 	randomMix: 'Random mix',
 	randomMixHint: 'Endless mix from the whole library',
 	newest: 'Recently added',
@@ -33,7 +41,7 @@ const en = {
 		['PgUp PgDn / g G', 'Page up and down, top and bottom'],
 		['Enter', 'Open the item or play the track'],
 		['Backspace / Esc / h', 'Go back'],
-		['Tab / 1–6', 'Switch tabs'],
+		['Tab / 1–7', 'Switch tabs'],
 		['/', 'Search'],
 		['Space', 'Play or pause'],
 		['n / p', 'Next and previous track'],
@@ -73,6 +81,14 @@ const ru = {
 	playlists: 'Плейлисты',
 	search: 'Поиск',
 	queue: 'Очередь',
+	settings: 'Настройки',
+	server: 'Сервер',
+	user: 'Пользователь',
+	changeServer: 'Сменить сервер',
+	signOut: 'Выйти из учётной записи и закрыть',
+	language: 'Язык',
+	languages: { auto: 'Как в системе', en: 'English', ru: 'Русский' },
+	version: 'Версия',
 	randomMix: 'Случайный микс',
 	randomMixHint: 'Бесконечный микс из всей фонотеки',
 	newest: 'Недавно добавленные',
@@ -101,7 +117,7 @@ const ru = {
 		['PgUp PgDn / g G', 'Страница вверх и вниз, начало и конец'],
 		['Enter', 'Открыть пункт или включить трек'],
 		['Backspace / Esc / h', 'Назад'],
-		['Tab / 1–6', 'Переключение вкладок'],
+		['Tab / 1–7', 'Переключение вкладок'],
 		['/', 'Поиск'],
 		['Пробел', 'Воспроизведение и пауза'],
 		['n / p', 'Следующий и предыдущий трек'],
@@ -136,4 +152,10 @@ const ru = {
 
 const locale = process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG || ''
 
-export const strings = /^ru/i.test(locale) ? ru : en
+export const LANGUAGES = ['auto', 'en', 'ru']
+
+export const pick = (language) => {
+	if (language === 'ru') return ru
+	if (language === 'en') return en
+	return /^ru/i.test(locale) ? ru : en
+}

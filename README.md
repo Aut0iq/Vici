@@ -70,6 +70,12 @@ Vici is listed in the official [Navidrome client apps catalog](https://www.navid
 - **Autoplay on headphones.** Plug in your headset and the music keeps playing, even if the app was closed.
 - **5×1 home screen widget** with the cover, title, controls and colors matched to the cover. Tap it to open the full-screen player.
 
+#### Terminal
+
+- **vici-tui** is a separate player for the Linux terminal, for servers and machines without a desktop.
+- Browse artists, albums and playlists, search, manage the queue, and play the endless random mix.
+- Everything is controlled from the keyboard; press `?` for the list of keys.
+
 #### Desktop
 
 - **Sidebar** with your playlists and a large cover of what is playing now.
@@ -102,6 +108,17 @@ Download a package from the [latest release](https://github.com/Aut0iq/Vici/rele
 
 - `Vici-*.AppImage` runs on any distribution. Make it executable (`chmod +x Vici-*.AppImage`) and start it. It needs FUSE 2 (`libfuse2`), which most desktop distributions already have. The AppImage updates itself.
 - `Vici-*.deb` is for Debian, Ubuntu and their derivatives: `sudo apt install ./Vici-*.deb`.
+
+#### Linux terminal
+
+Download `vici-tui_*_all.deb` from the [latest release](https://github.com/Aut0iq/Vici/releases/latest) and install it:
+
+```bash
+sudo apt install ./vici-tui_*_all.deb
+vici-tui
+```
+
+The package pulls in Node.js and `mpv`, which plays the audio. On other distributions, install Node.js 18 or newer and `mpv`, unpack `vici-tui-*.tar.gz` and run `node src/index.js`.
 
 On first launch, enter your server address (for example, `https://music.example.com`), username and password.
 
@@ -183,6 +200,12 @@ Vici есть в официальном [каталоге клиентов Navid
 - **Автозапуск при подключении наушников.** Подключили гарнитуру — музыка продолжает играть, даже если приложение было закрыто.
 - **Виджет 5×1** для рабочего стола: обложка, название, управление, цвет под обложку. Нажатие открывает плеер на весь экран.
 
+#### Терминал
+
+- **vici-tui** — отдельный плеер для терминала Linux: для серверов и машин без графики.
+- Исполнители, альбомы, плейлисты, поиск, очередь и бесконечный случайный микс.
+- Управление целиком с клавиатуры; список клавиш открывается по `?`.
+
 #### Компьютер
 
 - **Боковое меню** с плейлистами и крупной обложкой того, что играет сейчас.
@@ -215,6 +238,17 @@ Vici есть в официальном [каталоге клиентов Navid
 
 - `Vici-*.AppImage` работает в любом дистрибутиве. Сделайте файл исполняемым (`chmod +x Vici-*.AppImage`) и запустите. Нужен FUSE 2 (`libfuse2`) — в большинстве настольных дистрибутивов он уже есть. AppImage обновляется сам.
 - `Vici-*.deb` — для Debian, Ubuntu и производных: `sudo apt install ./Vici-*.deb`.
+
+#### Терминал Linux
+
+Скачайте `vici-tui_*_all.deb` со страницы [последнего релиза](https://github.com/Aut0iq/Vici/releases/latest) и установите:
+
+```bash
+sudo apt install ./vici-tui_*_all.deb
+vici-tui
+```
+
+Пакет сам подтянет Node.js и `mpv`, через который идёт звук. В других дистрибутивах поставьте Node.js 18 или новее и `mpv`, распакуйте `vici-tui-*.tar.gz` и запустите `node src/index.js`.
 
 При первом запуске укажите адрес своего сервера (например, `https://music.example.com`), логин и пароль.
 

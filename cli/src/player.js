@@ -217,6 +217,14 @@ export class Player extends EventEmitter {
 		this.changed()
 	}
 
+	clear() {
+		this.queue = []
+		this.order = []
+		this.index = -1
+		this.endless = null
+		this.finish()
+	}
+
 	async extend() {
 		if (!this.endless || this.extending || this.remaining() > ENDLESS_THRESHOLD) return
 		this.extending = true

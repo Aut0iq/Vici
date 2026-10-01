@@ -41,8 +41,10 @@ const startServer = () => new Promise((resolve, reject) => {
 			response.writeHead(403).end()
 			return
 		}
-		if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) file = path.join(WEB_ROOT, 'index.html')
-		if (!fs.existsSync(file)) {
+		if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+			file = path.extname(file) ? null : path.join(WEB_ROOT, 'index.html')
+		}
+		if (!file || !fs.existsSync(file)) {
 			response.writeHead(404).end()
 			return
 		}

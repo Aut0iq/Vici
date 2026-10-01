@@ -100,7 +100,7 @@ Download `Vici-Setup-*.exe` from the [latest release](https://github.com/Aut0iq/
 
 Download a package from the [latest release](https://github.com/Aut0iq/Vici/releases/latest):
 
-- `Vici-*.AppImage` runs on any distribution. Make it executable (`chmod +x Vici-*.AppImage`) and start it. The AppImage updates itself.
+- `Vici-*.AppImage` runs on any distribution. Make it executable (`chmod +x Vici-*.AppImage`) and start it. It needs FUSE 2 (`libfuse2`), which most desktop distributions already have. The AppImage updates itself.
 - `Vici-*.deb` is for Debian, Ubuntu and their derivatives: `sudo apt install ./Vici-*.deb`.
 
 On first launch, enter your server address (for example, `https://music.example.com`), username and password.
@@ -213,7 +213,7 @@ Vici есть в официальном [каталоге клиентов Navid
 
 Скачайте пакет со страницы [последнего релиза](https://github.com/Aut0iq/Vici/releases/latest):
 
-- `Vici-*.AppImage` работает в любом дистрибутиве. Сделайте файл исполняемым (`chmod +x Vici-*.AppImage`) и запустите. AppImage обновляется сам.
+- `Vici-*.AppImage` работает в любом дистрибутиве. Сделайте файл исполняемым (`chmod +x Vici-*.AppImage`) и запустите. Нужен FUSE 2 (`libfuse2`) — в большинстве настольных дистрибутивов он уже есть. AppImage обновляется сам.
 - `Vici-*.deb` — для Debian, Ubuntu и производных: `sudo apt install ./Vici-*.deb`.
 
 При первом запуске укажите адрес своего сервера (например, `https://music.example.com`), логин и пароль.

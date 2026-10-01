@@ -19,6 +19,9 @@ export const initService = async () => {
 export const initPlayer = async (songDispatch) => {
 	const song = await AsyncStorage.getItem('song')
 		.then((song) => song ? JSON.parse(song) : null)
+	const savedVolume = await AsyncStorage.getItem('volume')
+		.then((value) => parseFloat(value))
+		.catch(() => NaN)
 	const sound = audio()
 	global.isVolumeSupported = false
 	songDispatch({ type: 'init' })
@@ -56,9 +59,10 @@ export const initPlayer = async (songDispatch) => {
 	})
 	sound.addEventListener('volumechange', () => {
 		global.isVolumeSupported = true
+		AsyncStorage.setItem('volume', String(sound.volume)).catch(() => { })
 	})
 	sound.volume = 0.99
-	sound.volume = 1
+	sound.volume = savedVolume >= 0 && savedVolume <= 1 ? savedVolume : 1
 	sound.addEventListener('ended', () => {
 		const songId = global.song.songInfo.id
 

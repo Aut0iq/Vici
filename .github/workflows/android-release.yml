@@ -186,3 +186,38 @@ jobs:
             desktop/release/*.AppImage
             desktop/release/*.deb
             desktop/release/latest-linux.yml
+
+  tui:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Получить код
+        uses: actions/checkout@v4
+
+      - name: Определить версию
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Установить Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Собрать пакет терминальной версии
+        run: node cli/build-deb.js "${{ steps.version.outputs.version }}"
+
+      - name: Добавить пакет в релиз
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          files: |
+            cli/release/*.deb
+            cli/release/*.tar.gz

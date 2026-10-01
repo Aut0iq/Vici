@@ -1,0 +1,20 @@
+{
+  "name": "vici-tui",
+  "version": "2026.9.28",
+  "private": true,
+  "description": "Vici in the terminal: a music player for Navidrome and Subsonic servers",
+  "author": "Aut0iq",
+  "license": "MIT",
+  "homepage": "https://github.com/Aut0iq/Vici",
+  "type": "module",
+  "bin": {
+    "vici-tui": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "deb": "node build-deb.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

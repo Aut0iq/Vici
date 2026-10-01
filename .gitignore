@@ -45,3 +45,4 @@ dist
 *.swp
 
 docker-compose.override.yml
+cli/release/

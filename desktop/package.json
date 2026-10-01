@@ -5,6 +5,7 @@
   "private": true,
   "description": "Vici — музыкальный плеер для Navidrome",
   "author": "Aut0iq",
+  "homepage": "https://github.com/Aut0iq/Vici",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -34,14 +35,25 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "perMachine": false,
-      "shortcutName": "Vici"
+      "shortcutName": "Vici",
+      "artifactName": "Vici-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icon.png",
+      "category": "AudioVideo",
+      "executableName": "vici",
+      "maintainer": "Aut0iq <Aut0iq@users.noreply.github.com>",
+      "artifactName": "Vici-${version}.${ext}"
     },
     "publish": {
       "provider": "github",
       "owner": "Aut0iq",
       "repo": "Vici"
-    },
-    "artifactName": "Vici-Setup-${version}.${ext}"
+    }
   },
   "devDependencies": {
     "electron": "^44.4.3",

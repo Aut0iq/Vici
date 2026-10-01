@@ -6,7 +6,7 @@
   <a href="https://github.com/Aut0iq/Vici/releases/latest"><img src="https://img.shields.io/github/v/release/Aut0iq/Vici?style=flat-square&color=E6BD55&label=release" alt="Latest release"></a>
   <a href="https://github.com/Aut0iq/Vici/actions/workflows/android-release.yml"><img src="https://img.shields.io/github/actions/workflow/status/Aut0iq/Vici/android-release.yml?style=flat-square&label=build" alt="Build"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-E6BD55?style=flat-square" alt="MIT"></a>
-  <img src="https://img.shields.io/badge/platform-Android%20%7C%20Windows-3DDC84?style=flat-square" alt="Android and Windows">
+  <img src="https://img.shields.io/badge/platform-Android%20%7C%20Windows%20%7C%20Linux-3DDC84?style=flat-square" alt="Android, Windows and Linux">
   <a href="https://www.navidrome.org/apps/"><img src="https://img.shields.io/badge/Navidrome-apps%20catalog-7a2a45?style=flat-square" alt="Navidrome apps catalog"></a>
 </p>
 
@@ -75,8 +75,9 @@ Vici is listed in the official [Navidrome client apps catalog](https://www.navid
 - **Sidebar** with your playlists and a large cover of what is playing now.
 - **Play queue** in its own column on the right, so you can see what played and what comes next.
 - **Full-screen mode** with the cover on one half of the screen and the visualizer on the other; lyrics are shown over the visualizer.
-- **Media keys** on the keyboard and a track card in the Windows volume flyout.
+- **Media keys** on the keyboard and a track card in the system media controls.
 - **Runs from the tray.** Closing the window hides it, the music keeps playing.
+- **Remembers the volume** between launches.
 - **Automatic updates.** The app offers to install a new version by itself.
 
 ### Installation
@@ -94,6 +95,13 @@ Download `vici-*.apk` from the [latest release](https://github.com/Aut0iq/Vici/r
 #### Windows
 
 Download `Vici-Setup-*.exe` from the [latest release](https://github.com/Aut0iq/Vici/releases/latest) and run it. The installer does not need administrator rights and installs the app for the current user only. After that, Vici updates itself.
+
+#### Linux
+
+Download a package from the [latest release](https://github.com/Aut0iq/Vici/releases/latest):
+
+- `Vici-*.AppImage` runs on any distribution. Make it executable (`chmod +x Vici-*.AppImage`) and start it. The AppImage updates itself.
+- `Vici-*.deb` is for Debian, Ubuntu and their derivatives: `sudo apt install ./Vici-*.deb`.
 
 On first launch, enter your server address (for example, `https://music.example.com`), username and password.
 
@@ -180,8 +188,9 @@ Vici есть в официальном [каталоге клиентов Navid
 - **Боковое меню** с плейлистами и крупной обложкой того, что играет сейчас.
 - **Очередь воспроизведения** отдельной колонкой справа: видно, что было и что будет дальше.
 - **Полноэкранный режим** с обложкой на одной половине экрана и визуализатором на другой; текст песни ложится поверх визуализатора.
-- **Медиа-клавиши** на клавиатуре и карточка трека в панели громкости Windows.
+- **Медиа-клавиши** на клавиатуре и карточка трека в системной панели управления звуком.
 - **Работа из трея.** Крестик прячет окно, музыка продолжает играть.
+- **Запоминает громкость** между запусками.
 - **Автообновление** — приложение само предложит установить новую версию.
 
 ### Установка
@@ -199,6 +208,13 @@ Vici есть в официальном [каталоге клиентов Navid
 #### Windows
 
 Скачайте `Vici-Setup-*.exe` со страницы [последнего релиза](https://github.com/Aut0iq/Vici/releases/latest) и запустите. Установщик не требует прав администратора и ставит приложение только для текущего пользователя. Дальше Vici обновляется сам.
+
+#### Linux
+
+Скачайте пакет со страницы [последнего релиза](https://github.com/Aut0iq/Vici/releases/latest):
+
+- `Vici-*.AppImage` работает в любом дистрибутиве. Сделайте файл исполняемым (`chmod +x Vici-*.AppImage`) и запустите. AppImage обновляется сам.
+- `Vici-*.deb` — для Debian, Ubuntu и производных: `sudo apt install ./Vici-*.deb`.
 
 При первом запуске укажите адрес своего сервера (например, `https://music.example.com`), логин и пароль.
 

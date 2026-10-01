@@ -132,3 +132,57 @@ jobs:
             desktop/release/*.exe
             desktop/release/*.exe.blockmap
             desktop/release/latest.yml
+
+  desktop-linux:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Получить код
+        uses: actions/checkout@v4
+
+      - name: Определить версию
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Установить Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Установить зависимости
+        run: npm ci
+
+      - name: Записать версию
+        run: node desktop/version-from-tag.js "${{ steps.version.outputs.version }}"
+
+      - name: Собрать веб-версию
+        run: npm run export:web
+
+      - name: Перенести сборку в desktop/web
+        run: node desktop/sync-web.js
+
+      - name: Установить зависимости Electron
+        working-directory: desktop
+        run: npm ci
+
+      - name: Собрать пакеты для Linux
+        working-directory: desktop
+        run: npx electron-builder --linux --publish never
+
+      - name: Добавить пакеты в релиз
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          files: |
+            desktop/release/*.AppImage
+            desktop/release/*.deb
+            desktop/release/latest-linux.yml

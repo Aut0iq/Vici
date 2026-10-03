@@ -118,16 +118,8 @@ const Settings = ({ navigation }) => {
 					title="Last.fm"
 					icon="lastfm"
 					onPress={() => navigation.navigate('Settings/LastFm')}
-					isLast={Platform.OS === 'web'}
+					isLast
 				/>
-				{Platform.OS !== 'web' && (
-					<ButtonMenu
-						title="Coda"
-						icon="cloud-download"
-						onPress={() => navigation.navigate('Settings/Coda')}
-						isLast
-					/>
-				)}
 			</View>
 
 			{config.query && (
@@ -142,6 +134,13 @@ const Settings = ({ navigation }) => {
 						icon="file-text"
 						onPress={() => navigation.navigate('Settings/Logs')}
 					/>
+					{Platform.OS !== 'web' && (
+						<ButtonMenu
+							title="Coda"
+							icon="cloud-download"
+							onPress={() => navigation.navigate('Settings/Coda')}
+						/>
+					)}
 					<ButtonMenu
 						title={t("Informations")}
 						icon="info"

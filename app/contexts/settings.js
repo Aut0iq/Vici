@@ -8,17 +8,23 @@ import logger from '~/utils/logger'
 
 const SettingsContext = React.createContext()
 const SetSettingsContext = React.createContext()
+const SettingsReadyContext = React.createContext(false)
 
 export const useSettings = () => React.useContext(SettingsContext)
 export const useSetSettings = () => React.useContext(SetSettingsContext)
+export const useSettingsReady = () => React.useContext(SettingsReadyContext)
 
 export const SettingsProvider = ({ children }) => {
 	const [settings, setSettings] = React.useState(defaultSettings)
+	const [ready, setReady] = React.useState(false)
 	const { i18n } = useTranslation()
 	updateGlobalSettings(settings)
 
 	React.useEffect(() => {
-		getSettings().then((data) => setSettings(data))
+		getSettings().then((data) => {
+			setSettings(data)
+			setReady(true)
+		})
 	}, [])
 
 	const saveSettings = React.useCallback((newSettings) => {
@@ -40,7 +46,9 @@ export const SettingsProvider = ({ children }) => {
 	return (
 		<SetSettingsContext.Provider value={saveSettings}>
 			<SettingsContext.Provider value={settings}>
-				{children}
+				<SettingsReadyContext.Provider value={ready}>
+					{children}
+				</SettingsReadyContext.Provider>
 			</SettingsContext.Provider>
 		</SetSettingsContext.Provider>
 	)
@@ -97,6 +105,7 @@ export const defaultSettings = {
 		{ id: 'highest-album', enable: false },
 	],
 	listenBrainzUser: '',
+	coda: { url: '', token: '' },
 	sizeOfList: 15,
 	scrollHelper: false,
 	theme: 'vici',

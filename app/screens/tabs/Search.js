@@ -18,6 +18,7 @@ import SongsList from '~/components/lists/SongsList'
 import HistoryItem from '~/components/item/HistoryItem'
 import size from '~/styles/size'
 import SectionTitle from '~/components/SectionTitle'
+import CodaResults from '~/components/CodaResults'
 import ScreenBackground from '~/components/ScreenBackground'
 
 const STATES = {
@@ -29,7 +30,7 @@ const STATES = {
 	NETWORK_ERROR: 'network_error',
 }
 
-const SearchResult = ({ state, query, results, history, setHistory, setQuery, addHistory }) => {
+const SearchResult = ({ state, query, results, history, setHistory, setQuery, addHistory, refresh }) => {
 	const { t } = useTranslation()
 	const theme = useTheme()
 	const navigation = useNavigation()
@@ -104,12 +105,15 @@ const SearchResult = ({ state, query, results, history, setHistory, setQuery, ad
 	}
 	else if (state === STATES.LOADED) {
 		if (results && !results.artist && !results.album && !results.song) return (
-			<Text style={{
-				margin: 20,
-				color: theme.secondaryText,
-				fontSize: size.text.large,
-				textAlign: 'center',
-			}}>{t('No results')}</Text>
+			<>
+				<Text style={{
+					margin: 20,
+					color: theme.secondaryText,
+					fontSize: size.text.large,
+					textAlign: 'center',
+				}}>{t('No results')}</Text>
+				<CodaResults query={query} onDownloaded={refresh} />
+			</>
 		)
 		else if (results) return (
 			<>
@@ -149,6 +153,7 @@ const SearchResult = ({ state, query, results, history, setHistory, setQuery, ad
 						}} />
 					</>
 				}
+				<CodaResults query={query} onDownloaded={refresh} />
 			</>)
 	} else if (state === STATES.API_ERROR) return (
 		<Text style={{
@@ -226,6 +231,12 @@ const Search = () => {
 			})
 	}
 
+	const refresh = () => {
+		getApiNetworkFirst(config, 'search3', { query })
+			.then((json) => setResults(json?.searchResult3 || undefined))
+			.catch(() => { })
+	}
+
 	return (
 		<ScreenBackground>
 		<View style={[
@@ -276,6 +287,7 @@ const Search = () => {
 					setHistory={setHistory}
 					setQuery={setQuery}
 					addHistory={addHistory}
+					refresh={refresh}
 				/>
 			</ScrollView>
 		</View>

@@ -1,11 +1,14 @@
 import React from 'react'
 import { useWindowDimensions, Linking } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
-import { useSettings } from '~/contexts/settings'
+import { useSettings, useSetSettings, useSettingsReady } from '~/contexts/settings'
 import { useSong, useSongDispatch } from '~/contexts/song'
 import { useConfig } from '~/contexts/config'
 import { updateWidget } from '~/widget'
 import { addDeviceConnectedListener, isExternalConnected } from '~/../modules/audio-route'
+import { confirmAlert } from '~/utils/alert'
+import { parseCodaLink } from '~/utils/coda'
 import logger from '~/utils/logger'
 import PlayerUtils from '~/utils/player'
 import useIsDesktop from '~/utils/useIsDesktop'
@@ -18,6 +21,10 @@ const Player = ({ state }) => {
 	const song = useSong()
 	const songDispatch = useSongDispatch()
 	const settings = useSettings()
+	const setSettings = useSetSettings()
+	const settingsReady = useSettingsReady()
+	const { t } = useTranslation()
+	const [codaLink, setCodaLink] = React.useState(null)
 	const { height, width } = useWindowDimensions()
 	const isDesktop = useIsDesktop()
 	const [fullScreen, setFullScreen] = React.useState(false)
@@ -31,11 +38,25 @@ const Player = ({ state }) => {
 	React.useEffect(() => {
 		const open = (url) => {
 			if (url && url.startsWith('vici://player')) setFullScreen(true)
+			else if (url && url.startsWith('vici://coda')) setCodaLink(parseCodaLink(url))
 		}
 		Linking.getInitialURL().then(open).catch(() => { })
 		const sub = Linking.addEventListener('url', ({ url }) => open(url))
 		return () => sub.remove()
 	}, [])
+
+	React.useEffect(() => {
+		if (!codaLink || !settingsReady) return
+		const coda = codaLink
+		setCodaLink(null)
+		if (settings.coda?.url === coda.url && settings.coda?.token === coda.token) return
+		confirmAlert(
+			t('Connect Coda'),
+			`${t('Use this Coda server for downloads from search?')}
+${coda.url}`,
+			() => setSettings({ ...settings, coda }),
+		)
+	}, [codaLink, settingsReady])
 
 	React.useEffect(() => {
 		if (!settings.playOnHeadphonesConnect || global.viciAutoPlayChecked) return

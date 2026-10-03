@@ -1,6 +1,6 @@
 import React from 'react'
 import pkg from '~/../package.json'
-import { View, Image, ScrollView, Pressable, Linking } from 'react-native'
+import { View, Image, ScrollView, Pressable, Linking, Platform } from 'react-native'
 import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
@@ -118,8 +118,16 @@ const Settings = ({ navigation }) => {
 					title="Last.fm"
 					icon="lastfm"
 					onPress={() => navigation.navigate('Settings/LastFm')}
-					isLast
+					isLast={Platform.OS === 'web'}
 				/>
+				{Platform.OS !== 'web' && (
+					<ButtonMenu
+						title="Coda"
+						icon="cloud-download"
+						onPress={() => navigation.navigate('Settings/Coda')}
+						isLast
+					/>
+				)}
 			</View>
 
 			{config.query && (

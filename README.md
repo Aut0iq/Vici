@@ -8,6 +8,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-E6BD55?style=flat-square" alt="MIT"></a>
   <img src="https://img.shields.io/badge/platform-Android%20%7C%20Windows%20%7C%20Linux-3DDC84?style=flat-square" alt="Android, Windows and Linux">
   <a href="https://www.navidrome.org/apps/"><img src="https://img.shields.io/badge/Navidrome-apps%20catalog-7a2a45?style=flat-square" alt="Navidrome apps catalog"></a>
+  <a href="https://github.com/Aut0iq/Coda"><img src="https://img.shields.io/badge/pairs%20with-Coda-E6BD55?style=flat-square" alt="Pairs with Coda"></a>
 </p>
 
 <p align="center">
@@ -43,6 +44,8 @@
 **Vici** is a music player for your own [Navidrome] server and any other server with the Subsonic API. It runs on your phone and on your computer.
 
 Vici is listed in the official [Navidrome client apps catalog](https://www.navidrome.org/apps/).
+
+> **Pairs with [Coda](https://github.com/Aut0iq/Coda).** Vici plays your Navidrome library; **Coda** is a separate app that sets up your own server to fill it. Connect them in *Settings → Coda* on Android, and search in Vici will also show songs and albums that are not on your server yet, so you can add them with a tap. Vici works on its own too: without Coda nothing changes.
 
 ### Features
 
@@ -173,6 +176,8 @@ Vici is based on [Castafiore](https://github.com/sawyerf/Castafiore), whose sour
 **Vici** — музыкальный плеер для вашего собственного сервера [Navidrome] и любого другого с Subsonic API. Для телефона и для компьютера.
 
 Vici есть в официальном [каталоге клиентов Navidrome](https://www.navidrome.org/apps/).
+
+> **Работает в паре с [Coda](https://github.com/Aut0iq/Coda).** Vici играет вашу фонотеку Navidrome, а **Coda** — отдельное приложение, которое разворачивает ваш собственный сервер для её пополнения. Подключите их в разделе *Настройки → Coda* на Android, и поиск в Vici будет показывать ещё и песни с альбомами, которых на сервере пока нет, — их можно добавить одним нажатием. Vici работает и сам по себе: без Coda ничего не меняется.
 
 ### Возможности
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { FlatList, Pressable } from 'react-native'
+import { FlatList, Pressable, Platform } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
 import Text from '~/components/Text'
@@ -8,12 +8,15 @@ import { useConfig } from '~/contexts/config'
 import { fetchLyrics } from '~/utils/lyrics'
 import Player from '~/utils/player'
 
+const FOLLOW_PAUSE = 5000
+
 const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null, gap = 30, paddingVertical = 0, paddingTop = null, paddingBottom = null, onAvailable = null }) => {
 	const { t } = useTranslation()
 	const config = useConfig()
 	const theme = useTheme()
 	const time = Player.updateTime()
 	const refScroll = React.useRef(null)
+	const followAfter = React.useRef(0)
 	const [lyrics, setLyrics] = React.useState({ synced: false, lines: [] })
 	const [status, setStatus] = React.useState('loading')
 	const [indexCurrent, setIndex] = React.useState(-1)
@@ -63,8 +66,18 @@ const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null
 
 	React.useEffect(() => {
 		if (indexCurrent < 0 || !refScroll.current) return
+		if (Date.now() < followAfter.current) return
 		refScroll.current.scrollToIndex({ index: indexCurrent, animated: true, viewOffset: 0, viewPosition: 0.5 })
 	}, [indexCurrent])
+
+	const pauseFollow = () => {
+		followAfter.current = Date.now() + FOLLOW_PAUSE
+	}
+
+	const seekTo = (time) => {
+		followAfter.current = 0
+		Player.setPosition(time)
+	}
 
 	const data = status === 'ready' ? lyrics.lines : [{ time: null, text: status === 'loading' ? t('Loading lyrics...') : t('No lyrics found') }]
 
@@ -75,6 +88,9 @@ const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null
 			contentContainerStyle={{ gap, paddingTop: paddingTop ?? paddingVertical, paddingBottom: paddingBottom ?? paddingVertical }}
 			showsVerticalScrollIndicator={false}
 			onScrollToIndexFailed={() => { }}
+			onScrollBeginDrag={pauseFollow}
+			onScrollEndDrag={pauseFollow}
+			{...(Platform.OS === 'web' ? { onWheel: pauseFollow } : {})}
 			initialNumToRender={data.length}
 			data={data}
 			keyExtractor={(item, index) => `${songId}-${index}`}
@@ -83,7 +99,7 @@ const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null
 				return (
 					<Pressable
 						disabled={item.time === null}
-						onPress={() => Player.setPosition(item.time)}
+						onPress={() => seekTo(item.time)}
 					>
 						<Text
 							style={{

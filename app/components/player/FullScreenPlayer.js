@@ -526,6 +526,7 @@ const styles = StyleSheet.create({
 		borderTopLeftRadius: 30,
 		borderTopRightRadius: 30,
 		overflow: 'hidden',
+		elevation: 24,
 	},
 	sheetShade: {
 		backgroundColor: 'rgba(14,10,15,0.86)',

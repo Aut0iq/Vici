@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Tray, shell, nativeImage, dialog, session } = require('electron')
+const { app, BrowserWindow, Menu, Tray, shell, nativeImage, dialog, session, protocol } = require('electron')
 const { autoUpdater } = require('electron-updater')
 const http = require('node:http')
 const fs = require('node:fs')
@@ -25,7 +25,24 @@ const MIME = {
 	'.woff2': 'font/woff2',
 }
 
-const PORTS = [47821, 47822, 47823]
+const SCHEME = 'vici-app'
+const ORIGIN = `${SCHEME}://app`
+const STORAGE_PATH = '/__storage'
+const STORAGE_PAGE = '<!doctype html><title>Vici</title>'
+const READ_STORAGE = 'JSON.stringify(Object.assign({}, localStorage))'
+const LEGACY_PORTS = [47821, 47822, 47823]
+
+const WEB_PREFERENCES = {
+	contextIsolation: true,
+	nodeIntegration: false,
+	sandbox: true,
+	allowRunningInsecureContent: true,
+}
+
+protocol.registerSchemesAsPrivileged([{
+	scheme: SCHEME,
+	privileges: { standard: true, secure: true, supportFetchAPI: true, allowServiceWorkers: true, stream: true },
+}])
 
 let tray = null
 let window = null
@@ -34,33 +51,80 @@ let updateReady = null
 
 const UPDATE_CHECK_INTERVAL = 4 * 60 * 60 * 1000
 
-const startServer = () => new Promise((resolve, reject) => {
-	const server = http.createServer((request, response) => {
-		let file = path.join(WEB_ROOT, decodeURIComponent(new URL(request.url, 'http://127.0.0.1').pathname))
-		if (!file.startsWith(WEB_ROOT)) {
-			response.writeHead(403).end()
-			return
-		}
-		if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
-			file = path.extname(file) ? null : path.join(WEB_ROOT, 'index.html')
-		}
-		if (!file || !fs.existsSync(file)) {
-			response.writeHead(404).end()
-			return
-		}
-		response.writeHead(200, { 'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream' })
-		fs.createReadStream(file).pipe(response)
-	})
-	const tryListen = (index) => {
-		const port = PORTS[index]
-		server.once('error', (error) => {
-			if (error.code === 'EADDRINUSE' && index + 1 < PORTS.length) tryListen(index + 1)
-			else reject(error)
-		})
-		server.listen(port, '127.0.0.1', () => resolve(`http://127.0.0.1:${port}`))
+const resolveFile = (pathname) => {
+	let file = null
+	try {
+		file = path.join(WEB_ROOT, decodeURIComponent(pathname))
+	} catch {
+		return null
 	}
-	tryListen(0)
+	if (file !== WEB_ROOT && !file.startsWith(WEB_ROOT + path.sep)) return null
+	if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+		if (path.extname(file)) return null
+		file = path.join(WEB_ROOT, 'index.html')
+	}
+	return fs.existsSync(file) ? file : null
+}
+
+const serveApp = () => {
+	protocol.handle(SCHEME, async (request) => {
+		const { pathname } = new URL(request.url)
+		if (pathname === STORAGE_PATH) return new Response(STORAGE_PAGE, { headers: { 'Content-Type': MIME['.html'] } })
+		const file = resolveFile(pathname)
+		if (!file) return new Response(null, { status: 404 })
+		return new Response(await fs.promises.readFile(file), {
+			headers: { 'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream' },
+		})
+	})
+}
+
+const runOnPage = async (url, script) => {
+	const page = new BrowserWindow({ show: false, webPreferences: WEB_PREFERENCES })
+	try {
+		await page.loadURL(url)
+		return await page.webContents.executeJavaScript(script)
+	} finally {
+		page.destroy()
+	}
+}
+
+const readLegacyStorage = (port) => new Promise((resolve) => {
+	const server = http.createServer((request, response) => {
+		response.writeHead(200, { 'Content-Type': MIME['.html'] }).end(STORAGE_PAGE)
+	})
+	server.once('error', () => resolve(null))
+	server.listen(port, '127.0.0.1', async () => {
+		const dump = await runOnPage(`http://127.0.0.1:${port}${STORAGE_PATH}`, READ_STORAGE).catch(() => null)
+		server.close()
+		resolve(dump)
+	})
 })
+
+const migrateStorage = async () => {
+	const marker = path.join(app.getPath('userData'), 'storage-migrated')
+	if (fs.existsSync(marker)) return
+	const target = `${ORIGIN}${STORAGE_PATH}`
+	let finished = await runOnPage(target, READ_STORAGE) !== '{}'
+	if (!finished) {
+		for (const port of LEGACY_PORTS) {
+			await session.defaultSession.clearStorageData({
+				origin: `http://127.0.0.1:${port}`,
+				storages: ['serviceworkers', 'cachestorage'],
+			})
+			const dump = await readLegacyStorage(port)
+			if (dump === null) continue
+			finished = true
+			if (dump === '{}') continue
+			await runOnPage(target, `Object.entries(JSON.parse(${JSON.stringify(dump)})).forEach(([key, value]) => localStorage.setItem(key, value))`)
+			break
+		}
+	}
+	if (!finished) return
+	for (const port of LEGACY_PORTS) {
+		await session.defaultSession.clearStorageData({ origin: `http://127.0.0.1:${port}` })
+	}
+	fs.writeFileSync(marker, app.getVersion())
+}
 
 const resetServiceWorkerOnUpdate = async () => {
 	const marker = path.join(app.getPath('userData'), 'last-version')
@@ -80,11 +144,7 @@ const createWindow = async (url) => {
 		backgroundColor: '#0E0A0F',
 		autoHideMenuBar: true,
 		icon: path.join(__dirname, 'icon.png'),
-		webPreferences: {
-			contextIsolation: true,
-			nodeIntegration: false,
-			sandbox: true,
-		},
+		webPreferences: WEB_PREFERENCES,
 	})
 
 	window.once('ready-to-show', () => window.show())
@@ -157,16 +217,23 @@ const setupUpdates = () => {
 	setInterval(check, UPDATE_CHECK_INTERVAL)
 }
 
+const start = async () => {
+	serveApp()
+	createTray()
+	if (app.isPackaged) setupUpdates()
+	await resetServiceWorkerOnUpdate()
+	await migrateStorage().catch((error) => console.error('Storage migration failed', error))
+	await createWindow(`${ORIGIN}/`)
+}
+
 if (!app.requestSingleInstanceLock()) {
 	app.quit()
 } else {
 	app.on('second-instance', showWindow)
 
-	app.whenReady().then(async () => {
-		createTray()
-		await resetServiceWorkerOnUpdate()
-		await createWindow(await startServer())
-		if (app.isPackaged) setupUpdates()
+	app.whenReady().then(start).catch((error) => {
+		dialog.showErrorBox('Vici', `Не удалось запустить приложение.\n\n${error?.stack || error}`)
+		app.exit(1)
 	})
 
 	app.on('before-quit', () => { quitting = true })

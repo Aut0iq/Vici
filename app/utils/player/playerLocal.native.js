@@ -7,6 +7,7 @@ import { urlCover, urlStream } from '~/utils/url'
 import { isSongCached, getPathSong } from '~/utils/cache'
 import MyState from '~/utils/playerState'
 import logger from '~/utils/logger'
+import reportState from '~/utils/reportState'
 
 let isConnected = true
 
@@ -23,6 +24,8 @@ const convertState = (state) => {
 	else if (state === State.Error) return MyState.Error
 	else return MyState.Stopped
 }
+
+const TRANSIENT_STATES = [State.Loading, State.Buffering, State.Ready]
 
 const initPlayer = async (songDispatch) => {
 	global.songDispatch = songDispatch
@@ -87,7 +90,7 @@ const useEvent = (song, songDispatch, _nextSong) => {
 		async (event) => {
 			if (!isConnected) return
 			if (event.type === Event.PlaybackState) {
-				songDispatch({ type: 'setState', state: convertState(event.state) })
+				reportState(songDispatch, convertState(event.state), TRANSIENT_STATES.includes(event.state))
 			} else if (event.type === Event.PlaybackActiveTrackChanged) {
 				if (global.song.index != undefined && song.index != global.song.index) {
 					songDispatch({ type: 'setIndex', index: global.song.index })

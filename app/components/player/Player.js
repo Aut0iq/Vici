@@ -3,7 +3,8 @@ import { useWindowDimensions, Linking } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
 import { useSettings, useSetSettings, useSettingsReady } from '~/contexts/settings'
-import { useSong, useSongDispatch } from '~/contexts/song'
+import { useLiveSong, useSongDispatch, useSongFreeze } from '~/contexts/song'
+import { SongContext } from '~/contexts/song/context'
 import { useConfig } from '~/contexts/config'
 import { updateWidget } from '~/widget'
 import { addDeviceConnectedListener, isExternalConnected } from '~/../modules/audio-route'
@@ -18,11 +19,10 @@ import BoxPlayer from '~/components/player/BoxPlayer'
 import FullScreenHorizontalPlayer from '~/components/player/FullScreenHorizontalPlayer'
 import FullScreenPlayer from '~/components/player/FullScreenPlayer'
 
-const WIDGET_SETTLE = 400
-
 const Player = ({ state }) => {
-	const song = useSong()
+	const song = useLiveSong()
 	const songDispatch = useSongDispatch()
+	const setFrozen = useSongFreeze()
 	const settings = useSettings()
 	const setSettings = useSetSettings()
 	const settingsReady = useSettingsReady()
@@ -92,19 +92,29 @@ ${coda.url}`,
 		})
 	}, [settings.playOnHeadphonesConnect])
 
-	const widgetKey = useSettled(`${song?.songInfo?.id}|${song?.state}|${config?.url}`, WIDGET_SETTLE)
+	const widgetKey = useSettled(`${song?.songInfo?.id}|${song?.state}|${config?.url}`)
 
 	React.useEffect(() => {
 		updateWidget(config, song)
 	}, [widgetKey])
 
+	const isCovering = fullScreen && Boolean(song?.songInfo)
+
+	React.useEffect(() => {
+		setFrozen(isCovering)
+		return () => setFrozen(false)
+	}, [isCovering])
+
 	if (!song?.songInfo) return null
-	else if (fullScreen) {
-		if (width <= height) return <FullScreenPlayer setFullScreen={setFullScreen} />
-		else return <FullScreenHorizontalPlayer setFullScreen={setFullScreen} />
-	}
-	else if (isDesktop) return <BoxDesktopPlayer setFullScreen={setFullScreen} />
-	return <BoxPlayer setFullScreen={setFullScreen} />
+
+	let player = <BoxPlayer setFullScreen={setFullScreen} />
+	if (fullScreen) {
+		player = width <= height
+			? <FullScreenPlayer setFullScreen={setFullScreen} />
+			: <FullScreenHorizontalPlayer setFullScreen={setFullScreen} />
+	} else if (isDesktop) player = <BoxDesktopPlayer setFullScreen={setFullScreen} />
+
+	return <SongContext.Provider value={song}>{player}</SongContext.Provider>
 }
 
 export default Player

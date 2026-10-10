@@ -1,6 +1,6 @@
 import React from 'react'
 
-const useSettled = (value, delay = 250) => {
+const useSettled = (value, delay = 700) => {
 	const [settled, setSettled] = React.useState(value)
 	const lastChange = React.useRef(0)
 

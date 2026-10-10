@@ -1,4 +1,4 @@
-const SETTLE = 250
+const SETTLE = 650
 
 let timer = null
 let lastSkip = 0

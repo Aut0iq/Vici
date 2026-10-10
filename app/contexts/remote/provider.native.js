@@ -2,7 +2,7 @@ import React from 'react'
 
 import { RemoteContext } from '~/contexts/remote/context'
 import { useConfig } from '~/contexts/config'
-import { useSong, useSongDispatch } from '~/contexts/song'
+import { useLiveSong, useSongDispatch } from '~/contexts/song'
 import logger from '~/utils/logger'
 import Player from '~/utils/player'
 
@@ -54,7 +54,7 @@ export const RemoteProvider = ({ children }) => {
 	const [selectedDevice, setSelectedDevice] = React.useState(null)
 	const [status, setStatus] = React.useState(STATUS.Connected)
 	const config = useConfig()
-	const song = useSong()
+	const song = useLiveSong()
 	const songDispatch = useSongDispatch()
 	const prevSelectedDeviceRef = React.useRef(null)
 

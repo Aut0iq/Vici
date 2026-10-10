@@ -108,7 +108,7 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 			navigationBarTranslucent={Platform.OS === 'android' && parseInt(Platform.Version, 10) > 34 ? false : true}
 			onRequestClose={() => setFullScreen(false)}
 		>
-			<AmbientBackground song={song?.songInfo} />
+			<AmbientBackground song={song?.songInfo} cached />
 			<View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.35)' }]} />
 			<View style={{
 				flex: 1,

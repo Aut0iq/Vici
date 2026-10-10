@@ -277,7 +277,7 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 				style={{ flex: 1, backgroundColor: VICI.ink, overflow: 'hidden', transform: [{ translateY: drag }] }}
 				{...playerPan.panHandlers}
 			>
-				<AmbientBackground song={song.songInfo} />
+				<AmbientBackground song={song.songInfo} cached />
 
 				<View style={{ flex: 1, paddingTop: insets.top + 8, paddingBottom: insets.bottom + 14, alignItems: 'center' }}>
 					<View style={{ width: '100%', maxWidth: 500, flex: 1 }}>

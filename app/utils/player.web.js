@@ -6,6 +6,7 @@ import { getApi } from '~/utils/api'
 import { urlStream, urlCover } from './url'
 import { nextRandomIndex, prevRandomIndex, queueWithout, saveQueue } from '~/utils/tools'
 import { loadNow, loadSettled } from '~/utils/skipLoad'
+import reportState from '~/utils/reportState'
 import State from '~/utils/playerState'
 import logger from '~/utils/logger'
 
@@ -29,13 +30,13 @@ export const initPlayer = async (songDispatch) => {
 	if (song) songDispatch({ type: 'restore', song, isSongLoad: false })
 
 	sound.addEventListener('error', () => {
-		songDispatch({ type: 'setState', state: State.Error })
+		reportState(songDispatch, State.Error)
 	})
 	sound.addEventListener('loadstart', () => {
-		songDispatch({ type: 'setState', state: State.Loading })
+		reportState(songDispatch, State.Loading, true)
 	})
 	sound.addEventListener('waiting', () => {
-		songDispatch({ type: 'setState', state: State.Loading })
+		reportState(songDispatch, State.Loading, true)
 	})
 	sound.addEventListener('canplay', () => {
 		audio().play()
@@ -48,15 +49,15 @@ export const initPlayer = async (songDispatch) => {
 	})
 	sound.addEventListener('playing', () => {
 		navigator.mediaSession.playbackState = 'playing'
-		songDispatch({ type: 'setState', state: State.Playing })
+		reportState(songDispatch, State.Playing)
 	})
 	sound.addEventListener('play', () => {
 		navigator.mediaSession.playbackState = 'playing'
-		songDispatch({ type: 'setState', state: State.Playing })
+		reportState(songDispatch, State.Playing)
 	})
 	sound.addEventListener('pause', () => {
 		navigator.mediaSession.playbackState = 'paused'
-		songDispatch({ type: 'setState', state: State.Paused })
+		reportState(songDispatch, State.Paused)
 	})
 	sound.addEventListener('volumechange', () => {
 		global.isVolumeSupported = true

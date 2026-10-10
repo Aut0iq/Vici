@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Animated, Easing, Platform, Pressable } from 'react-native'
+import { View, Animated, Easing, Platform, Pressable, Image, StyleSheet } from 'react-native'
 
 import { useConfig } from '~/contexts/config'
 import { useSong } from '~/contexts/song'
@@ -7,8 +7,13 @@ import { urlCover } from '~/utils/url'
 import ImageError from '~/components/ImageError'
 import { LinearGradient } from 'expo-linear-gradient'
 import State from '~/utils/playerState'
+import { neighborTracks } from '~/utils/tools'
+import useSettled from '~/utils/useSettled'
 
 const TURN_DURATION = 8000
+const PREVIEW_SIZE = 100
+const COVER_SIZE = 800
+const COVER_FADE = 120
 
 const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, onCoverTouch = null }) => {
 	const config = useConfig()
@@ -16,6 +21,16 @@ const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, o
 	const spin = React.useRef(new Animated.Value(0)).current
 	const isPlaying = song.state === State.Playing
 	const lastTap = React.useRef(0)
+	const settledId = useSettled(song?.songInfo?.id)
+
+	React.useEffect(() => {
+		neighborTracks(song).forEach((track) => {
+			[PREVIEW_SIZE, COVER_SIZE].forEach((size) => {
+				const uri = urlCover(config, track, size)
+				if (uri) Image.prefetch(uri).catch(() => { })
+			})
+		})
+	}, [settledId])
 
 	const cover = Math.round(coverSize)
 	const vinyl = Math.round(cover * 1.12)
@@ -136,8 +151,13 @@ const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, o
 					}}
 				>
 					<ImageError
-						source={{ uri: urlCover(config, song?.songInfo) }}
+						source={{ uri: urlCover(config, song?.songInfo, PREVIEW_SIZE) }}
 						style={{ width: cover, height: cover, borderRadius: 22 }}
+					/>
+					<Image
+						source={{ uri: urlCover(config, song?.songInfo, COVER_SIZE) }}
+						fadeDuration={COVER_FADE}
+						style={[StyleSheet.absoluteFill, { borderRadius: 22 }]}
 					/>
 				</Pressable>
 			</Animated.View>

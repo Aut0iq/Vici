@@ -6,11 +6,11 @@ import { ThemeProvider } from '~/contexts/theme'
 import { ConfigProvider } from '~/contexts/config'
 import { SongProvider } from '~/contexts/song'
 import { UpdateApiProvider } from '~/contexts/updateApi'
-import { useSong, useSongDispatch } from '~/contexts/song'
+import { useLiveSong, useSongDispatch } from '~/contexts/song'
 import Player from '~/utils/player'
 
 const PlayerEvent = () => {
-	const song = useSong()
+	const song = useLiveSong()
 	const songDispatch = useSongDispatch()
 
 	Player.useEvent(song, songDispatch)

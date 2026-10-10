@@ -53,7 +53,7 @@ const Wash = ({ colors, style }) => (
 	</Animated.View>
 )
 
-const AmbientBackground = ({ song: liveSong }) => {
+const AmbientBackground = ({ song: liveSong, cached = false }) => {
 	const config = useConfig()
 	const song = useSettled(liveSong)
 	const [colors, setColors] = React.useState(FALLBACK)
@@ -81,7 +81,7 @@ const AmbientBackground = ({ song: liveSong }) => {
 	}, [uri])
 
 	return (
-		<View style={[StyleSheet.absoluteFill, { backgroundColor: INK, overflow: 'hidden' }]} pointerEvents="none">
+		<View renderToHardwareTextureAndroid={cached} style={[StyleSheet.absoluteFill, { backgroundColor: INK, overflow: 'hidden' }]} pointerEvents="none">
 			{blurUri && !failed ? (
 				<Image
 					source={{ uri: blurUri }}

@@ -7,10 +7,13 @@ import { getApi } from '~/utils/api'
 import logger from '~/utils/logger'
 import State from '~/utils/playerState'
 import { queueWithout } from '~/utils/tools'
-import { SongContext, SongDispatchContext } from '~/contexts/song/context'
+import { SongContext, SongDispatchContext, LiveSongContext, SongFreezeContext } from '~/contexts/song/context'
 
 export const SongProvider = ({ children }) => {
 	const [song, dispatch] = React.useReducer(songReducer, defaultSong)
+	const [frozen, setFrozen] = React.useState(false)
+	const shown = React.useRef(song)
+	if (!frozen) shown.current = song
 
 	React.useEffect(() => {
 		if (!song.isInit) {
@@ -45,9 +48,13 @@ export const SongProvider = ({ children }) => {
 
 	return (
 		<SongDispatchContext.Provider value={dispatch}>
-			<SongContext.Provider value={song}>
-				{children}
-			</SongContext.Provider>
+			<SongFreezeContext.Provider value={setFrozen}>
+				<LiveSongContext.Provider value={song}>
+					<SongContext.Provider value={shown.current}>
+						{children}
+					</SongContext.Provider>
+				</LiveSongContext.Provider>
+			</SongFreezeContext.Provider>
 		</SongDispatchContext.Provider>
 	)
 }
@@ -114,6 +121,10 @@ const saveSong = () => {
 		.catch((error) => logger.error('newSong', 'Error saving song to AsyncStorage:', error))
 }
 
+const scheduleSave = () => {
+	if (!saveTimer) saveTimer = setTimeout(saveSong, SAVE_DELAY)
+}
+
 const flushSong = () => {
 	if (!saveTimer) return
 	clearTimeout(saveTimer)
@@ -126,7 +137,7 @@ const newSong = (state, action, isCache = false) => {
 		...action,
 	}
 	global.song = song
-	if (isCache && !saveTimer) saveTimer = setTimeout(saveSong, SAVE_DELAY)
+	if (isCache) scheduleSave()
 	return song
 }
 
@@ -169,6 +180,10 @@ export const songReducer = (state, action) => {
 		}
 		case 'setIndex':
 			if (!state.queue || state.queue?.length <= action.index) return state
+			if (state.index === action.index && state.songInfo === state.queue[action.index]) {
+				scheduleSave()
+				return state
+			}
 			return newSong(state, {
 				index: action.index,
 				songInfo: state.queue[action.index],

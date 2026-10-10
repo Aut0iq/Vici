@@ -10,6 +10,7 @@ import Player from '~/utils/player'
 import useSettled from '~/utils/useSettled'
 
 const FOLLOW_PAUSE = 5000
+const LYRICS_SETTLE = 450
 
 const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null, gap = 30, paddingVertical = 0, paddingTop = null, paddingBottom = null, onAvailable = null }) => {
 	const { t } = useTranslation()
@@ -24,7 +25,7 @@ const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null
 	const onAvailableRef = React.useRef(onAvailable)
 	onAvailableRef.current = onAvailable
 
-	const songId = useSettled(song?.songInfo?.id)
+	const songId = useSettled(song?.songInfo?.id, LYRICS_SETTLE)
 
 	React.useEffect(() => {
 		if (!songId) return

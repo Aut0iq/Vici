@@ -23,6 +23,21 @@ export const prevRandomIndex = () => {
 	else return global.song.randomIndex[index - 1]
 }
 
+export const neighborTracks = (song, ahead = 2, behind = 1) => {
+	const queue = song?.queue
+	if (!queue?.length || queue.length < 2) return []
+	const isRandom = song.actionEndOfSong === 'random' && song.randomIndex?.length === queue.length
+	const order = isRandom ? song.randomIndex : queue.map((_, i) => i)
+	const place = order.indexOf(song.index)
+	if (place === -1) return []
+	const picked = new Set()
+	for (let step = -behind; step <= ahead; step++) {
+		if (step) picked.add(order[(place + step + order.length * 2) % order.length])
+	}
+	picked.delete(song.index)
+	return [...picked].map((i) => queue[i]).filter(Boolean)
+}
+
 export const queueWithout = (state, removed) => {
 	const queue = state.queue.filter((_, i) => i !== removed)
 	const shift = (i) => (i > removed ? i - 1 : i)

@@ -7,10 +7,10 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 
 import { useConfig } from '~/contexts/config'
 import { useCachedAndApi, getApi } from '~/utils/api'
-import { useSong, useSongDispatch } from '~/contexts/song'
+import { useSongDispatch } from '~/contexts/song'
 import { useTheme } from '~/contexts/theme'
 import { urlCover } from '~/utils/url'
-import AmbientBackground from '~/components/player/AmbientBackground'
+import { NowPlayingBackground } from '~/components/player/AmbientBackground'
 import GlassView from '~/components/GlassView'
 import ImageError from '~/components/ImageError'
 import mainStyles from '~/styles/main'
@@ -75,7 +75,6 @@ const Mixes = ({ navigation }) => {
 	const { t } = useTranslation()
 	const insets = useSafeAreaInsets()
 	const theme = useTheme()
-	const song = useSong()
 
 	const [mixes, refreshMixes] = useCachedAndApi([], 'getPlaylists', null, (json, setData) => {
 		const list = (json?.playlists?.playlist || []).filter(isMix)
@@ -85,7 +84,7 @@ const Mixes = ({ navigation }) => {
 
 	return (
 		<View style={{ flex: 1, backgroundColor: theme.primaryBack }}>
-			<AmbientBackground song={song?.songInfo} />
+			<NowPlayingBackground />
 			<View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.35)' }]} />
 			<ScrollView
 				style={{ flex: 1 }}

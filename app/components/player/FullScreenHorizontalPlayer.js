@@ -24,6 +24,7 @@ import size from '~/styles/size'
 import SlideBar from '~/components/button/SlideBar'
 import SlideControl from '~/components/button/SlideControl'
 import ConnectButton from '~/components/button/ConnectButton'
+import useSettled from '~/utils/useSettled'
 
 const preview = {
 	COVER: 0,
@@ -92,9 +93,10 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 		Animated.timing(pane, { toValue: hasPane ? 1 : 0, duration: 320, useNativeDriver: false }).start()
 	}, [hasPane])
 
+	const settledId = useSettled(song.songInfo?.id)
 	const [stars] = useCachedFirst([], 'getStarred2', null, (json, setData) => {
 		setData(json?.starred2?.song || [])
-	}, [song.songInfo?.id])
+	}, [settledId])
 
 	React.useEffect(() => {
 		if (isPreview == preview.QUEUE && !isVisualizer) scroll.current?.scrollToIndex({ index: song.index, animated: false, viewOffset: 0, viewPosition: 0.5 })

@@ -7,6 +7,7 @@ import { useTheme } from '~/contexts/theme'
 import { useConfig } from '~/contexts/config'
 import { fetchLyrics } from '~/utils/lyrics'
 import Player from '~/utils/player'
+import useSettled from '~/utils/useSettled'
 
 const FOLLOW_PAUSE = 5000
 
@@ -23,7 +24,7 @@ const Lyric = ({ song, style, color = null, sizeText = 23, activeSizeText = null
 	const onAvailableRef = React.useRef(onAvailable)
 	onAvailableRef.current = onAvailable
 
-	const songId = song?.songInfo?.id
+	const songId = useSettled(song?.songInfo?.id)
 
 	React.useEffect(() => {
 		if (!songId) return

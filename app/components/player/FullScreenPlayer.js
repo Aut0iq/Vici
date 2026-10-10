@@ -27,6 +27,7 @@ import VinylCover from '~/components/player/VinylCover'
 import Visualizer from '~/components/player/Visualizer'
 import GlassView from '~/components/GlassView'
 import AmbientBackground from '~/components/player/AmbientBackground'
+import useSettled from '~/utils/useSettled'
 
 const VICI = {
 	ink: '#0E0A0F',
@@ -251,9 +252,10 @@ const FullScreenPlayer = ({ setFullScreen }) => {
 
 	const sheetY = Animated.add(sheet.interpolate({ inputRange: [0, 1], outputRange: [height, 0] }), sheetDrag)
 
+	const settledId = useSettled(song.songInfo?.id)
 	const [stars] = useCachedFirst([], 'getStarred2', null, (json, setData) => {
 		setData(json?.starred2?.song || [])
-	}, [song.songInfo?.id])
+	}, [settledId])
 
 	const contentWidth = Math.min(width, 500)
 	const coverSize = Math.min(Math.round(contentWidth * 0.7), 360)

@@ -1,19 +1,17 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 
-import { useSong } from '~/contexts/song'
 import { useTheme } from '~/contexts/theme'
-import AmbientBackground from '~/components/player/AmbientBackground'
+import { NowPlayingBackground } from '~/components/player/AmbientBackground'
 
 const ScreenBackground = ({ children, style, dim = 0.35 }) => {
 	const theme = useTheme()
-	const song = useSong()
 
 	return (
 		<View style={[{ flex: 1, backgroundColor: theme.primaryBack }, style]}>
 			{theme.ambient ? (
 				<>
-					<AmbientBackground song={song?.songInfo} />
+					<NowPlayingBackground />
 					<View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: `rgba(14,10,15,${dim})` }]} />
 				</>
 			) : null}

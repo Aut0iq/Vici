@@ -5,6 +5,7 @@ import * as serviceWorkerRegistration from '~/services/serviceWorkerRegistration
 import { getApi } from '~/utils/api'
 import { urlStream, urlCover } from './url'
 import { nextRandomIndex, prevRandomIndex, queueWithout, saveQueue } from '~/utils/tools'
+import { loadNow, loadSettled } from '~/utils/skipLoad'
 import State from '~/utils/playerState'
 import logger from '~/utils/logger'
 
@@ -192,7 +193,7 @@ const loadSong = async (config, queue, index) => {
 				.catch(() => { })
 		})
 		.catch((error) => {
-			logger.error('loadSong', error)
+			if (error?.name !== 'AbortError') logger.error('loadSong', error)
 		})
 	navigator.mediaSession.metadata = new MediaMetadata({
 		title: song.title,
@@ -203,7 +204,7 @@ const loadSong = async (config, queue, index) => {
 }
 
 export const playSong = async (config, songDispatch, queue, index, endless = null) => {
-	await loadSong(config, queue, index)
+	await loadNow(() => loadSong(config, queue, index))
 	songDispatch({ type: 'setQueue', queue, index, endless })
 	setRepeat(songDispatch, 'next')
 	saveQueue(config, queue, index)
@@ -211,13 +212,16 @@ export const playSong = async (config, songDispatch, queue, index, endless = nul
 
 export const setIndex = async (config, songDispatch, queue, index) => {
 	if (queue && index >= 0 && index < queue.length) {
-		unloadSong()
-		await loadSong(config, queue, index)
+		if (global.song) global.song = { ...global.song, index, songInfo: queue[index] }
 		songDispatch({ type: 'setIndex', index })
+		loadSettled(() => loadSong(config, queue, index))
 	}
 }
 
-export const nextSong = async (config, song, songDispatch) => {
+const latest = (song) => (global.song?.queue ? global.song : song)
+
+export const nextSong = async (config, staleSong, songDispatch) => {
+	const song = latest(staleSong)
 	if (song.queue) {
 		if (song.actionEndOfSong === 'random') await setIndex(config, songDispatch, song.queue, nextRandomIndex())
 		else {
@@ -228,7 +232,8 @@ export const nextSong = async (config, song, songDispatch) => {
 	}
 }
 
-export const previousSong = async (config, song, songDispatch) => {
+export const previousSong = async (config, staleSong, songDispatch) => {
+	const song = latest(staleSong)
 	if (song.queue) {
 		if (song.actionEndOfSong === 'random') await setIndex(config, songDispatch, song.queue, prevRandomIndex())
 		else {
@@ -332,7 +337,7 @@ export const removeFromQueue = async (config, song, songDispatch, index) => {
 	songDispatch({ type: 'removeFromQueue', index })
 	if (index !== song.index) return
 	const next = queueWithout(song, index)
-	await loadSong(config, next.queue, next.index)
+	await loadNow(() => loadSong(config, next.queue, next.index))
 	saveQueue(config, next.queue, next.index)
 }
 

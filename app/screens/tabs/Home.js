@@ -16,7 +16,7 @@ import HorizontalList from '~/components/lists/HorizontalList'
 import IconButton from '~/components/button/IconButton'
 import mainStyles from '~/styles/main'
 import { urlCover } from '~/utils/url'
-import AmbientBackground from '~/components/player/AmbientBackground'
+import { NowPlayingBackground } from '~/components/player/AmbientBackground'
 import GlassView from '~/components/GlassView'
 import ImageError from '~/components/ImageError'
 import Player from '~/utils/player'
@@ -85,7 +85,6 @@ const Home = () => {
 	const config = useConfig()
 	const settings = useSettings()
 	const theme = useTheme()
-	const song = useSong()
 	const [statusRefresh, setStatusRefresh] = React.useState()
 	const [refresh, setRefresh] = React.useState(0)
 
@@ -129,7 +128,7 @@ const Home = () => {
 
 	return (
 		<View style={{ flex: 1, backgroundColor: theme.primaryBack }}>
-			<AmbientBackground song={song?.songInfo} />
+			<NowPlayingBackground />
 			<View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.35)' }]} />
 		<ScrollView vertical={true}
 			style={{ flex: 1 }}

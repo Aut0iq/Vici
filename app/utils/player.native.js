@@ -4,6 +4,7 @@ import LocalPlayer from '~/utils/player/playerLocal'
 import State from '~/utils/playerState'
 import UpnpPlayer from '~/utils/player/playerUpnp'
 import logger from '~/utils/logger'
+import { loadNow, loadSettled } from '~/utils/skipLoad'
 
 let type = 'local'
 
@@ -29,7 +30,10 @@ export const useEvent = (song, songDispatch) => {
 	UpnpPlayer.useEvent(song, songDispatch, nextSong)
 }
 
-export const previousSong = async (config, song, songDispatch) => {
+const latest = (song) => (global.song?.queue ? global.song : song)
+
+export const previousSong = async (config, staleSong, songDispatch) => {
+	const song = latest(staleSong)
 	if (song.queue) {
 		if (song.actionEndOfSong === 'random') await setIndex(config, songDispatch, song.queue, prevRandomIndex())
 		else {
@@ -40,7 +44,8 @@ export const previousSong = async (config, song, songDispatch) => {
 	}
 }
 
-export const nextSong = async (config, song, songDispatch) => {
+export const nextSong = async (config, staleSong, songDispatch) => {
+	const song = latest(staleSong)
 	if (song.queue) {
 		if (song.actionEndOfSong === 'random') await setIndex(config, songDispatch, song.queue, nextRandomIndex())
 		else {
@@ -76,7 +81,7 @@ export const downloadNextSong = async (queue, currentIndex) => {
 }
 
 export const playSong = async (config, songDispatch, queue, index, endless = null) => {
-	await loadSong(config, queue, index)
+	await loadNow(() => loadSong(config, queue, index))
 	songDispatch({ type: 'setQueue', queue, index, endless })
 	songDispatch({ type: 'setActionEndOfSong', action: 'next' })
 	saveQueue(config, queue, index)
@@ -129,7 +134,7 @@ export const setIndex = async (config, songDispatch, queue, index) => {
 	if (queue && index >= 0 && index < queue.length) {
 		if (global.song) global.song = { ...global.song, index, songInfo: queue[index] }
 		songDispatch({ type: 'setIndex', index })
-		loadSong(config, queue, index)
+		loadSettled(() => loadSong(config, queue, index))
 	}
 }
 
@@ -157,7 +162,7 @@ export const removeFromQueue = async (config, song, songDispatch, index) => {
 	songDispatch({ type: 'removeFromQueue', index })
 	if (index !== song.index) return
 	const next = queueWithout(song, index)
-	await loadSong(config, next.queue, next.index)
+	await loadNow(() => loadSong(config, next.queue, next.index))
 	saveQueue(config, next.queue, next.index)
 }
 

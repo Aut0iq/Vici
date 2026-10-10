@@ -12,10 +12,13 @@ import { parseCodaLink } from '~/utils/coda'
 import logger from '~/utils/logger'
 import PlayerUtils from '~/utils/player'
 import useIsDesktop from '~/utils/useIsDesktop'
+import useSettled from '~/utils/useSettled'
 import BoxDesktopPlayer from '~/components/player/BoxDesktopPlayer'
 import BoxPlayer from '~/components/player/BoxPlayer'
 import FullScreenHorizontalPlayer from '~/components/player/FullScreenHorizontalPlayer'
 import FullScreenPlayer from '~/components/player/FullScreenPlayer'
+
+const WIDGET_SETTLE = 400
 
 const Player = ({ state }) => {
 	const song = useSong()
@@ -89,9 +92,11 @@ ${coda.url}`,
 		})
 	}, [settings.playOnHeadphonesConnect])
 
+	const widgetKey = useSettled(`${song?.songInfo?.id}|${song?.state}|${config?.url}`, WIDGET_SETTLE)
+
 	React.useEffect(() => {
 		updateWidget(config, song)
-	}, [song?.songInfo?.id, song?.state, config?.url])
+	}, [widgetKey])
 
 	if (!song?.songInfo) return null
 	else if (fullScreen) {

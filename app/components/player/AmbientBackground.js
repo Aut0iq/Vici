@@ -4,7 +4,9 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { getColors } from 'react-native-image-colors'
 
 import { useConfig } from '~/contexts/config'
+import { useSong } from '~/contexts/song'
 import { urlCover } from '~/utils/url'
+import useSettled from '~/utils/useSettled'
 
 const INK = '#0E0A0F'
 
@@ -51,8 +53,9 @@ const Wash = ({ colors, style }) => (
 	</Animated.View>
 )
 
-const AmbientBackground = ({ song }) => {
+const AmbientBackground = ({ song: liveSong }) => {
 	const config = useConfig()
+	const song = useSettled(liveSong)
 	const [colors, setColors] = React.useState(FALLBACK)
 	const [prevColors, setPrevColors] = React.useState(FALLBACK)
 	const fade = React.useRef(new Animated.Value(1)).current
@@ -102,6 +105,11 @@ const AmbientBackground = ({ song }) => {
 			/>
 		</View>
 	)
+}
+
+export const NowPlayingBackground = () => {
+	const song = useSong()
+	return <AmbientBackground song={song?.songInfo} />
 }
 
 export default AmbientBackground

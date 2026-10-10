@@ -12,6 +12,7 @@ import SlideBar from '~/components/button/SlideBar'
 import FavoritedButton from '~/components/button/FavoritedButton'
 import size from '~/styles/size'
 import PlayButton from '~/components/button/PlayButton'
+import useSettled from '~/utils/useSettled'
 
 const BoxDesktopPlayer = ({ setFullScreen }) => {
 	const song = useSong()
@@ -22,9 +23,10 @@ const BoxDesktopPlayer = ({ setFullScreen }) => {
 	const volume = Player.updateVolume()
 	const [fakeTime, setFakeTime] = React.useState(-1)
 
+	const settledId = useSettled(song.songInfo?.id)
 	const [stars] = useCachedFirst([], 'getStarred2', null, (json, setData) => {
 		setData(json?.starred2?.song || [])
-	}, [song.songInfo?.id])
+	}, [settledId])
 
 	return (
 		<View

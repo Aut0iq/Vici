@@ -34,6 +34,13 @@ export const SongProvider = ({ children }) => {
 		}
 	}, [])
 
+	React.useEffect(() => {
+		const subscription = AppState.addEventListener('change', (state) => {
+			if (state !== 'active') flushSong()
+		})
+		return () => subscription.remove()
+	}, [])
+
 	useEndlessQueue(song, dispatch)
 
 	return (
@@ -97,16 +104,29 @@ const convertTrack = (track) => {
 	}
 }
 
+const SAVE_DELAY = 500
+
+let saveTimer = null
+
+const saveSong = () => {
+	saveTimer = null
+	AsyncStorage.setItem('song', JSON.stringify(global.song))
+		.catch((error) => logger.error('newSong', 'Error saving song to AsyncStorage:', error))
+}
+
+const flushSong = () => {
+	if (!saveTimer) return
+	clearTimeout(saveTimer)
+	saveSong()
+}
+
 const newSong = (state, action, isCache = false) => {
 	const song = {
 		...state,
 		...action,
 	}
 	global.song = song
-	if (isCache) {
-		AsyncStorage.setItem('song', JSON.stringify(song))
-			.catch((error) => logger.error('newSong', 'Error saving song to AsyncStorage:', error))
-	}
+	if (isCache && !saveTimer) saveTimer = setTimeout(saveSong, SAVE_DELAY)
 	return song
 }
 

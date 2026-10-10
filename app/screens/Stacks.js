@@ -31,6 +31,7 @@ import SearchMore from '~/screens/SearchMore'
 
 import AddServer from '~/screens/Settings/AddServer'
 import CacheSettings from '~/screens/Settings/Cache'
+import OfflineAlbumsSettings from '~/screens/Settings/OfflineAlbums'
 import Connect from '~/screens/Settings/Connect'
 import HomeSettings from '~/screens/Settings/Home'
 import InformationsSettings from '~/screens/Settings/Informations'
@@ -56,6 +57,7 @@ const bg = Object.fromEntries(Object.entries({
 	ArtistAlbums,
 	ArtistExplorer,
 	CacheSettings,
+	OfflineAlbumsSettings,
 	Connect,
 	EditPlaylist,
 	Favorited,
@@ -235,6 +237,7 @@ export const SettingsStack = () => {
 			<Stack.Screen name="Settings/Tabs" component={bg.TabsSettings} />
 			<Stack.Screen name="Settings/Playlists" component={bg.PlaylistsSettings} />
 			<Stack.Screen name="Settings/Cache" component={bg.CacheSettings} />
+			<Stack.Screen name="Settings/OfflineAlbums" component={bg.OfflineAlbumsSettings} />
 			<Stack.Screen name="Settings/Theme" component={bg.ThemeSettings} />
 			<Stack.Screen name="Settings/Informations" component={bg.InformationsSettings} />
 			<Stack.Screen name="Settings/Player" component={bg.PlayerSettings} />

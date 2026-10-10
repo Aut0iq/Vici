@@ -121,8 +121,12 @@ const getHeader = (headers, key) => {
 	return header ? headers[header] : null
 }
 
-const returnFail = async (partUri, urlStream, id) => {
+const releaseDownload = (id) => {
 	global.songsDownloading = global.songsDownloading.filter(songId => songId !== id)
+}
+
+const returnFail = async (partUri, urlStream, id) => {
+	releaseDownload(id)
 	await FileSystem.deleteAsync(partUri)
 	return urlStream
 }
@@ -133,7 +137,10 @@ const downloadSong = async (urlStream, id) => {
 	const partUri = `${fileUri}.part`
 	global.songsDownloading.push(id)
 
-	if (await isSongCached(null, id, global.streamFormat, global.maxBitRate)) return fileUri
+	if (await isSongCached(null, id, global.streamFormat, global.maxBitRate)) {
+		releaseDownload(id)
+		return fileUri
+	}
 	try {
 		const res = await FileSystem.downloadAsync(urlStream, partUri)
 		const contentType = getHeader(res?.headers, 'content-type')
@@ -152,6 +159,7 @@ const downloadSong = async (urlStream, id) => {
 		} else {
 			await FileSystem.moveAsync({ from: partUri, to: fileUri })
 			global.listCacheSong.push(`${id}.${global.streamFormat}`)
+			releaseDownload(id)
 			return fileUri
 		}
 	} catch (error) {

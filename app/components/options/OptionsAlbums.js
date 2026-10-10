@@ -9,6 +9,9 @@ import OptionsPopup from '~/components/popup/OptionsPopup'
 import { playSong, addToQueue } from '~/utils/player'
 import { useSong, useSongDispatch } from '~/contexts/song'
 import { getApiNetworkFirst, getApiCacheFirst } from '~/utils/api'
+import { cacheAlbum, isOfflineSupported } from '~/utils/offline'
+import { downloadSongs } from '~/utils/download'
+import logger from '~/utils/logger'
 
 const OptionsAlbums = ({ albums, indexOptions, setIndexOptions }) => {
 	const { t } = useTranslation()
@@ -55,6 +58,27 @@ const OptionsAlbums = ({ albums, indexOptions, setIndexOptions }) => {
 							.catch(() => { })
 					},
 					hidden: !song.queue?.length
+				},
+				{
+					name: t('Cache all songs'),
+					icon: 'cloud-download',
+					onPress: () => {
+						refOption.current.close()
+						cacheAlbum(config, albums[indexOptions])
+							.catch((error) => logger.error('OptionsAlbums', `Cache failed: ${error?.message || error}`))
+					},
+					hidden: !isOfflineSupported
+				},
+				{
+					name: t('Download to Music'),
+					icon: 'download',
+					onPress: () => {
+						refOption.current.close()
+						getApiNetworkFirst(config, 'getAlbum', { id: albums[indexOptions].id })
+							.then((json) => downloadSongs(config, json.album?.song, t))
+							.catch((error) => logger.error('OptionsAlbums', `Download failed: ${error?.message || error}`))
+					},
+					hidden: Platform.OS === 'web'
 				},
 				{
 					name: t('Go to artist'),

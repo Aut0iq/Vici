@@ -72,6 +72,8 @@ Vici is listed in the official [Navidrome client apps catalog](https://www.navid
 - **Swipe** left and right to switch tabs.
 - **Autoplay on headphones.** Plug in your headset and the music keeps playing, even if the app was closed.
 - **5×1 home screen widget** with the cover, title, controls and colors matched to the cover. Tap it to open the full-screen player.
+- **Offline music.** In *Settings → Cache* pick the albums to keep on the phone, or download the whole library. Cached music plays without a connection.
+- **Save to the phone's Music folder.** The three-dot menu of a track or an album downloads the original files to `Music/Vici`, where any other player can find them.
 
 #### Terminal
 
@@ -204,6 +206,8 @@ Vici есть в официальном [каталоге клиентов Navid
 - **Переключение свайпом** влево и вправо между вкладками.
 - **Автозапуск при подключении наушников.** Подключили гарнитуру — музыка продолжает играть, даже если приложение было закрыто.
 - **Виджет 5×1** для рабочего стола: обложка, название, управление, цвет под обложку. Нажатие открывает плеер на весь экран.
+- **Музыка без сети.** В разделе *Настройки → Кэш* можно выбрать альбомы, которые останутся на телефоне, или скачать всю фонотеку. Музыка из кэша играет без подключения.
+- **Сохранение в «Музыку» телефона.** Через меню «три точки» трек или альбом скачивается в оригинале в папку `Music/Vici`, где его увидит любой другой плеер.
 
 #### Терминал
 

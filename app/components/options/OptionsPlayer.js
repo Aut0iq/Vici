@@ -1,5 +1,5 @@
 import React from 'react'
-import { Linking } from 'react-native'
+import { Linking, Platform } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 
@@ -10,6 +10,7 @@ import { useSettings, useSetSettings } from '~/contexts/settings'
 import { useSong, useSongDispatch } from '~/contexts/song'
 import OptionsPopup from '~/components/popup/OptionsPopup'
 import Player from '~/utils/player'
+import { downloadSongs } from '~/utils/download'
 import size from '~/styles/size'
 
 const OptionsPlayer = ({ song, isOpen, setIsOpen, closePlayer }) => {
@@ -108,6 +109,15 @@ const OptionsPlayer = ({ song, isOpen, setIsOpen, closePlayer }) => {
 					icon: 'plus',
 					onPress: openAddToPlaylist,
 					hidden: song.isLiveStream
+				},
+				{
+					name: t('Download to Music'),
+					icon: 'download',
+					onPress: () => {
+						refOption.current.close()
+						downloadSongs(config, [song], t)
+					},
+					hidden: Platform.OS === 'web' || song.isLiveStream || Boolean(song.homePageUrl)
 				},
 				{
 					name: t('Open home page'),

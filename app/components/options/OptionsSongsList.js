@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useConfig } from '~/contexts/config'
 import { getApi, getApiNetworkFirst } from '~/utils/api'
-import { urlStream } from '~/utils/url'
+import { downloadSongs } from '~/utils/download'
 import { isSongCached } from '~/utils/cache'
 import { playSong, addToQueue } from '~/utils/player'
 import { useSettings } from '~/contexts/settings'
@@ -13,7 +13,6 @@ import { useSong, useSongDispatch } from '~/contexts/song'
 import { urlCover } from '~/utils/url'
 import OptionsPopup from '~/components/popup/OptionsPopup'
 import size from '~/styles/size'
-import logger from '~/utils/logger'
 
 const OptionsSongsList = ({ songs, indexOptions, setIndexOptions, onUpdate = () => { }, idPlaylist = null }) => {
 	const { t } = useTranslation()
@@ -129,23 +128,9 @@ const OptionsSongsList = ({ songs, indexOptions, setIndexOptions, onUpdate = () 
 			.catch(() => { })
 	}
 
-	const downloadSong = async () => {
+	const downloadSong = () => {
 		refOption.current.close()
-		fetch(urlStream(config, songs[indexOptions].id))
-			.then((res) => {
-				if (!res.ok) throw new Error(`HTTP ${res.status}`)
-				return res.blob()
-			})
-			.then((data) => {
-				const a = document.createElement('a')
-				a.download = `${songs[indexOptions].artist} - ${songs[indexOptions].title}.mp3`
-				a.href = URL.createObjectURL(data)
-				a.addEventListener('click', () => {
-					setTimeout(() => URL.revokeObjectURL(a.href), 1 * 1000)
-				})
-				a.click()
-			})
-			.catch((error) => logger.error('downloadSong', error?.message || error))
+		downloadSongs(config, [songs[indexOptions]], t)
 	}
 
 	const shareSong = () => {
@@ -227,10 +212,9 @@ const OptionsSongsList = ({ songs, indexOptions, setIndexOptions, onUpdate = () 
 					hidden: !idPlaylist
 				},
 				{
-					name: t('Download'),
+					name: t(Platform.OS === 'web' ? 'Download' : 'Download to Music'),
 					icon: 'download',
-					onPress: downloadSong,
-					hidden: Platform.OS !== 'web'
+					onPress: downloadSong
 				},
 				{
 					name: t('Share'),

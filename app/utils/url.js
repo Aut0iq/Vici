@@ -37,6 +37,8 @@ export const urlCover = (config, id, size = null) => {
 	}
 }
 
+export const urlDownload = (config, id) => getUrl(config, 'download', { id })
+
 export const urlStream = (config, id, format = 'raw', maxBitRate = 0) => {
 	if (id === 'tuktuktuk') return 'https://sawyerf.github.io/tuktuktuk.mp3' 
 	if (!id.match(/^[a-zA-Z0-9-]*$/)) return id

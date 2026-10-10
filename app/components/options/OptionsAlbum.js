@@ -9,6 +9,7 @@ import { urlStream } from '~/utils/url'
 import { playSong, downloadSong, addToQueue } from '~/utils/player'
 import { useSong, useSongDispatch } from '~/contexts/song'
 import { useSettings } from '~/contexts/settings'
+import { downloadSongs } from '~/utils/download'
 import OptionsPopup from '~/components/popup/OptionsPopup'
 
 const OptionsAlbum = ({ album, isOpen, onClose }) => {
@@ -65,6 +66,15 @@ const OptionsAlbum = ({ album, isOpen, onClose }) => {
 							await downloadSong(urlStream(config, song.id, settings.streamFormat, settings.maxBitRate), song.id)
 						}
 					}
+				},
+				{
+					name: t('Download to Music'),
+					icon: 'download',
+					onPress: () => {
+						refOption.current.close()
+						downloadSongs(config, album.song, t)
+					},
+					hidden: Platform.OS === 'web' || !album.song?.length
 				},
 				{
 					name: t('Go to genre'),

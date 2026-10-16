@@ -13,6 +13,13 @@ const ICON_NOTE = svg('M9 17.5a3 3 0 1 1-2-2.83V5l12-2v11.5a3 3 0 1 1-2-2.83V6.3
 
 export const DEFAULT_COLORS = { background: 'rgba(34, 22, 30, 1)', edge: 'rgba(255, 255, 255, 0.12)' }
 
+const OPACITY = 0.75
+
+const translucent = (color) => {
+	const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(color || '')
+	return match ? `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${OPACITY})` : color
+}
+
 export const ViciWidget = ({ title, artist, cover, isPlaying, colors, height = 64 }) => {
 	const coverSize = Math.max(40, Math.min(Math.round(height) - 12, 120))
 	const palette = colors?.background ? colors : DEFAULT_COLORS
@@ -28,7 +35,7 @@ export const ViciWidget = ({ title, artist, cover, isPlaying, colors, height = 6
 			paddingLeft: 6,
 			paddingRight: 8,
 			borderRadius: 28,
-			backgroundColor: palette.background || DEFAULT_COLORS.background,
+			backgroundColor: translucent(palette.background || DEFAULT_COLORS.background),
 			borderWidth: 1,
 			borderColor: palette.edge,
 		}}

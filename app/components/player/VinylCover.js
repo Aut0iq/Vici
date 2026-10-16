@@ -12,7 +12,6 @@ import useSettled from '~/utils/useSettled'
 
 const TURN_DURATION = 8000
 const PREVIEW_SIZE = 100
-const COVER_SIZE = 800
 const COVER_FADE = 120
 
 const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, onCoverTouch = null }) => {
@@ -25,7 +24,7 @@ const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, o
 
 	React.useEffect(() => {
 		neighborTracks(song).forEach((track) => {
-			[PREVIEW_SIZE, COVER_SIZE].forEach((size) => {
+			[PREVIEW_SIZE, null].forEach((size) => {
 				const uri = urlCover(config, track, size)
 				if (uri) Image.prefetch(uri).catch(() => { })
 			})
@@ -155,7 +154,7 @@ const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, o
 						style={{ width: cover, height: cover, borderRadius: 22 }}
 					/>
 					<Image
-						source={{ uri: urlCover(config, song?.songInfo, COVER_SIZE) }}
+						source={{ uri: urlCover(config, song?.songInfo) }}
 						fadeDuration={COVER_FADE}
 						style={[StyleSheet.absoluteFill, { borderRadius: 22 }]}
 					/>

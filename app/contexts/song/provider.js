@@ -7,6 +7,7 @@ import { getApi } from '~/utils/api'
 import logger from '~/utils/logger'
 import State from '~/utils/playerState'
 import { queueWithout } from '~/utils/tools'
+import { isForeground } from '~/utils/foreground'
 import { SongContext, SongDispatchContext, LiveSongContext, SongFreezeContext } from '~/contexts/song/context'
 
 export const SongProvider = ({ children }) => {
@@ -122,6 +123,11 @@ const saveSong = () => {
 }
 
 const scheduleSave = () => {
+	if (!isForeground()) {
+		clearTimeout(saveTimer)
+		saveSong()
+		return
+	}
 	if (!saveTimer) saveTimer = setTimeout(saveSong, SAVE_DELAY)
 }
 

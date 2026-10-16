@@ -46,7 +46,10 @@ const readState = async () => {
 	}
 }
 
+let widgetGeneration = 0
+
 export const updateWidget = async (config, song) => {
+	const generation = ++widgetGeneration
 	const info = song?.songInfo
 	const cover = info ? urlCover(config, info, 300) : null
 	const colorUri = info ? urlCover(config, info, 100) : null
@@ -60,8 +63,10 @@ export const updateWidget = async (config, song) => {
 		isPlaying: song?.state === State.Playing,
 		colors: sameTrack && previous.colors?.background ? previous.colors : await pickWidgetColors(colorUri, info?.coverArt || info?.albumId || info?.id),
 	}
+	if (generation !== widgetGeneration) return
 	try {
 		await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+		if (generation !== widgetGeneration) return
 		await requestWidgetUpdate({
 			widgetName: WIDGET_NAME,
 			renderWidget: (widgetInfo) => <ViciWidget {...state} height={widgetInfo?.height} />,

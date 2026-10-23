@@ -13,6 +13,7 @@ import FavoritedButton from '~/components/button/FavoritedButton'
 import size from '~/styles/size'
 import PlayButton from '~/components/button/PlayButton'
 import useSettled from '~/utils/useSettled'
+import VolumeControl from '~/components/player/VolumeControl'
 
 const BoxDesktopPlayer = ({ setFullScreen }) => {
 	const song = useSong()
@@ -20,7 +21,6 @@ const BoxDesktopPlayer = ({ setFullScreen }) => {
 	const config = useConfig()
 	const theme = useTheme()
 	const time = Player.updateTime()
-	const volume = Player.updateVolume()
 	const [fakeTime, setFakeTime] = React.useState(-1)
 
 	const settledId = useSettled(song.songInfo?.id)
@@ -101,28 +101,7 @@ const BoxDesktopPlayer = ({ setFullScreen }) => {
 			</View>
 			<View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginEnd: 20, gap: 5 }}>
 
-				{
-					Player.isVolumeSupported() && (
-						<>
-							<IconButton
-								icon={volume ? "volume-up" : "volume-off"}
-								size={17}
-								color={theme.primaryText}
-								style={{ width: 27 }}
-								onPress={() => Player.setVolume(volume ? 0 : 1)}
-							/>
-							<SlideBar
-								progress={volume}
-								onStart={(progress) => Player.setVolume(progress)}
-								onChange={(progress) => Player.setVolume(progress)}
-								stylePress={{ maxWidth: 100, height: 25, paddingVertical: 10, width: '100%' }}
-								styleBar={{ width: '100%', height: '100%', borderRadius: 3, overflow: 'hidden' }}
-								styleProgress={{ backgroundColor: theme.primaryTouch }}
-								isBitogno={true}
-							/>
-						</>
-					)
-				}
+				{Player.isVolumeSupported() && <VolumeControl color={theme.primaryText} />}
 				<IconButton
 					icon="expand"
 					size={17}

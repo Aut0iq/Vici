@@ -25,6 +25,7 @@ import SlideBar from '~/components/button/SlideBar'
 import SlideControl from '~/components/button/SlideControl'
 import ConnectButton from '~/components/button/ConnectButton'
 import useSettled from '~/utils/useSettled'
+import VolumeControl from '~/components/player/VolumeControl'
 
 const preview = {
 	COVER: 0,
@@ -84,7 +85,6 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 	const song = useSong()
 	const songDispatch = useSongDispatch()
 	const theme = useTheme()
-	const volume = Player.updateVolume()
 	const scroll = React.useRef(null)
 
 	const hasPane = isVisualizer || isPreview === preview.LYRICS || isPreview === preview.QUEUE
@@ -312,24 +312,11 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 						/>
 						{
 							Player.isVolumeSupported() &&
-							<>
-								<IconButton
-									icon={volume ? "volume-up" : "volume-off"}
-									size={17}
-									color={color.primary}
-									style={{ width: 27, height: 30, justifyContent: 'center' }}
-									onPress={() => Player.setVolume(volume ? 0 : 1)}
-								/>
-								<SlideBar
-									progress={volume}
-									onStart={(progress) => Player.setVolume(progress)}
-									onChange={(progress) => Player.setVolume(progress)}
-									stylePress={{ maxWidth: 100, height: 25, paddingVertical: 10, flex: 1 }}
-									styleBar={{ width: '100%', height: '100%', borderRadius: 3, backgroundColor: color.primary, overflow: 'hidden' }}
-									styleProgress={{ backgroundColor: theme.primaryTouch }}
-									isBitogno={true}
-								/>
-							</>
+							<VolumeControl
+								color={color.primary}
+								iconStyle={{ height: 30 }}
+								styleBar={{ backgroundColor: color.primary }}
+							/>
 						}
 						<IconButton
 							icon="expand"

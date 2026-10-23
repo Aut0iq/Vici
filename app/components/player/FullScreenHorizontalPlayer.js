@@ -341,11 +341,27 @@ const FullScreenHorizontalPlayer = ({ setFullScreen }) => {
 					</View>
 				</View>
 			</View>
+			<IconButton
+				icon="times"
+				size={22}
+				color={color.primary}
+				style={[styles.close, { top: Math.max(insets.top, 12), right: Math.max(insets.right, 12) }]}
+				onPress={() => setFullScreen(false)}
+			/>
 		</Modal>
 	)
 }
 
 const styles = StyleSheet.create({
+	close: {
+		position: 'absolute',
+		width: 40,
+		height: 40,
+		borderRadius: 20,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: 'rgba(255,255,255,0.08)',
+	},
 	coverSlot: {
 		width: '82%',
 		maxWidth: 520,

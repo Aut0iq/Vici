@@ -48,6 +48,8 @@ module.exports = {
       handler: 'CacheFirst',
       options: {
         cacheName: 'song',
+        rangeRequests: true,
+        cacheableResponse: { statuses: [200] },
       },
     },
     {

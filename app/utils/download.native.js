@@ -51,6 +51,7 @@ const decode = (base64) => {
 }
 
 const detectType = async (uri) => {
+	if (uri.startsWith('content:')) return null
 	const head = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64, position: 0, length: HEADER_BYTES })
 		.then(decode)
 		.catch(() => [])

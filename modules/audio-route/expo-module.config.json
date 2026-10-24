@@ -6,7 +6,8 @@
     "modules": [
       "expo.modules.audioroute.AudioRouteModule",
       "expo.modules.audioroute.AudioVisualizerModule",
-      "expo.modules.audioroute.MusicLibraryModule"
+      "expo.modules.audioroute.MusicLibraryModule",
+      "expo.modules.audioroute.CacheFolderModule"
     ]
   }
 }

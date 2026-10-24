@@ -4,7 +4,7 @@ import * as FileSystem from 'expo-file-system'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import { urlCover, urlStream } from '~/utils/url'
-import { isSongCached, getPathSong } from '~/utils/cache'
+import { isSongCached, getPathSong, getTempPath, storeSong } from '~/utils/cache'
 import MyState from '~/utils/playerState'
 import logger from '~/utils/logger'
 import reportState from '~/utils/reportState'
@@ -127,20 +127,18 @@ const releaseDownload = (id) => {
 
 const returnFail = async (partUri, urlStream, id) => {
 	releaseDownload(id)
-	await FileSystem.deleteAsync(partUri)
+	await FileSystem.deleteAsync(partUri, { idempotent: true }).catch(() => { })
 	return urlStream
 }
 
 const downloadSong = async (urlStream, id) => {
 	if (global.songsDownloading.indexOf(id) >= 0) return urlStream
-	const fileUri = getPathSong(id, global.streamFormat)
-	const partUri = `${fileUri}.part`
+	if (await isSongCached(null, id, global.streamFormat, global.maxBitRate)) {
+		return getPathSong(id, global.streamFormat)
+	}
+	const partUri = getTempPath(id, global.streamFormat)
 	global.songsDownloading.push(id)
 
-	if (await isSongCached(null, id, global.streamFormat, global.maxBitRate)) {
-		releaseDownload(id)
-		return fileUri
-	}
 	try {
 		const res = await FileSystem.downloadAsync(urlStream, partUri)
 		const contentType = getHeader(res?.headers, 'content-type')
@@ -157,8 +155,7 @@ const downloadSong = async (urlStream, id) => {
 			logger.error('downloadSong', `Error downloading song, size mismatch (real: ${realSize} / content-length: ${contentLength})`)
 			return await returnFail(partUri, urlStream, id)
 		} else {
-			await FileSystem.moveAsync({ from: partUri, to: fileUri })
-			global.listCacheSong.push(`${id}.${global.streamFormat}`)
+			const fileUri = await storeSong(partUri, id, global.streamFormat)
 			releaseDownload(id)
 			return fileUri
 		}

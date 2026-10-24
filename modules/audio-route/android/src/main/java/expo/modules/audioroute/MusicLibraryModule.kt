@@ -8,6 +8,7 @@ import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
+import java.io.InputStream
 
 class MusicLibraryModule : Module() {
   override fun definition() = ModuleDefinition {
@@ -23,10 +24,16 @@ class MusicLibraryModule : Module() {
       }
       val context = appContext.reactContext
         ?: throw CodedException("ERR_NO_CONTEXT", "The app is not ready", null)
-      val source = File(Uri.parse(sourceUri).path ?: sourceUri)
-      if (!source.isFile) throw CodedException("ERR_NO_FILE", "Nothing to save", null)
-
       val resolver = context.contentResolver
+      val parsed = Uri.parse(sourceUri)
+      val openSource: () -> InputStream = if (parsed.scheme == "content") {
+        { resolver.openInputStream(parsed) ?: throw CodedException("ERR_NO_FILE", "Nothing to save", null) }
+      } else {
+        val source = File(parsed.path ?: sourceUri)
+        if (!source.isFile) throw CodedException("ERR_NO_FILE", "Nothing to save", null)
+        ({ source.inputStream() })
+      }
+
       val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
       val relativePath = "Music/" + folder.trim('/') + "/"
 
@@ -50,7 +57,7 @@ class MusicLibraryModule : Module() {
       try {
         val output = resolver.openOutputStream(target)
           ?: throw CodedException("ERR_WRITE", "Could not open the file for writing", null)
-        output.use { stream -> source.inputStream().use { it.copyTo(stream) } }
+        output.use { stream -> openSource().use { it.copyTo(stream) } }
         values.clear()
         values.put(MediaStore.Audio.Media.IS_PENDING, 0)
         resolver.update(target, values, null, null)

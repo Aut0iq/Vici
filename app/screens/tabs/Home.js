@@ -18,6 +18,7 @@ import mainStyles from '~/styles/main'
 import { urlCover } from '~/utils/url'
 import { NowPlayingBackground } from '~/components/player/AmbientBackground'
 import GlassView from '~/components/GlassView'
+import OfflineToggle from '~/components/OfflineToggle'
 import ImageError from '~/components/ImageError'
 import Player from '~/utils/player'
 import Icon from 'react-native-vector-icons/FontAwesome'
@@ -135,7 +136,9 @@ const Home = () => {
 			contentContainerStyle={mainStyles.contentMainContainer(insets)}
 		>
 			<View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: 20, marginTop: 14, marginBottom: 6 }}>
-				<Text style={styles.brand}>VICI</Text>
+				<OfflineToggle>
+					<Text style={styles.brand}>VICI</Text>
+				</OfflineToggle>
 				<View style={{ flexDirection: 'row', alignItems: 'center' }}>
 					<IconButton
 						icon="random"

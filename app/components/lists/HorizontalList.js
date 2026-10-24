@@ -5,8 +5,7 @@ import { useNavigation } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 import Icon from 'react-native-vector-icons/FontAwesome'
 
-import { getCachedAndApi, getUrl } from '~/utils/api'
-import { getJsonCache } from '~/utils/cache'
+import { getCachedAndApi, readApiCache } from '~/utils/api'
 import { useTheme } from '~/contexts/theme'
 import { useSettings, homeSections } from '~/contexts/settings'
 import { useConfig } from '~/contexts/config'
@@ -65,7 +64,7 @@ const HorizontalList = ({ refresh, id, enable }) => {
 		if (section.type == 'album') nquery += '&size=' + settings.sizeOfList
 
 		if (isUpdatable(updateApi, section.path, nquery)) {
-			getJsonCache('api', getUrl(config, section.path, nquery))
+			readApiCache(config, section.path, nquery)
 				.then(json => {
 					if (!json) return
 					section.getInfo(json, setList)
@@ -79,6 +78,7 @@ const HorizontalList = ({ refresh, id, enable }) => {
 		if (section.type == 'album') nquery += '&size=' + settings.sizeOfList
 		if (section.type == 'listenbrainz') {
 			if (!settings.listenBrainzUser) return setList('No ListenBrainz user set')
+			if (config.offline) return setList(null)
 			fetch(`https://api.listenbrainz.org/1/stats/user/${encodeURIComponent(settings.listenBrainzUser)}/listening-activity?range=this_week`, { mode: 'cors' })
 				.then(response => response.json())
 				.then(data => {

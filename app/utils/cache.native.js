@@ -15,6 +15,7 @@ import {
 
 const FOLDER_KEY = 'cacheFolder'
 const FOLDER_ROOT = 'Vici'
+const READ_CHUNK = 100
 
 const emptyFolder = () => ({ treeUri: null, dirUri: null, files: {} })
 
@@ -34,6 +35,24 @@ export const setJsonCache = async (_cacheName, key, json) => {
 	await AsyncStorage.setItem(key, JSON.stringify(json))
 }
 
+export const readAllJsonCache = async () => {
+	const keys = await AsyncStorage.getAllKeys()
+		.then((list) => list.filter((key) => key.startsWith('http')))
+		.catch(() => [])
+	const result = []
+	for (let start = 0; start < keys.length; start += READ_CHUNK) {
+		const pairs = await AsyncStorage.multiGet(keys.slice(start, start + READ_CHUNK)).catch(() => [])
+		for (const [, value] of pairs) {
+			try {
+				if (value) result.push(JSON.parse(value))
+			} catch {
+				continue
+			}
+		}
+	}
+	return result
+}
+
 const songName = (songId, streamFormat) => `${songId}.${streamFormat}`
 
 const getPathDir = () => {
@@ -41,6 +60,13 @@ const getPathDir = () => {
 }
 
 const getTempDir = () => `${FileSystem.cacheDirectory}songs-part/`
+
+export const getCachedSongIds = async () => {
+	const suffix = `.${global.streamFormat}`
+	return (global.listCacheSong || [])
+		.filter((name) => name.endsWith(suffix))
+		.map((name) => name.slice(0, -suffix.length))
+}
 
 export const isSongCached = async (_config, songId, streamFormat, _maxBitrate) => {
 	return global.listCacheSong?.includes(songName(songId, streamFormat)) ? true : false

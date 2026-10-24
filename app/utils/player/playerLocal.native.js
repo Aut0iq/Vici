@@ -136,6 +136,7 @@ const downloadSong = async (urlStream, id) => {
 	if (await isSongCached(null, id, global.streamFormat, global.maxBitRate)) {
 		return getPathSong(id, global.streamFormat)
 	}
+	if (global.offlineMode) return urlStream
 	const partUri = getTempPath(id, global.streamFormat)
 	global.songsDownloading.push(id)
 
@@ -166,7 +167,7 @@ const downloadSong = async (urlStream, id) => {
 }
 
 const downloadNextSong = async (queue, currentIndex) => {
-	if (!global.isSongCaching) return
+	if (!global.isSongCaching || global.offlineMode) return
 	if (!Array.isArray(queue) || !queue.length || currentIndex === undefined || currentIndex === null) return
 	const maxIndex = Math.min(global.cacheNextSong, queue.length)
 

@@ -14,6 +14,7 @@ import pkg from '~/../package.json'
 import size from '~/styles/size'
 import mainStyles from '~/styles/main'
 import ImageError from '~/components/ImageError'
+import OfflineToggle from '~/components/OfflineToggle'
 import AmbientBackground from '~/components/player/AmbientBackground'
 import { BlurView } from 'expo-blur'
 import { USE_BLUR } from '~/components/GlassView'
@@ -210,14 +211,18 @@ const SideBar = ({ state, descriptors, navigation }) => {
 					paddingTop: 15 + insets.top,
 					paddingBottom: 15,
 				}}>
-				<Image
-					source={require('~/../assets/icon.png')}
-					style={mainStyles.icon}
-				/>
-				<View style={{ flexDirection: 'column', justifyContent: 'center' }}>
-					<Text style={{ color: theme.primaryText, fontSize: size.text.large, marginBottom: 0 }}>Vici</Text>
-					<Text style={{ color: theme.secondaryText, fontSize: size.text.small }}>Version {pkg.version}</Text>
-				</View>
+				<OfflineToggle>
+					<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+						<Image
+							source={require('~/../assets/icon.png')}
+							style={mainStyles.icon}
+						/>
+						<View style={{ flexDirection: 'column', justifyContent: 'center' }}>
+							<Text style={{ color: theme.primaryText, fontSize: size.text.large, marginBottom: 0 }}>Vici</Text>
+							<Text style={{ color: theme.secondaryText, fontSize: size.text.small }}>Version {pkg.version}</Text>
+						</View>
+					</View>
+				</OfflineToggle>
 			</View>
 			{state.routes
 				.map((route, index) => ({ route, index }))

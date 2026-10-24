@@ -4,6 +4,31 @@ import { useConfig } from "~/contexts/config"
 import { getJsonCache, setJsonCache } from "~/utils/cache"
 import { useUpdateApi, useSetUpdateApi, isUpdatable } from "~/contexts/updateApi"
 import logger from "~/utils/logger"
+import { filterOffline, offlineResponse } from "~/utils/offlineLibrary"
+
+const isOffline = (config) => Boolean(config?.offline || global.offlineMode)
+
+const readCache = async (config, key) => {
+	const json = await getJsonCache('api', key)
+	return isOffline(config) ? filterOffline(json) : json
+}
+
+const writeCache = async (config, key, json) => {
+	if (isOffline(config)) return
+	await setJsonCache('api', key, json)
+}
+
+export const readApiCache = (config, path, query = '') => readCache(config, getUrl(config, path, query))
+
+const getOffline = async (config, path, query) => {
+	const local = await offlineResponse(path, query, false)
+	if (local) return local
+	const cached = await readCache(config, getUrl(config, path, query)).catch(() => null)
+	if (cached) return cached
+	const fallback = await offlineResponse(path, query, true)
+	if (fallback) return fallback
+	throw { message: 'Offline mode', isApiError: false, isOffline: true }
+}
 
 export const getUrl = (config, path, query = '') => {
 	let encodedQuery = ''
@@ -24,6 +49,10 @@ export const getApi = (config, path, query = '') => {
 	return new Promise((resolve, reject) => {
 		if (!config?.url || !config?.query) {
 			reject('getApi: config.url or config.query is not defined')
+			return
+		}
+		if (isOffline(config)) {
+			getOffline(config, path, query).then(resolve, reject)
 			return
 		}
 		const url = getUrl(config, path, query)
@@ -64,7 +93,7 @@ export const getCachedAndApi = async (config, path, query = '', setData = () => 
 
 	let json = null
 	const key = getUrl(config, path, query)
-	json = await getJsonCache('api', key).catch(() => null)
+	json = await readCache(config, key).catch(() => null)
 	if (json) setData(json, 'cache')
 	json = await getApi(config, path, query, true)
 		.then((json) => {
@@ -72,14 +101,14 @@ export const getCachedAndApi = async (config, path, query = '', setData = () => 
 			return json
 		})
 		.catch(() => { return null })
-	await setJsonCache('api', key, json).catch((error) => logger.error('getCachedAndApi', `cache write failed: ${error?.message || error}`))
+	await writeCache(config, key, json).catch((error) => logger.error('getCachedAndApi', `cache write failed: ${error?.message || error}`))
 }
 
 export const refreshApi = (config, path, query = '') => {
 	return new Promise((resolve, reject) => {
 		getApi(config, path, query)
 			.then((json) => {
-				setJsonCache('api', getUrl(config, path, query), json)
+				writeCache(config, getUrl(config, path, query), json)
 					.catch((error) => logger.warn('refreshApi', `cache write failed: ${error?.message || error}`))
 					.then(() => resolve(json))
 			})
@@ -125,7 +154,7 @@ export const useCachedAndApi = (initialState, path, query = '', setFunc = () => 
 		if (updateApi.uid === uid.current) return
 
 		const key = getUrl(config, path, query)
-		getJsonCache('api', key)
+		readCache(config, key)
 			.then((json) => {
 				if (json) setFunc(json, setData)
 			})
@@ -152,7 +181,7 @@ export const useCachedFirst = (initialState, path, query = '', setFunc = () => {
 		if (!isUpdatable(updateApi, path, query)) return
 
 		const key = getUrl(config, path, query)
-		getJsonCache('api', key)
+		readCache(config, key)
 			.then((json) => {
 				if (json) setFunc(json, setData)
 			})
@@ -164,12 +193,12 @@ export const useCachedFirst = (initialState, path, query = '', setFunc = () => {
 export const getApiCacheFirst = (config, path, query = '') => {
 	return new Promise((resolve, reject) => {
 		const key = getUrl(config, path, query)
-		getJsonCache('api', key)
+		readCache(config, key)
 			.then((json) => {
 				if (json) return resolve(json)
 				else getApi(config, path, query)
 					.then((json) => {
-						setJsonCache('api', key, json)
+						writeCache(config, key, json)
 							.catch((error) => logger.warn('getApiCacheFirst', `cache write failed: ${error?.message || error}`))
 							.then(() => {
 								resolve(json)
@@ -180,7 +209,7 @@ export const getApiCacheFirst = (config, path, query = '') => {
 			.catch(() => {
 				getApi(config, path, query)
 					.then((json) => {
-						setJsonCache('api', key, json)
+						writeCache(config, key, json)
 							.catch((error) => logger.warn('getApiCacheFirst', `cache write failed: ${error?.message || error}`))
 							.then(() => {
 								resolve(json)
@@ -196,7 +225,7 @@ export const getApiNetworkFirst = (config, path, query = '') => {
 		const key = getUrl(config, path, query)
 		getApi(config, path, query)
 			.then((json) => {
-				setJsonCache('api', key, json)
+				writeCache(config, key, json)
 					.then(() => resolve(json))
 					.catch((error) => {
 						logger.warn('getApiNetworkFirst', `cache write failed: ${error?.message || error}`)
@@ -204,7 +233,7 @@ export const getApiNetworkFirst = (config, path, query = '') => {
 					})
 			})
 			.catch((error) => {
-				getJsonCache('api', key)
+				readCache(config, key)
 					.then((json) => {
 						if (json) resolve(json)
 						else reject(error)

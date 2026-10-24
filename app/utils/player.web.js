@@ -168,7 +168,7 @@ export const downloadSong = async (url, _id) => {
 }
 
 const downloadNextSong = async (config, queue, currentIndex) => {
-	if (!global.isSongCaching) return
+	if (!global.isSongCaching || global.offlineMode) return
 	const maxIndex = Math.min(global.cacheNextSong, queue.length)
 
 	for (let i = -1; i < maxIndex; i++) {

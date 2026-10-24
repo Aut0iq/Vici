@@ -43,6 +43,30 @@ export const getJsonCache = async (cacheName, url) => {
 export const setJsonCache = async (_cacheName, _key, _json) => {
 }
 
+export const isCacheFolderSupported = false
+
+export const readAllJsonCache = async () => {
+	const cache = await window.caches.open('api')
+	const result = []
+	for (const request of await cache.keys()) {
+		const json = await cache.match(request)
+			.then((response) => response?.json())
+			.catch(() => null)
+		if (json?.['subsonic-response']) result.push(json['subsonic-response'])
+	}
+	return result
+}
+
+export const getCachedSongIds = async () => {
+	const cache = await window.caches.open('song')
+	const ids = []
+	for (const request of await cache.keys()) {
+		const id = new URL(request.url).searchParams.get('id')
+		if (id) ids.push(id)
+	}
+	return ids
+}
+
 export const isSongCached = async (config, songId, streamFormat, maxBitrate) => {
 	return getCache('song', urlStream(config, songId, streamFormat, maxBitrate))
 }

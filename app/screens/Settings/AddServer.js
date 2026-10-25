@@ -22,6 +22,14 @@ import Player from '~/utils/player'
 import settingStyles from '~/styles/settings'
 import size from '~/styles/size'
 
+const LOCAL_HOST = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|\[[0-9a-f:]+\]|[^/:]+\.(local|lan|home)(?=[:/]|$))/i
+
+const normalizeUrl = (value) => {
+	const address = value.trim().replace(/\/+$/, '')
+	if (!address || /^https?:\/\//i.test(address)) return address
+	return `${LOCAL_HOST.test(address) ? 'http' : 'https'}://${address}`
+}
+
 const AddServer = ({ navigation }) => {
 	const { t } = useTranslation()
 	const insets = useSafeAreaInsets()
@@ -46,7 +54,7 @@ const AddServer = ({ navigation }) => {
 	}
 
 	const connect = () => {
-		const uri = url.replace(/\/$/, '')
+		const uri = normalizeUrl(url)
 		setUrl(uri)
 		const salt = Math.random().toString(36).substring(2, 15)
 
@@ -57,8 +65,8 @@ const AddServer = ({ navigation }) => {
 			query = `u=${encodeURI(username)}&t=${md5(password + salt)}&s=${salt}&v=1.16.1&c=castafiore`
 		}
 
-		if (Platform.OS !== 'android' && uri.startsWith('http://')) {
-			setError('Only https is allowed')
+		if (Platform.OS === 'web' && window.location.protocol === 'https:' && uri.startsWith('http://')) {
+			setError(t('The browser blocks http servers on an https page'))
 			return
 		}
 		getApi({ url: uri, query }, 'ping.view')

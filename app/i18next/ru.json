@@ -201,6 +201,7 @@
     "Save": "Сохранить",
     "Search": "Поиск",
     "Server Url": "Адрес сервера",
+    "The browser blocks http servers on an https page": "Браузер не пускает к http-серверу со страницы по https. Используйте приложение Vici или откройте Vici по http.",
     "Share": "Поделиться",
     "Shares": "Поделиться",
     "Similar artists": "Похожие исполнители",

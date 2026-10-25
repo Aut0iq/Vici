@@ -8,8 +8,11 @@ import { filterOffline, offlineResponse } from "~/utils/offlineLibrary"
 
 const isOffline = (config) => Boolean(config?.offline || global.offlineMode)
 
+const legacyKey = (key) => key.replace(/([?&])c=vici(?=&)/, '$1c=castafiore')
+
 const readCache = async (config, key) => {
-	const json = await getJsonCache('api', key)
+	let json = await getJsonCache('api', key).catch(() => null)
+	if (!json && legacyKey(key) !== key) json = await getJsonCache('api', legacyKey(key)).catch(() => null)
 	return isOffline(config) ? filterOffline(json) : json
 }
 

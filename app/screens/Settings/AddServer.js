@@ -8,6 +8,7 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 import md5 from 'md5'
 
 import { getApi } from '~/utils/api'
+import { CLIENT_NAME } from '~/utils/url'
 import { useSetConfig } from '~/contexts/config'
 import { useSettings, useSetSettings } from '~/contexts/settings'
 import { useSongDispatch } from '~/contexts/song'
@@ -60,9 +61,9 @@ const AddServer = ({ navigation }) => {
 
 		let query
 		if (lowSecurity) {
-			query = `u=${encodeURI(username)}&p=${encodeURI(password)}&v=1.16.1&c=castafiore`
+			query = `u=${encodeURI(username)}&p=${encodeURI(password)}&v=1.16.1&c=${CLIENT_NAME}`
 		} else {
-			query = `u=${encodeURI(username)}&t=${md5(password + salt)}&s=${salt}&v=1.16.1&c=castafiore`
+			query = `u=${encodeURI(username)}&t=${md5(password + salt)}&s=${salt}&v=1.16.1&c=${CLIENT_NAME}`
 		}
 
 		if (Platform.OS === 'web' && window.location.protocol === 'https:' && uri.startsWith('http://')) {

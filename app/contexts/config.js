@@ -3,6 +3,7 @@ import { initCacheSong, loadServerAliases, resolveFolderCache } from '~/utils/ca
 import { resetOfflineIndex } from '~/utils/offlineLibrary'
 import { mergeAddresses } from '~/utils/serverMerge'
 import logger from '~/utils/logger'
+import { withClientName } from '~/utils/url'
 import React from 'react'
 
 const OFFLINE_KEY = 'offlineMode'
@@ -10,7 +11,12 @@ const OFFLINE_KEY = 'offlineMode'
 const getConfig = async () => {
 	const config = await AsyncStorage.getItem('config')
 	if (config === null) return { url: null, username: null, query: null }
-	return JSON.parse(config)
+	const data = JSON.parse(config)
+	const query = withClientName(data.query)
+	if (!data.query || query === data.query) return data
+	const renamed = { ...data, query }
+	AsyncStorage.setItem('config', JSON.stringify(renamed)).catch(() => { })
+	return renamed
 }
 
 const ConfigContext = React.createContext()

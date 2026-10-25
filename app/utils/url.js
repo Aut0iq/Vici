@@ -1,3 +1,7 @@
+export const CLIENT_NAME = 'vici'
+
+export const withClientName = (query) => String(query || '').replace(/(^|&)c=castafiore(?=&|$)/, `$1c=${CLIENT_NAME}`)
+
 const getUrl = (config, path, query = '') => {
 	const encodedQuery = Object.keys(query).map((key) => `${key}=${encodeURIComponent(query[key])}`).join('&')
 	return `${config.url}/rest/${path}?${encodedQuery}&${config.query}`

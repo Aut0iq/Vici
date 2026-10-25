@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { localeLang } from '~/i18next/utils'
 import logger from '~/utils/logger'
+import { CLIENT_NAME, withClientName } from '~/utils/url'
 
 const SettingsContext = React.createContext()
 const SetSettingsContext = React.createContext()
@@ -60,14 +61,14 @@ export const demoServers = [
 		type: 'lms',
 		url: 'https://lms-demo.poupon.dev',
 		username: 'demo',
-		query: `u=${encodeURI('demo')}&p=${encodeURI('7e5da62f-e4a2-f946-a790-9872352f82ae')}&v=1.16.1&c=castafiore`
+		query: `u=${encodeURI('demo')}&p=${encodeURI('7e5da62f-e4a2-f946-a790-9872352f82ae')}&v=1.16.1&c=${CLIENT_NAME}`
 	},
 	{
 		name: 'Demo Ampache',
 		type: 'ampache',
 		url: 'https://demo.ampache.dev',
 		username: 'demo',
-		query: `u=${encodeURI('demo')}&t=${md5('demodemo' + 'aaaaaa')}&s=${'aaaaaa'}&v=1.16.1&c=castafiore`
+		query: `u=${encodeURI('demo')}&t=${md5('demodemo' + 'aaaaaa')}&s=${'aaaaaa'}&v=1.16.1&c=${CLIENT_NAME}`
 	}
 ]
 
@@ -79,7 +80,7 @@ export const defaultSettings = {
 			type: 'navidrome',
 			url: 'https://demo.navidrome.org',
 			username: 'demo',
-			query: `u=${encodeURI('demo')}&t=${md5('demo' + 'aaaaaa')}&s=${'aaaaaa'}&v=1.16.1&c=castafiore`
+			query: `u=${encodeURI('demo')}&t=${md5('demo' + 'aaaaaa')}&s=${'aaaaaa'}&v=1.16.1&c=${CLIENT_NAME}`
 		},
 	],
 	tabSwipe: true,
@@ -282,6 +283,9 @@ const getSettings = async () => {
 				if (typeof tab.swipe !== 'boolean') tab.swipe = tab.enable
 				if (tabSections.find((section) => section.id === tab.id)?.lockSwipe) tab.swipe = true
 			})
+		}
+		if (Array.isArray(data.servers)) {
+			data.servers = data.servers.map((server) => ({ ...server, query: withClientName(server.query) }))
 		}
 		return {
 			...defaultSettings,

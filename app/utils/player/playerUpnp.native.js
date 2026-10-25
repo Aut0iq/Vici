@@ -87,8 +87,6 @@ const setVolume = async (volume) => {
 const getVolume = async () => lastVolume
 
 const unloadSong = async () => { }
-const tuktuktuk = async (_songDispatch) => { }
-
 const updateVolume = () => { }
 const updateTime = () => {
 	const [progress, setProgress] = React.useState({
@@ -145,7 +143,6 @@ export default {
 	getVolume,
 	unloadSong,
 	loadSong,
-	tuktuktuk,
 	updateVolume,
 	updateTime,
 	isVolumeSupported,

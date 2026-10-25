@@ -233,26 +233,6 @@ const getVolume = () => {
 }
 
 const unloadSong = async () => { }
-const tuktuktuk = async (songDispatch) => {
-	const urlTuk = 'https://sawyerf.github.io/tuktuktuk.mp3'
-	const playingState = await TrackPlayer.getPlaybackState()
-
-	if ([State.Paused, State.Ended, State.Stopped, State.None, State.Error].indexOf(playingState.state) > -1) {
-		const queue = [{
-			id: 'tuktuktuk',
-			albumId: 'tuktuktuk',
-			url: urlTuk,
-			title: 'Tuk Tuk Tuk',
-			album: 'Tuk Tuk Tuk',
-			artist: 'Sawyerf',
-			artwork: require('~/../assets/icon.png')
-		}]
-		songDispatch({ type: 'setQueue', queue, index: 0 })
-		songDispatch({ type: 'setActionEndOfSong', action: 'next' })
-		await loadSong(global.config, queue, 0)
-	}
-}
-
 const updateVolume = () => { }
 const updateTime = () => {
 	return useProgress(500)
@@ -296,7 +276,6 @@ export default {
 	getVolume,
 	unloadSong,
 	loadSong,
-	tuktuktuk,
 	updateVolume,
 	updateTime,
 	isVolumeSupported,

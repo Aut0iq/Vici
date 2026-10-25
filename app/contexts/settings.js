@@ -111,6 +111,7 @@ export const defaultSettings = {
 	scrollHelper: false,
 	theme: 'vici',
 	themePlayer: 'default',
+	aut0iq: false,
 	isSongCaching: false,
 	cacheNextSong: 5,
 	showCache: true,

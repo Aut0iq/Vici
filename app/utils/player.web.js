@@ -305,17 +305,6 @@ export const secondToTime = (second) => {
 	return `${String((second - second % 60) / 60).padStart(2, '0')}:${String((second - second % 1) % 60).padStart(2, '0')}`
 }
 
-export const tuktuktuk = (_songDispatch) => {
-	const sound = new Audio()
-	sound.src = 'https://sawyerf.github.io/tuktuktuk.mp3'
-	sound.addEventListener('loadedmetadata', () => {
-		sound.play()
-	})
-	sound.addEventListener('ended', () => {
-		sound.src = ''
-	})
-}
-
 export const setRepeat = async (songdispatch, action) => {
 	await songdispatch({ type: 'setActionEndOfSong', action })
 }
@@ -363,7 +352,6 @@ export default {
 	isVolumeSupported,
 	updateVolume,
 	secondToTime,
-	tuktuktuk,
 	setRepeat,
 	reload,
 	resetAudio,

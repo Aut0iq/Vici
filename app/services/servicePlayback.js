@@ -65,7 +65,6 @@ module.exports = async () => {
 	})
 	TrackPlayer.addEventListener(Event.PlaybackQueueEnded, (_event) => {
 		if (!global.song?.queue?.length) return
-		if (global.song?.songInfo?.id === 'tuktuktuk') return Player.resetAudio(global.songDispatch)
 		onTrackEnd(global.song.actionEndOfSong === 'repeat')
 		if (global.song.actionEndOfSong === 'repeat') {
 			Player.setPosition(0)

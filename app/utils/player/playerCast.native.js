@@ -144,8 +144,6 @@ const getVolume = () => {
 }
 
 const unloadSong = async () => { }
-const tuktuktuk = async (_songDispatch) => { }
-
 const updateVolume = () => { }
 const updateTime = () => {
 	const streamPosition = useStreamPosition()
@@ -240,7 +238,6 @@ export default {
 	getVolume,
 	unloadSong,
 	loadSong,
-	tuktuktuk,
 	updateVolume,
 	updateTime,
 	isVolumeSupported,

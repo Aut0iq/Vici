@@ -1,6 +1,5 @@
 import React from 'react'
-import pkg from '~/../package.json'
-import { View, Image, ScrollView, Pressable, Linking, Platform } from 'react-native'
+import { View, ScrollView, Linking, Platform } from 'react-native'
 import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
@@ -8,15 +7,13 @@ import { useTranslation } from 'react-i18next'
 import { useConfig } from '~/contexts/config'
 import { confirmAlert } from '~/utils/alert'
 import { useSetSettings, defaultSettings, useSettings } from '~/contexts/settings'
-import { useSongDispatch } from '~/contexts/song'
 import { useTheme } from '~/contexts/theme'
 import ButtonMenu from '~/components/settings/ButtonMenu'
 import ButtonSwitch from '~/components/settings/ButtonSwitch'
 import mainStyles from '~/styles/main'
-import Player from '~/utils/player'
 import settingStyles from '~/styles/settings'
-import size from '~/styles/size'
 import ScreenBackground from '~/components/ScreenBackground'
+import BrandCard from '~/components/settings/BrandCard'
 
 const Settings = ({ navigation }) => {
 	const { t } = useTranslation()
@@ -25,7 +22,6 @@ const Settings = ({ navigation }) => {
 	const theme = useTheme()
 	const setSettings = useSetSettings()
 	const setting = useSettings()
-	const songDispatch = useSongDispatch()
 
 	return (
 		<ScreenBackground>
@@ -37,25 +33,7 @@ const Settings = ({ navigation }) => {
 			]}
 		>
 			<Text style={[mainStyles.mainTitle(theme), { alignSelf: 'flex-start', marginHorizontal: 0, marginTop: 30, marginBottom: 20 }]}>{t('tabs.Settings')}</Text>
-			<View style={settingStyles.optionsContainer(theme)}>
-				<Pressable
-					onPress={() => Player.tuktuktuk(songDispatch)}
-					style={({ pressed }) => ([mainStyles.opacity({ pressed }), {
-						flexDirection: 'row',
-						alignItems: 'center',
-						width: '100%',
-						paddingVertical: 10,
-					}])}>
-					<Image
-						source={require('~/../assets/icon.png')}
-						style={[mainStyles.icon, { borderRadius: 12 }]}
-					/>
-					<View style={{ flexDirection: 'column', justifyContent: 'center' }}>
-						<Text style={{ color: theme.primaryTouch, fontSize: size.text.large, fontFamily: 'display', letterSpacing: 4, marginBottom: 0 }}>VICI</Text>
-						<Text style={{ color: theme.secondaryText, fontSize: size.text.small }}>Version {pkg.version}</Text>
-					</View>
-				</Pressable>
-			</View>
+			<BrandCard />
 			<View style={settingStyles.optionsContainer(theme)}>
 				<ButtonMenu
 					title={t("Connect")}

@@ -126,10 +126,6 @@ export const loadSong = async (config, queue, index) => {
 }
 
 export const unloadSong = async () => { }
-export const tuktuktuk = async (songDispatch) => {
-	return getPlayer().tuktuktuk(songDispatch)
-}
-
 export const setIndex = async (config, songDispatch, queue, index) => {
 	if (queue && index >= 0 && index < queue.length) {
 		if (global.song) global.song = { ...global.song, index, songInfo: queue[index] }
@@ -207,7 +203,6 @@ export default {
 	getVolume,
 	setRepeat,
 	unloadSong,
-	tuktuktuk,
 	updateVolume,
 	updateTime,
 	isVolumeSupported,

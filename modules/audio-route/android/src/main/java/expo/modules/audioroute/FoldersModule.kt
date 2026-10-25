@@ -75,6 +75,10 @@ class FoldersModule : Module() {
       target.toString()
     }
 
+    AsyncFunction("dirs") { dirUri: String ->
+      Documents.children(resolver, Uri.parse(dirUri)).filter { it["isDir"] == true }
+    }
+
     AsyncFunction("list") { dirUri: String ->
       Documents.children(resolver, Uri.parse(dirUri)).filter { it["isDir"] == false && it["name"] != ".nomedia" }
     }

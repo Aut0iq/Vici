@@ -49,6 +49,10 @@ export const downloadedCount = () => 0
 
 export const isCacheFolderSupported = false
 
+export const loadServerAliases = async () => ({ map: {}, checked: {} })
+
+export const resolveFolderCache = (name) => name
+
 export const readAllJsonCache = async () => {
 	const cache = await window.caches.open('api')
 	const result = []

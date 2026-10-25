@@ -296,6 +296,7 @@
     "Offline description": "Cached music plays without a connection. Keep the app open while a large download is running.",
     "Folder unavailable": "Folder unavailable",
     "Downloading songs": "Downloading",
+    "Songs from another address of this server are connected": "Songs from another address of this server are connected",
     "Cache folder": "Cache folder",
     "App storage": "App storage",
     "Keep in app storage": "Keep in app storage",

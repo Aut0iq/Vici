@@ -9,6 +9,7 @@ import {
 	isFolderGranted,
 	isFolderSupported,
 	listFolder,
+	listSubfolders,
 	prepareFolder,
 	releaseFolder,
 	removeFromFolder,
@@ -335,6 +336,96 @@ export const initCacheSong = async () => {
 	global.listCacheSong = await getListCacheSong() || []
 	await moveOldFolderBack()
 	await pruneDownloads()
+}
+
+const ALIASES_KEY = 'serverAliases'
+const SAMPLE_SIZE = 3
+
+let aliases = { map: {}, checked: {} }
+
+export const loadServerAliases = async () => {
+	try {
+		const saved = JSON.parse(await AsyncStorage.getItem(ALIASES_KEY)) || {}
+		aliases = { map: saved.map || {}, checked: saved.checked || {} }
+	} catch {
+		aliases = { map: {}, checked: {} }
+	}
+	return aliases
+}
+
+export const getServerAliases = () => aliases
+
+export const saveServerAliases = async (value) => {
+	aliases = value
+	await AsyncStorage.setItem(ALIASES_KEY, JSON.stringify(value))
+}
+
+export const resolveFolderCache = (name) => aliases.map[name] || name
+
+const cacheRoot = () => `${FileSystem.documentDirectory}/cache/`
+
+const songIdOf = (name) => name.split('.')[0]
+
+export const listAddressData = async () => {
+	const result = {}
+	const add = (name, ids) => {
+		const entry = result[name] || (result[name] = { ids: [], count: 0 })
+		entry.count += ids.length
+		for (const id of ids) if (entry.ids.length < SAMPLE_SIZE && !entry.ids.includes(id)) entry.ids.push(id)
+	}
+	const keys = await AsyncStorage.getAllKeys().catch(() => [])
+	for (const key of keys.filter((item) => item.startsWith('downloads.'))) {
+		const saved = await AsyncStorage.getItem(key).then((value) => JSON.parse(value) || {}).catch(() => ({}))
+		add(key.slice('downloads.'.length), Object.keys(saved))
+	}
+	for (const name of await FileSystem.readDirectoryAsync(cacheRoot()).catch(() => [])) {
+		const files = await FileSystem.readDirectoryAsync(`${cacheRoot()}${name}/songs/`).catch(() => [])
+		add(name, files.filter((file) => !file.endsWith('.part')).map(songIdOf))
+	}
+	if (folder.treeUri) {
+		const rootUri = await findFolder(folder.treeUri, [FOLDER_ROOT]).catch(() => null)
+		for (const dir of rootUri ? await listSubfolders(rootUri).catch(() => []) : []) {
+			const files = await listFolder(dir.uri).catch(() => [])
+			add(dir.name, files.map((file) => songIdOf(file.name)))
+		}
+	}
+	return result
+}
+
+const mergeJsonKey = async (fromKey, toKey) => {
+	const from = await AsyncStorage.getItem(fromKey).then((value) => JSON.parse(value)).catch(() => null)
+	if (!from) return
+	const to = await AsyncStorage.getItem(toKey).then((value) => JSON.parse(value) || {}).catch(() => ({}))
+	await AsyncStorage.setItem(toKey, JSON.stringify({ ...from, ...to }))
+	await AsyncStorage.removeItem(fromKey)
+}
+
+export const moveAddressData = async (fromName, toName) => {
+	await mergeJsonKey(`downloads.${fromName}`, `downloads.${toName}`)
+	await mergeJsonKey(`offline.albums.${fromName}`, `offline.albums.${toName}`)
+
+	const fromDir = `${cacheRoot()}${fromName}/songs/`
+	const toDir = `${cacheRoot()}${toName}/songs/`
+	const files = await FileSystem.readDirectoryAsync(fromDir).catch(() => [])
+	if (files.length) await FileSystem.makeDirectoryAsync(toDir, { intermediates: true }).catch(() => { })
+	for (const file of files) {
+		await FileSystem.moveAsync({ from: `${fromDir}${file}`, to: `${toDir}${file}` })
+			.catch((error) => logger.warn('moveAddressData', `${file}: ${error?.message || error}`))
+	}
+	await FileSystem.deleteAsync(`${cacheRoot()}${fromName}`, { idempotent: true }).catch(() => { })
+
+	if (folder.treeUri) {
+		const fromUri = await findFolder(folder.treeUri, [FOLDER_ROOT, fromName]).catch(() => null)
+		if (fromUri) {
+			const toUri = await prepareFolder(folder.treeUri, [FOLDER_ROOT, toName], true)
+			for (const file of await listFolder(fromUri).catch(() => [])) {
+				await storeInFolder(file.uri, toUri, file.name)
+					.then(() => removeFromFolder(file.uri))
+					.catch((error) => logger.warn('moveAddressData', `${file.name}: ${error?.message || error}`))
+			}
+			await removeFromFolder(fromUri)
+		}
+	}
 }
 
 export const clearCache = async () => {

@@ -286,6 +286,7 @@
     "Offline description": "Музыка из кэша играет без сети. Пока идёт большая загрузка, держите приложение открытым.",
     "Folder unavailable": "Папка недоступна",
     "Downloading songs": "Скачивание",
+    "Songs from another address of this server are connected": "Подключены треки с другого адреса этого сервера",
     "Cache folder": "Папка для кэша",
     "App storage": "Память приложения",
     "Keep in app storage": "Хранить кэш в памяти приложения",

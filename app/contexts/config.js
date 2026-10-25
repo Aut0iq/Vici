@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { initCacheSong } from '~/utils/cache'
+import { initCacheSong, loadServerAliases, resolveFolderCache } from '~/utils/cache'
 import { resetOfflineIndex } from '~/utils/offlineLibrary'
+import { mergeAddresses } from '~/utils/serverMerge'
+import logger from '~/utils/logger'
 import React from 'react'
 
 const OFFLINE_KEY = 'offlineMode'
@@ -30,6 +32,7 @@ export const ConfigProvider = ({ children }) => {
 		Promise.all([
 			getConfig(),
 			AsyncStorage.getItem(OFFLINE_KEY).catch(() => null),
+			loadServerAliases(),
 		]).then(([data, savedOffline]) => {
 			global.offlineMode = savedOffline === 'true'
 			setOffline(global.offlineMode)
@@ -39,10 +42,12 @@ export const ConfigProvider = ({ children }) => {
 
 	React.useEffect(() => {
 		if (!config.url) return
-		const folderCache = config.url.replace(/[^a-zA-Z0-9]/g, '_')
-		global.config = { ...config, folderCache }
-		initCacheSong()
+		const address = config.url.replace(/[^a-zA-Z0-9]/g, '_')
+		global.config = { ...config, folderCache: resolveFolderCache(address) }
 		global.songsDownloading = []
+		initCacheSong()
+			.then(() => mergeAddresses(config, address))
+			.catch((error) => logger.warn('Server', `Cache setup failed: ${error?.message || error}`))
 	}, [config])
 
 	const changeOffline = React.useCallback((value) => {

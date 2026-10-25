@@ -135,11 +135,18 @@ const Settings = ({ navigation }) => {
 						onPress={() => navigation.navigate('Settings/Logs')}
 					/>
 					{Platform.OS !== 'web' && (
-						<ButtonMenu
-							title="Coda"
-							icon="cloud-download"
-							onPress={() => navigation.navigate('Settings/Coda')}
-						/>
+						<>
+							<ButtonMenu
+								title="Coda"
+								icon="cloud-download"
+								onPress={() => navigation.navigate('Settings/Coda')}
+							/>
+							<ButtonMenu
+								title={t('Import')}
+								icon="upload"
+								onPress={() => navigation.navigate('Settings/Import')}
+							/>
+						</>
 					)}
 					<ButtonMenu
 						title={t("Informations")}

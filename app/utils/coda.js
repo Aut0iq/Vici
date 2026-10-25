@@ -57,11 +57,16 @@ const request = async (coda, path, body = null) => {
 
 export const codaInfo = (coda) => request(coda, '/api/info')
 
-export const codaFind = async (coda, query) => {
+export const codaSearch = async (coda, query) => {
 	const json = await request(coda, `/api/find?q=${encodeURIComponent(query)}`)
+	return { tracks: json?.tracks || [], albums: json?.albums || [] }
+}
+
+export const codaFind = async (coda, query) => {
+	const json = await codaSearch(coda, query)
 	return {
-		tracks: (json?.tracks || []).filter((track) => !track.owned),
-		albums: (json?.albums || []).filter((album) => !album.owned),
+		tracks: json.tracks.filter((track) => !track.owned),
+		albums: json.albums.filter((album) => !album.owned),
 	}
 }
 

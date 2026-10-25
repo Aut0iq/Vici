@@ -38,6 +38,7 @@ import InformationsSettings from '~/screens/Settings/Informations'
 import LanguageSettings from '~/screens/Settings/Language'
 import LastFmSettings from '~/screens/Settings/LastFm'
 import CodaSettings from '~/screens/Settings/Coda'
+import ImportSettings from '~/screens/Settings/Import'
 import LogsSettings from '~/screens/Settings/Logs'
 import PlayerSettings from '~/screens/Settings/Player'
 import PlaylistsSettings from '~/screens/Settings/Playlists'
@@ -71,6 +72,7 @@ const bg = Object.fromEntries(Object.entries({
 	LanguageSettings,
 	LastFmSettings,
 	CodaSettings,
+	ImportSettings,
 	LogsSettings,
 	PlayerSettings,
 	Playlist,
@@ -245,6 +247,7 @@ export const SettingsStack = () => {
 			<Stack.Screen name="Settings/Language" component={bg.LanguageSettings} />
 			<Stack.Screen name="Settings/LastFm" component={bg.LastFmSettings} />
 			<Stack.Screen name="Settings/Coda" component={bg.CodaSettings} />
+			<Stack.Screen name="Settings/Import" component={bg.ImportSettings} />
 			<Stack.Screen name="Settings/Logs" component={bg.LogsSettings} />
 		</Stack.Navigator>
 	)

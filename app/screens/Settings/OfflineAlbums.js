@@ -3,6 +3,7 @@ import { View, Pressable, ActivityIndicator, StyleSheet } from 'react-native'
 import { LegendList } from '@legendapp/list'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
+import { useRoute } from '@react-navigation/native'
 import Icon from 'react-native-vector-icons/FontAwesome'
 
 import Text from '~/components/Text'
@@ -11,6 +12,8 @@ import { useTheme } from '~/contexts/theme'
 import { getApiNetworkFirst } from '~/utils/api'
 import { confirmAlert } from '~/utils/alert'
 import { albumStatus, cacheAlbum, removeAlbum, useOffline } from '~/utils/offline'
+import { downloadSongs, isAlbumQueued, useDownloads } from '~/utils/download'
+import { downloadedCount } from '~/utils/cache'
 import { urlCover } from '~/utils/url'
 import Header from '~/components/Header'
 import ImageError from '~/components/ImageError'
@@ -60,6 +63,9 @@ const OfflineAlbums = () => {
 	const theme = useTheme()
 	const config = useConfig()
 	const offline = useOffline()
+	const downloads = useDownloads()
+	const route = useRoute()
+	const isDownload = route.params?.mode === 'download'
 	const [albums, setAlbums] = React.useState([])
 	const [offset, setOffset] = React.useState(0)
 	const [isLoading, setIsLoading] = React.useState(true)
@@ -75,7 +81,24 @@ const OfflineAlbums = () => {
 			.finally(() => setIsLoading(false))
 	}, [offset])
 
+	const statusOf = (album) => {
+		if (!isDownload) return albumStatus(album.id)
+		const count = downloadedCount(album.id)
+		return count ? { total: Math.max(album.songCount || 0, count), cached: count } : null
+	}
+
+	const download = (album, status) => {
+		if (status && status.cached === status.total) {
+			confirmAlert(album.name, t('This album is already downloaded'), () => { })
+			return
+		}
+		getApiNetworkFirst(config, 'getAlbum', { id: album.id })
+			.then((json) => downloadSongs(config, (json?.album?.song || []).map((song) => ({ ...song, albumId: album.id })), t))
+			.catch((error) => logger.error('OfflineAlbums', `${album.name}: ${error?.message || error}`))
+	}
+
 	const press = (album, status) => {
+		if (isDownload) return download(album, status)
 		if (status && status.cached === status.total) {
 			confirmAlert(album.name, t('Remove this album from the offline cache?'), () => removeAlbum(config, album.id))
 			return
@@ -85,12 +108,15 @@ const OfflineAlbums = () => {
 	}
 
 	const renderItem = ({ item }) => {
-		const status = albumStatus(item.id)
+		const status = statusOf(item)
+		const isBusy = isDownload
+			? downloads.running && isAlbumQueued(item.id)
+			: offline.running && Boolean(status) && status.cached < status.total
 		return (
 			<AlbumRow
 				album={item}
 				status={status}
-				isBusy={offline.running && Boolean(status) && status.cached < status.total}
+				isBusy={isBusy}
 				onPress={() => press(item, status)}
 			/>
 		)
@@ -101,7 +127,7 @@ const OfflineAlbums = () => {
 			style={mainStyles.mainContainer(theme)}
 			contentContainerStyle={mainStyles.contentMainContainer(insets)}
 			data={albums}
-			extraData={offline}
+			extraData={isDownload ? downloads : offline}
 			keyExtractor={(item) => item.id}
 			renderItem={renderItem}
 			estimatedItemSize={80}
@@ -111,8 +137,10 @@ const OfflineAlbums = () => {
 			onEndReachedThreshold={0.5}
 			ListHeaderComponent={(
 				<>
-					<Header title={t('Albums for offline')} />
-					<Text style={styles.hint(theme)}>{t('Tap an album to keep it on the phone. Tap a saved album to remove it.')}</Text>
+					<Header title={t(isDownload ? 'Download albums' : 'Cache albums')} />
+					<Text style={styles.hint(theme)}>
+						{t(isDownload ? 'Tap an album to save it to the download folder as mp3 files.' : 'Tap an album to keep it on the phone. Tap a saved album to remove it.')}
+					</Text>
 				</>
 			)}
 			ListFooterComponent={isLoading ? <ActivityIndicator size="small" color={theme.primaryTouch} style={{ margin: 20 }} /> : null}

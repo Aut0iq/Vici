@@ -1,3 +1,4 @@
+import React from 'react'
 import { ToastAndroid } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as FileSystem from 'expo-file-system'
@@ -146,46 +147,111 @@ const saveSong = async (config, song, folder) => {
 	}
 }
 
+const NOTIFY_INTERVAL = 300
+
+const idle = { running: false, total: 0, done: 0, saved: 0, exists: 0, failed: 0 }
+
+let state = idle
+let queue = []
+let generation = 0
+let notifyTimer = null
+const queuedAlbums = new Set()
+const listeners = new Set()
+
+const notify = () => {
+	if (notifyTimer) return
+	notifyTimer = setTimeout(() => {
+		notifyTimer = null
+		listeners.forEach((listener) => listener())
+	}, NOTIFY_INTERVAL)
+}
+
+const albumOf = (song) => song.albumId || song.parent
+
+export const isAlbumQueued = (albumId) => queuedAlbums.has(albumId)
+
+const summary = (t, place) => {
+	if (state.total === 1) {
+		if (state.failed) return t('Could not download')
+		return state.exists ? t('Already downloaded') : `${t('Saved to')} ${place}`
+	}
+	const parts = [`${t('Saved to')} ${place}: ${state.saved}`]
+	if (state.exists) parts.push(`${t('already there')}: ${state.exists}`)
+	if (state.failed) parts.push(`${t('failed')}: ${state.failed}`)
+	return parts.join(', ')
+}
+
+const run = async (config, folder, t, job) => {
+	const place = folder ? folder.path || '/' : `Music/${ROOT}`
+	while (job === generation && queue.length) {
+		const song = queue.shift()
+		const status = getDownloadUri(song.id)
+			? 'exists'
+			: await saveSong(config, song, folder).catch((error) => {
+				logger.error('Download', `${song.title || song.id}: ${error?.message || error}`)
+				return 'failed'
+			})
+		if (job !== generation) return
+		state = { ...state, done: state.done + 1, [status]: state[status] + 1 }
+		notify()
+	}
+	if (job !== generation) return
+	toast(summary(t, place))
+	queuedAlbums.clear()
+	state = { ...state, running: false }
+	notify()
+}
+
 export const downloadSongs = async (config, songs, t) => {
 	const list = (songs || []).filter((song) => song?.id && /^[a-zA-Z0-9-]+$/.test(song.id))
-	if (!list.length) return
+	if (!list.length) return 0
 	if (global.offlineMode) {
 		toast(t('Downloading is not available offline'))
-		return
+		return 0
 	}
 	const folder = await getDownloadFolder()
 	if (folder && !folder.isAvailable) {
 		toast(t('Download folder unavailable'))
-		return
+		return 0
 	}
 	if (!folder && !await canSaveToMusic()) {
 		toast(t('Saving to Music needs Android 10 or newer'))
-		return
-	}
-	const place = folder ? folder.path || '/' : `Music/${ROOT}`
-
-	toast(list.length > 1 ? `${t('Downloading to Music')}: ${list.length}` : t('Downloading to Music'))
-	const count = { saved: 0, exists: 0, failed: 0 }
-	for (const song of list) {
-		if (getDownloadUri(song.id)) {
-			count.exists += 1
-			continue
-		}
-		await saveSong(config, song, folder)
-			.then((status) => { count[status === 'exists' ? 'exists' : 'saved'] += 1 })
-			.catch((error) => {
-				count.failed += 1
-				logger.error('Download', `${song.title || song.id}: ${error?.message || error}`)
-			})
+		return 0
 	}
 
-	if (list.length === 1) {
-		if (count.failed) toast(t('Could not download'))
-		else toast(count.exists ? t('Already downloaded') : `${t('Saved to')} ${place}`)
-		return
+	const queued = new Set(queue.map((song) => song.id))
+	const fresh = list.filter((song) => !queued.has(song.id))
+	if (!fresh.length) return 0
+	fresh.forEach((song) => { if (albumOf(song)) queuedAlbums.add(albumOf(song)) })
+	queue.push(...fresh)
+	toast(fresh.length > 1 ? `${t('Downloading to Music')}: ${fresh.length}` : t('Downloading to Music'))
+	if (state.running) {
+		state = { ...state, total: state.total + fresh.length }
+		notify()
+		return fresh.length
 	}
-	const parts = [`${t('Saved to')} ${place}: ${count.saved}`]
-	if (count.exists) parts.push(`${t('already there')}: ${count.exists}`)
-	if (count.failed) parts.push(`${t('failed')}: ${count.failed}`)
-	toast(parts.join(', '))
+	generation += 1
+	state = { ...idle, running: true, total: fresh.length }
+	notify()
+	run(config, folder, t, generation)
+	return fresh.length
+}
+
+export const stopDownloads = () => {
+	generation += 1
+	queue = []
+	queuedAlbums.clear()
+	state = { ...state, running: false }
+	notify()
+}
+
+export const useDownloads = () => {
+	const [, refresh] = React.useReducer((count) => count + 1, 0)
+
+	React.useEffect(() => {
+		listeners.add(refresh)
+		return () => listeners.delete(refresh)
+	}, [])
+
+	return state
 }

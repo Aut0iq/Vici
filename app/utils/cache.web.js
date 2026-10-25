@@ -45,6 +45,10 @@ export const setJsonCache = async (_cacheName, _key, _json) => {
 
 export const getDownloadedSongs = async () => []
 
+export const downloadedCount = () => 0
+
+export const isCacheFolderSupported = false
+
 export const readAllJsonCache = async () => {
 	const cache = await window.caches.open('api')
 	const result = []

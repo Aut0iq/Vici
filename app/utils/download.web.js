@@ -18,3 +18,10 @@ export const downloadSongs = async (config, songs) => {
 			.catch((error) => logger.error('Download', error?.message || error))
 	}
 }
+
+const idle = { running: false, total: 0, done: 0, saved: 0, exists: 0, failed: 0 }
+
+export const isDownloadFolderSupported = false
+export const useDownloads = () => idle
+export const stopDownloads = () => { }
+export const isAlbumQueued = () => false

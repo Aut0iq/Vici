@@ -1,12 +1,29 @@
 import React from 'react'
-import { View, ScrollView, ActivityIndicator } from 'react-native'
+import { View, ScrollView, ActivityIndicator, Alert } from 'react-native'
 import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 
-import { clearCache, clearSongCache, getStatCache } from '~/utils/cache'
-import { getDownloadFolder, isDownloadFolderSupported, pickDownloadFolder, setDownloadFolder } from '~/utils/download'
+import {
+	changeCacheFolder,
+	clearCache,
+	clearSongCache,
+	getCacheFolder,
+	getDownloadUri,
+	getStatCache,
+	isCacheFolderSupported,
+	pickCacheFolder,
+} from '~/utils/cache'
+import {
+	downloadSongs,
+	getDownloadFolder,
+	isDownloadFolderSupported,
+	pickDownloadFolder,
+	setDownloadFolder,
+	stopDownloads,
+	useDownloads,
+} from '~/utils/download'
 import { confirmAlert } from '~/utils/alert'
 import { cacheSongs, isOfflineSupported, scanLibrary, stopOffline, useOffline } from '~/utils/offline'
 import { useConfig } from '~/contexts/config'
@@ -23,6 +40,7 @@ import size from '~/styles/size'
 import TableItem from '~/components/settings/TableItem'
 
 const GIGABYTE = 1024 * 1024 * 1024
+const MP3_BYTES_PER_SECOND = 40000
 
 const formatSize = (bytes) => {
 	if (bytes === null || bytes === undefined) return '?'
@@ -30,17 +48,38 @@ const formatSize = (bytes) => {
 	return `${Math.round(bytes / (1024 * 1024))} MB`
 }
 
+const ProgressRow = ({ title, done, total, failed, stopTitle, onStop }) => {
+	const { t } = useTranslation()
+	const theme = useTheme()
+	return (
+		<>
+			<View style={settingStyles.optionItem(theme)}>
+				<ActivityIndicator size="small" color={theme.primaryTouch} style={{ marginRight: 12 }} />
+				<Text style={[settingStyles.primaryText(theme), { flex: 1 }]}>{title}</Text>
+				<Text style={{ color: theme.secondaryText, fontSize: size.text.medium }}>
+					{`${done} / ${total}${failed ? ` · ${t('failed')}: ${failed}` : ''}`}
+				</Text>
+			</View>
+			{onStop ? <ButtonMenu title={stopTitle} icon="stop" onPress={onStop} isLast /> : null}
+		</>
+	)
+}
+
 const CacheSettings = () => {
 	const { t } = useTranslation()
 	const navigation = useNavigation()
 	const config = useConfig()
 	const offline = useOffline()
-	const [isScanning, setIsScanning] = React.useState(false)
+	const downloads = useDownloads()
+	const [scanning, setScanning] = React.useState(null)
 	const insets = useSafeAreaInsets()
 	const settings = useSettings()
 	const setSettings = useSetSettings()
 	const theme = useTheme()
 	const [cacheNextSong, setCacheNextSong] = React.useState(settings.cacheNextSong.toString())
+	const [cacheFolder, setCacheFolder] = React.useState(null)
+	const [downloadFolder, setDownloadFolderState] = React.useState(null)
+	const [moving, setMoving] = React.useState(null)
 	const [statCache, setStatCache] = React.useState([
 		{ name: 'Loading...', count: '' },
 	])
@@ -54,59 +93,112 @@ const CacheSettings = () => {
 
 	React.useEffect(() => {
 		getStat()
-	}, [offline.running])
+	}, [offline.running, downloads.running])
 
-	const [folder, setFolder] = React.useState(null)
-
-	const loadFolder = () => {
-		if (!isDownloadFolderSupported) return
-		getDownloadFolder()
-			.then(setFolder)
-			.catch(() => setFolder(null))
+	const loadFolders = () => {
+		if (isCacheFolderSupported) getCacheFolder().then(setCacheFolder).catch(() => setCacheFolder(null))
+		if (isDownloadFolderSupported) getDownloadFolder().then(setDownloadFolderState).catch(() => setDownloadFolderState(null))
 	}
 
-	React.useEffect(loadFolder, [])
+	React.useEffect(loadFolders, [config])
 
-	const folderText = () => {
-		if (!folder) return 'Music/Vici'
+	const folderText = (folder, fallback) => {
+		if (!folder) return fallback
 		if (!folder.isAvailable) return t('Folder unavailable')
 		return [folder.isPrimary ? t('Phone') : t('SD card'), folder.path].filter(Boolean).join('/')
 	}
 
-	const chooseFolder = async () => {
+	const switchCacheFolder = async (treeUri, move) => {
+		setMoving({ done: 0, failed: 0, total: 0 })
+		try {
+			const result = await changeCacheFolder(treeUri, move, setMoving)
+			if (result.failed) Alert.alert(t('Cache folder'), `${t('Not moved')}: ${result.failed}`)
+		} catch (error) {
+			Alert.alert(t('Cache folder'), `${t('Could not use this folder')}: ${error?.message || error}`)
+		} finally {
+			setMoving(null)
+			loadFolders()
+			getStat()
+		}
+	}
+
+	const askMove = (treeUri) => {
+		const count = global.listCacheSong?.length || 0
+		if (!count) return switchCacheFolder(treeUri, false)
+		Alert.alert(
+			t('Cache folder'),
+			`${t('Move cached songs to the new place?')} (${count})`,
+			[
+				{ text: t('Cancel'), style: 'cancel' },
+				{ text: t('Do not move'), onPress: () => switchCacheFolder(treeUri, false) },
+				{ text: t('Move'), onPress: () => switchCacheFolder(treeUri, true) },
+			]
+		)
+	}
+
+	const chooseCacheFolder = async () => {
+		if (moving || offline.running) return
+		const treeUri = await pickCacheFolder().catch(() => null)
+		if (!treeUri || treeUri === cacheFolder?.treeUri) return
+		askMove(treeUri)
+	}
+
+	const chooseDownloadFolder = async () => {
 		const treeUri = await pickDownloadFolder().catch(() => null)
 		if (!treeUri) return
 		await setDownloadFolder(treeUri)
-		loadFolder()
+		loadFolders()
 	}
 
-	const resetFolder = async () => {
+	const resetDownloadFolder = async () => {
 		await setDownloadFolder(null)
-		loadFolder()
+		loadFolders()
 	}
 
-	const downloadEverything = async () => {
-		if (isScanning) return
-		setIsScanning(true)
+	const scan = async (kind, prepare) => {
+		if (scanning) return
+		setScanning(kind)
 		try {
-			const library = await scanLibrary(config)
-			if (!library.missing.length) {
-				confirmAlert(t('Download all music'), t('All music is already cached'), () => { })
-				return
-			}
-			const lines = [
-				`${t('Songs to download')}: ${library.missing.length}`,
-				`${t('Approximate size')}: ${formatSize(library.bytes)}`,
-				`${t('Free space on the phone')}: ${formatSize(library.free)}`,
-			]
-			if (library.free !== null && library.bytes > library.free) lines.push(t('There is not enough free space for all of it'))
-			confirmAlert(t('Download all music'), lines.join('\n'), () => cacheSongs(config, library.songs))
+			await prepare(await scanLibrary(config))
 		} catch (error) {
-			confirmAlert(t('Download all music'), `${t('Could not load the song list')}: ${error?.message || error}`, () => { })
+			confirmAlert(t(kind === 'cache' ? 'Cache all music' : 'Download all music'), `${t('Could not load the song list')}: ${error?.message || error}`, () => { })
 		} finally {
-			setIsScanning(false)
+			setScanning(null)
 		}
 	}
+
+	const cacheEverything = () => scan('cache', (library) => {
+		if (!library.missing.length) {
+			confirmAlert(t('Cache all music'), t('All music is already cached'), () => { })
+			return
+		}
+		const lines = [
+			`${t('Songs to cache')}: ${library.missing.length}`,
+			`${t('Approximate size')}: ${formatSize(library.bytes)}`,
+		]
+		if (!cacheFolder) lines.push(`${t('Free space on the phone')}: ${formatSize(library.free)}`)
+		if (!cacheFolder && library.free !== null && library.bytes > library.free) lines.push(t('There is not enough free space for all of it'))
+		confirmAlert(t('Cache all music'), lines.join('\n'), () => cacheSongs(config, library.songs))
+	})
+
+	const downloadEverything = () => scan('download', (library) => {
+		const missing = library.songs.filter((song) => !getDownloadUri(song.id))
+		if (!missing.length) {
+			confirmAlert(t('Download all music'), t('All music is already downloaded'), () => { })
+			return
+		}
+		const bytes = missing.reduce((sum, song) => sum + (song.duration || 0) * MP3_BYTES_PER_SECOND, 0)
+		const lines = [
+			`${t('Songs to download')}: ${missing.length}`,
+			`${t('Approximate size')}: ${formatSize(bytes)}`,
+			`${t('Where')}: ${folderText(downloadFolder, 'Music/Vici')}`,
+		]
+		if (!downloadFolder || downloadFolder.isPrimary) {
+			lines.push(`${t('Free space on the phone')}: ${formatSize(library.free)}`)
+			if (library.free !== null && bytes > library.free) lines.push(t('There is not enough free space for all of it'))
+		}
+		confirmAlert(t('Download all music'), lines.join('\n'), () => downloadSongs(config, missing, t))
+	})
 
 	React.useEffect(() => {
 		setCacheNextSong(settings.cacheNextSong.toString())
@@ -147,6 +239,54 @@ const CacheSettings = () => {
 					/>
 				</View>
 				<Text style={settingStyles.description(theme)}>{t('settings.cache.Cache next song description')}</Text>
+
+				{isOfflineSupported ? (
+					<>
+						<Text style={settingStyles.titleContainer(theme)}>{t('Cache')}</Text>
+						<View style={[settingStyles.optionsContainer(theme), { marginBottom: 5 }]}>
+							{isCacheFolderSupported ? (
+								<>
+									<ButtonMenu
+										title={t('Cache folder')}
+										icon="folder"
+										endText={folderText(cacheFolder, t('App storage'))}
+										onPress={chooseCacheFolder}
+									/>
+									{cacheFolder && !moving ? (
+										<ButtonMenu title={t('Keep in app storage')} icon="undo" onPress={() => askMove(null)} />
+									) : null}
+									{moving ? (
+										<ProgressRow title={t('Moving songs')} done={moving.done + moving.failed} total={moving.total} />
+									) : null}
+								</>
+							) : null}
+							<ButtonMenu
+								title={t('Cache albums')}
+								icon="folder-open"
+								onPress={() => navigation.navigate('Settings/OfflineAlbums', { mode: 'cache' })}
+							/>
+							<ButtonMenu
+								title={t('Cache all music')}
+								icon="cloud-download"
+								endText={scanning === 'cache' ? t('Counting songs') : ''}
+								onPress={cacheEverything}
+								isLast={!offline.running}
+							/>
+							{offline.running ? (
+								<ProgressRow
+									title={t('Caching')}
+									done={offline.done}
+									total={offline.total}
+									failed={offline.failed}
+									stopTitle={t('Stop caching')}
+									onStop={stopOffline}
+								/>
+							) : null}
+						</View>
+						<Text style={settingStyles.description(theme)}>{t('Cache description')}</Text>
+					</>
+				) : null}
+
 				{isDownloadFolderSupported ? (
 					<>
 						<Text style={settingStyles.titleContainer(theme)}>{t('Downloads')}</Text>
@@ -154,22 +294,39 @@ const CacheSettings = () => {
 							<ButtonMenu
 								title={t('Download folder')}
 								icon="folder"
-								endText={folderText()}
-								onPress={chooseFolder}
-								isLast={!folder}
+								endText={folderText(downloadFolder, 'Music/Vici')}
+								onPress={chooseDownloadFolder}
 							/>
-							{folder ? (
-								<ButtonMenu
-									title={t('Save to Music/Vici')}
-									icon="undo"
-									onPress={resetFolder}
-									isLast
+							{downloadFolder ? (
+								<ButtonMenu title={t('Save to Music/Vici')} icon="undo" onPress={resetDownloadFolder} />
+							) : null}
+							<ButtonMenu
+								title={t('Download albums')}
+								icon="folder-open"
+								onPress={() => navigation.navigate('Settings/OfflineAlbums', { mode: 'download' })}
+							/>
+							<ButtonMenu
+								title={t('Download all music')}
+								icon="download"
+								endText={scanning === 'download' ? t('Counting songs') : ''}
+								onPress={downloadEverything}
+								isLast={!downloads.running}
+							/>
+							{downloads.running ? (
+								<ProgressRow
+									title={t('Downloading songs')}
+									done={downloads.done}
+									total={downloads.total}
+									failed={downloads.failed}
+									stopTitle={t('Stop downloading')}
+									onStop={stopDownloads}
 								/>
 							) : null}
 						</View>
 						<Text style={settingStyles.description(theme)}>{t('Download folder description')}</Text>
 					</>
 				) : null}
+
 				<View style={settingStyles.optionsContainer(theme)}>
 					<ButtonMenu
 						title={t("settings.cache.Clear API cache")}
@@ -197,43 +354,6 @@ const CacheSettings = () => {
 						isLast
 					/>
 				</View>
-				{isOfflineSupported ? (
-					<>
-						<Text style={settingStyles.titleContainer(theme)}>{t('Offline')}</Text>
-						<View style={[settingStyles.optionsContainer(theme), { marginBottom: 5 }]}>
-							<ButtonMenu
-								title={t('Albums for offline')}
-								icon="folder-open"
-								onPress={() => navigation.navigate('Settings/OfflineAlbums')}
-							/>
-							<ButtonMenu
-								title={t('Download all music')}
-								icon="cloud-download"
-								endText={isScanning ? t('Counting songs') : ''}
-								onPress={downloadEverything}
-								isLast={!offline.running}
-							/>
-							{offline.running ? (
-								<>
-									<View style={settingStyles.optionItem(theme)}>
-										<ActivityIndicator size="small" color={theme.primaryTouch} style={{ marginRight: 12 }} />
-										<Text style={[settingStyles.primaryText(theme), { flex: 1 }]}>{t('Downloading')}</Text>
-										<Text style={{ color: theme.secondaryText, fontSize: size.text.medium }}>
-											{`${offline.done} / ${offline.total}${offline.failed ? ` · ${t('failed')}: ${offline.failed}` : ''}`}
-										</Text>
-									</View>
-									<ButtonMenu
-										title={t('Stop downloading')}
-										icon="stop"
-										onPress={stopOffline}
-										isLast
-									/>
-								</>
-							) : null}
-						</View>
-						<Text style={settingStyles.description(theme)}>{t('Offline description')}</Text>
-					</>
-				) : null}
 				<Text style={settingStyles.titleContainer(theme)}>{t('settings.cache.Cache stats')}</Text>
 				<View style={settingStyles.optionsContainer(theme)}>
 					<ListMap

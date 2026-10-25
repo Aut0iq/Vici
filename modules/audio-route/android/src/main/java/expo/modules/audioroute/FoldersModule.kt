@@ -50,6 +50,31 @@ class FoldersModule : Module() {
       dir.toString()
     }
 
+    AsyncFunction("prepare") { treeUri: String, path: List<String>, hidden: Boolean ->
+      var dir = Documents.root(Uri.parse(treeUri))
+      for (name in path) dir = Documents.folder(resolver, dir, name)
+      if (hidden && Documents.child(resolver, dir, ".nomedia") == null) {
+        DocumentsContract.createDocument(resolver, dir, "application/octet-stream", ".nomedia")
+      }
+      dir.toString()
+    }
+
+    AsyncFunction("store") { sourceUri: String, dirUri: String, name: String ->
+      val dir = Uri.parse(dirUri)
+      Documents.child(resolver, dir, name)?.let { DocumentsContract.deleteDocument(resolver, Uri.parse(it["uri"] as String)) }
+      val target = DocumentsContract.createDocument(resolver, dir, "application/octet-stream", name)
+        ?: throw CodedException("ERR_CREATE", "Could not create $name", null)
+      try {
+        val output = resolver.openOutputStream(target, "w")
+          ?: throw CodedException("ERR_WRITE", "Could not write $name", null)
+        output.use { stream -> Documents.open(resolver, sourceUri).use { it.copyTo(stream, 256 * 1024) } }
+      } catch (error: Throwable) {
+        runCatching { DocumentsContract.deleteDocument(resolver, target) }
+        throw error
+      }
+      target.toString()
+    }
+
     AsyncFunction("list") { dirUri: String ->
       Documents.children(resolver, Uri.parse(dirUri)).filter { it["isDir"] == false && it["name"] != ".nomedia" }
     }

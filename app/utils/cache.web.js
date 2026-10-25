@@ -43,7 +43,7 @@ export const getJsonCache = async (cacheName, url) => {
 export const setJsonCache = async (_cacheName, _key, _json) => {
 }
 
-export const isCacheFolderSupported = false
+export const getDownloadedSongs = async () => []
 
 export const readAllJsonCache = async () => {
 	const cache = await window.caches.open('api')

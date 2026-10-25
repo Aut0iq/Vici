@@ -11,7 +11,12 @@ export const canSaveToMusic = async () => {
 	}
 }
 
-export const saveToMusic = (uri, folder, name, mimeType) => {
+export const saveToMusic = (uri, folder, name, mimeType, tags = null) => {
 	if (!MusicLibrary) return Promise.reject(new Error('Saving to Music is not available'))
-	return MusicLibrary.save(uri, folder, name, mimeType)
+	return MusicLibrary.save(uri, folder, name, mimeType, tags)
+}
+
+export const saveToFolder = (treeUri, folders, name, mimeType, uri, tags = null) => {
+	if (!MusicLibrary) return Promise.reject(new Error('Saving to a folder is not available'))
+	return MusicLibrary.saveToFolder(treeUri, folders, name, mimeType, uri, tags)
 }

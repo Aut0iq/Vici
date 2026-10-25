@@ -1,4 +1,4 @@
-import { getCachedSongIds, readAllJsonCache } from '~/utils/cache'
+import { getCachedSongIds, getDownloadedSongs, readAllJsonCache } from '~/utils/cache'
 import logger from '~/utils/logger'
 
 const SONG_KEYS = ['song', 'entry', 'child']
@@ -57,6 +57,9 @@ const load = async () => {
 		return []
 	})
 	for (const json of responses) collect(json, null, lib)
+	for (const song of await getDownloadedSongs().catch(() => [])) {
+		if (song?.id && !lib.songs.has(song.id)) lib.songs.set(song.id, song)
+	}
 	logger.info('Offline', `Library from ${responses.length} saved responses: ${lib.songs.size} songs, ${Date.now() - started} ms`)
 	return lib
 }

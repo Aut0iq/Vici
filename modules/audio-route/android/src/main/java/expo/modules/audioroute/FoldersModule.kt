@@ -1,0 +1,77 @@
+package expo.modules.audioroute
+
+import android.content.ContentResolver
+import android.content.Intent
+import android.net.Uri
+import android.provider.DocumentsContract
+import android.provider.DocumentsContract.Document
+import expo.modules.kotlin.exception.CodedException
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
+import java.io.File
+
+class FoldersModule : Module() {
+  private val resolver: ContentResolver
+    get() = appContext.reactContext?.contentResolver
+      ?: throw CodedException("ERR_NO_CONTEXT", "The app is not ready", null)
+
+  private fun exists(uri: String): Boolean = runCatching {
+    resolver.query(Uri.parse(uri), arrayOf(Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { it.moveToFirst() } ?: false
+  }.getOrDefault(false)
+
+  override fun definition() = ModuleDefinition {
+    Name("Folders")
+
+    AsyncFunction("isGranted") { treeUri: String ->
+      resolver.persistedUriPermissions.any { it.uri.toString() == treeUri && it.isReadPermission && it.isWritePermission }
+    }
+
+    AsyncFunction("release") { treeUri: String ->
+      val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+      runCatching { resolver.releasePersistableUriPermission(Uri.parse(treeUri), flags) }
+      true
+    }
+
+    AsyncFunction("label") { treeUri: String ->
+      val id = DocumentsContract.getTreeDocumentId(Uri.parse(treeUri))
+      mapOf(
+        "isPrimary" to (id.substringBefore(':') == "primary"),
+        "path" to id.substringAfter(':', "")
+      )
+    }
+
+    AsyncFunction("find") { treeUri: String, path: List<String> ->
+      var dir = Documents.root(Uri.parse(treeUri))
+      for (name in path) {
+        val child = Documents.child(resolver, dir, name) ?: return@AsyncFunction null
+        if (child["isDir"] != true) return@AsyncFunction null
+        dir = Uri.parse(child["uri"] as String)
+      }
+      dir.toString()
+    }
+
+    AsyncFunction("list") { dirUri: String ->
+      Documents.children(resolver, Uri.parse(dirUri)).filter { it["isDir"] == false && it["name"] != ".nomedia" }
+    }
+
+    AsyncFunction("copyToFile") { sourceUri: String, targetPath: String ->
+      val target = File(Uri.parse(targetPath).path ?: targetPath)
+      target.parentFile?.mkdirs()
+      try {
+        target.outputStream().use { stream -> Documents.open(resolver, sourceUri).use { it.copyTo(stream, 256 * 1024) } }
+      } catch (error: Throwable) {
+        target.delete()
+        throw error
+      }
+      true
+    }
+
+    AsyncFunction("remove") { uri: String ->
+      runCatching { DocumentsContract.deleteDocument(resolver, Uri.parse(uri)) }.getOrDefault(false)
+    }
+
+    AsyncFunction("existing") { uris: List<String> ->
+      uris.filter { exists(it) }
+    }
+  }
+}

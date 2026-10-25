@@ -1,12 +1,17 @@
 import { ToastAndroid } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as FileSystem from 'expo-file-system'
 
-import { canSaveToMusic, saveToMusic } from '~/../modules/audio-route/library'
-import { getPathSong, isSongCached } from '~/utils/cache'
-import { urlDownload, urlStream } from '~/utils/url'
+import { canSaveToMusic, saveToFolder, saveToMusic } from '~/../modules/audio-route/library'
+import { folderLabel, isFolderGranted, isFolderSupported } from '~/../modules/audio-route/folder'
+import { deleteSongCache, getDownloadUri, registerDownload } from '~/utils/cache'
+import { urlCover, urlStream } from '~/utils/url'
 import logger from '~/utils/logger'
 
 const ROOT = 'Vici'
+const FOLDER_KEY = 'downloadFolder'
+const BITRATE = 320
+const COVER_SIZE = 800
 const MAX_NAME = 80
 const HEADER_BYTES = 16
 const BASE64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -51,7 +56,6 @@ const decode = (base64) => {
 }
 
 const detectType = async (uri) => {
-	if (uri.startsWith('content:')) return null
 	const head = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64, position: 0, length: HEADER_BYTES })
 		.then(decode)
 		.catch(() => [])
@@ -65,50 +69,110 @@ const detectType = async (uri) => {
 	return null
 }
 
-const contentType = (headers) => {
-	const key = Object.keys(headers || {}).find((name) => name.toLowerCase() === 'content-type')
+const header = (headers, name) => {
+	const key = Object.keys(headers || {}).find((item) => item.toLowerCase() === name)
 	return key ? String(headers[key]) : ''
 }
 
-const fetchOriginal = async (config, song) => {
-	const target = `${FileSystem.cacheDirectory}vici-download-${song.id}`
-	for (const url of [urlDownload(config, song.id), urlStream(config, song.id)]) {
-		const result = await FileSystem.downloadAsync(url, target).catch(() => null)
-		const type = contentType(result?.headers)
-		if (result?.status === 200 && !type.includes('json') && !type.includes('xml')) return target
-	}
-	await FileSystem.deleteAsync(target, { idempotent: true }).catch(() => { })
-	throw new Error('The server did not return the file')
+export const isDownloadFolderSupported = isFolderSupported
+
+export const pickDownloadFolder = async () => {
+	const result = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync()
+	return result?.granted ? result.directoryUri : null
 }
 
-const saveSong = async (config, song) => {
-	const isRawCached = global.streamFormat === 'raw' && await isSongCached(config, song.id, 'raw', 0)
-	const source = isRawCached ? getPathSong(song.id, 'raw') : await fetchOriginal(config, song)
+export const getDownloadFolder = async () => {
+	const treeUri = await AsyncStorage.getItem(FOLDER_KEY).catch(() => null)
+	if (!treeUri) return null
+	const [label, isAvailable] = await Promise.all([
+		folderLabel(treeUri).catch(() => null),
+		isFolderGranted(treeUri).catch(() => false),
+	])
+	return { treeUri, isPrimary: label?.isPrimary ?? true, path: label?.path || '', isAvailable }
+}
+
+export const setDownloadFolder = async (treeUri) => {
+	if (treeUri) await AsyncStorage.setItem(FOLDER_KEY, treeUri)
+	else await AsyncStorage.removeItem(FOLDER_KEY)
+}
+
+const fetchAudio = async (config, song, target) => {
+	const result = await FileSystem.downloadAsync(urlStream(config, song.id, 'mp3', BITRATE), target)
+	const type = header(result?.headers, 'content-type')
+	if (result?.status !== 200 || type.includes('json') || type.includes('xml')) {
+		throw new Error(`The server did not return the file (${result?.status})`)
+	}
+}
+
+const fetchCover = async (config, song, target) => {
+	const url = urlCover(config, song, COVER_SIZE)
+	if (!url) return null
+	const result = await FileSystem.downloadAsync(url, target).catch(() => null)
+	return result?.status === 200 && header(result.headers, 'content-type').startsWith('image') ? target : null
+}
+
+const tagsFor = (song, cover) => ({
+	title: song.title || '',
+	artist: song.artist || '',
+	album: song.album || '',
+	albumArtist: song.displayAlbumArtist || song.albumArtist || '',
+	track: song.track ? String(song.track) : '',
+	disc: song.discNumber ? String(song.discNumber) : '',
+	year: song.year ? String(song.year) : '',
+	genre: song.genre || '',
+	cover: cover || '',
+})
+
+const saveSong = async (config, song, folder) => {
+	const audio = `${FileSystem.cacheDirectory}vici-download-${song.id}`
+	const cover = `${FileSystem.cacheDirectory}vici-cover-${song.id}`
 	try {
-		const type = await detectType(source) || (MIME[song.suffix] ? song.suffix : 'mp3')
+		await fetchAudio(config, song, audio)
+		const type = await detectType(audio) || 'mp3'
+		const tags = type === 'mp3' ? tagsFor(song, await fetchCover(config, song, cover)) : null
 		const artist = clean(song.displayAlbumArtist || song.albumArtist || song.artist, 'Unknown artist')
 		const album = clean(song.album, 'Unknown album')
 		const number = song.track ? `${String(song.track).padStart(2, '0')} ` : ''
 		const name = `${clean(`${number}${song.title || song.id}`, song.id)}.${type}`
-		return await saveToMusic(source, `${ROOT}/${artist}/${album}`, name, MIME[type])
+		const saved = folder
+			? await saveToFolder(folder.treeUri, [artist, album], name, MIME[type], audio, tags)
+			: await saveToMusic(audio, `${ROOT}/${artist}/${album}`, name, MIME[type], tags)
+		registerDownload(song, saved.uri)
+		await deleteSongCache(config, song.id, global.streamFormat, global.maxBitRate)
+		return saved.status
 	} finally {
-		if (!isRawCached) await FileSystem.deleteAsync(source, { idempotent: true }).catch(() => { })
+		await FileSystem.deleteAsync(audio, { idempotent: true }).catch(() => { })
+		await FileSystem.deleteAsync(cover, { idempotent: true }).catch(() => { })
 	}
 }
 
 export const downloadSongs = async (config, songs, t) => {
 	const list = (songs || []).filter((song) => song?.id && /^[a-zA-Z0-9-]+$/.test(song.id))
 	if (!list.length) return
-	if (!await canSaveToMusic()) {
+	if (global.offlineMode) {
+		toast(t('Downloading is not available offline'))
+		return
+	}
+	const folder = await getDownloadFolder()
+	if (folder && !folder.isAvailable) {
+		toast(t('Download folder unavailable'))
+		return
+	}
+	if (!folder && !await canSaveToMusic()) {
 		toast(t('Saving to Music needs Android 10 or newer'))
 		return
 	}
+	const place = folder ? folder.path || '/' : `Music/${ROOT}`
 
 	toast(list.length > 1 ? `${t('Downloading to Music')}: ${list.length}` : t('Downloading to Music'))
 	const count = { saved: 0, exists: 0, failed: 0 }
 	for (const song of list) {
-		await saveSong(config, song)
-			.then((result) => { count[result === 'exists' ? 'exists' : 'saved'] += 1 })
+		if (getDownloadUri(song.id)) {
+			count.exists += 1
+			continue
+		}
+		await saveSong(config, song, folder)
+			.then((status) => { count[status === 'exists' ? 'exists' : 'saved'] += 1 })
 			.catch((error) => {
 				count.failed += 1
 				logger.error('Download', `${song.title || song.id}: ${error?.message || error}`)
@@ -117,10 +181,10 @@ export const downloadSongs = async (config, songs, t) => {
 
 	if (list.length === 1) {
 		if (count.failed) toast(t('Could not download'))
-		else toast(count.exists ? t('Already in Music') : `${t('Saved to')} Music/${ROOT}`)
+		else toast(count.exists ? t('Already downloaded') : `${t('Saved to')} ${place}`)
 		return
 	}
-	const parts = [`${t('Saved to')} Music/${ROOT}: ${count.saved}`]
+	const parts = [`${t('Saved to')} ${place}: ${count.saved}`]
 	if (count.exists) parts.push(`${t('already there')}: ${count.exists}`)
 	if (count.failed) parts.push(`${t('failed')}: ${count.failed}`)
 	toast(parts.join(', '))

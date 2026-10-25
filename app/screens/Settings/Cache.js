@@ -1,19 +1,12 @@
 import React from 'react'
-import { View, ScrollView, ActivityIndicator, Alert } from 'react-native'
+import { View, ScrollView, ActivityIndicator } from 'react-native'
 import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 
-import {
-	changeCacheFolder,
-	clearCache,
-	clearSongCache,
-	getCacheFolder,
-	getStatCache,
-	isCacheFolderSupported,
-	pickCacheFolder,
-} from '~/utils/cache'
+import { clearCache, clearSongCache, getStatCache } from '~/utils/cache'
+import { getDownloadFolder, isDownloadFolderSupported, pickDownloadFolder, setDownloadFolder } from '~/utils/download'
 import { confirmAlert } from '~/utils/alert'
 import { cacheSongs, isOfflineSupported, scanLibrary, stopOffline, useOffline } from '~/utils/offline'
 import { useConfig } from '~/contexts/config'
@@ -64,56 +57,32 @@ const CacheSettings = () => {
 	}, [offline.running])
 
 	const [folder, setFolder] = React.useState(null)
-	const [moving, setMoving] = React.useState(null)
 
 	const loadFolder = () => {
-		if (!isCacheFolderSupported) return
-		getCacheFolder()
+		if (!isDownloadFolderSupported) return
+		getDownloadFolder()
 			.then(setFolder)
 			.catch(() => setFolder(null))
 	}
 
-	React.useEffect(loadFolder, [config])
+	React.useEffect(loadFolder, [])
 
 	const folderText = () => {
-		if (!folder) return t('App storage')
+		if (!folder) return 'Music/Vici'
 		if (!folder.isAvailable) return t('Folder unavailable')
-		return `${folder.isPrimary ? t('Phone') : t('SD card')}/${folder.path}`
-	}
-
-	const switchFolder = async (treeUri, move) => {
-		setMoving({ done: 0, failed: 0, total: 0 })
-		try {
-			const result = await changeCacheFolder(treeUri, move, setMoving)
-			if (result.failed) Alert.alert(t('Songs folder'), `${t('Not moved')}: ${result.failed}`)
-		} catch (error) {
-			Alert.alert(t('Songs folder'), `${t('Could not use this folder')}: ${error?.message || error}`)
-		} finally {
-			setMoving(null)
-			loadFolder()
-			getStat()
-		}
-	}
-
-	const askMove = (treeUri) => {
-		const count = global.listCacheSong?.length || 0
-		if (!count) return switchFolder(treeUri, false)
-		Alert.alert(
-			t('Songs folder'),
-			`${t('Move downloaded songs to the new place?')} (${count})`,
-			[
-				{ text: t('Cancel'), style: 'cancel' },
-				{ text: t('Do not move'), onPress: () => switchFolder(treeUri, false) },
-				{ text: t('Move'), onPress: () => switchFolder(treeUri, true) },
-			]
-		)
+		return [folder.isPrimary ? t('Phone') : t('SD card'), folder.path].filter(Boolean).join('/')
 	}
 
 	const chooseFolder = async () => {
-		if (moving) return
-		const treeUri = await pickCacheFolder().catch(() => null)
-		if (!treeUri || treeUri === folder?.treeUri) return
-		askMove(treeUri)
+		const treeUri = await pickDownloadFolder().catch(() => null)
+		if (!treeUri) return
+		await setDownloadFolder(treeUri)
+		loadFolder()
+	}
+
+	const resetFolder = async () => {
+		await setDownloadFolder(null)
+		loadFolder()
 	}
 
 	const downloadEverything = async () => {
@@ -178,35 +147,27 @@ const CacheSettings = () => {
 					/>
 				</View>
 				<Text style={settingStyles.description(theme)}>{t('settings.cache.Cache next song description')}</Text>
-				{isCacheFolderSupported ? (
+				{isDownloadFolderSupported ? (
 					<>
+						<Text style={settingStyles.titleContainer(theme)}>{t('Downloads')}</Text>
 						<View style={[settingStyles.optionsContainer(theme), { marginBottom: 5 }]}>
 							<ButtonMenu
-								title={t('Songs folder')}
+								title={t('Download folder')}
 								icon="folder"
 								endText={folderText()}
 								onPress={chooseFolder}
-								isLast={!folder && !moving}
+								isLast={!folder}
 							/>
-							{folder && !moving ? (
+							{folder ? (
 								<ButtonMenu
-									title={t('Use app storage')}
+									title={t('Save to Music/Vici')}
 									icon="undo"
-									onPress={() => askMove(null)}
+									onPress={resetFolder}
 									isLast
 								/>
 							) : null}
-							{moving ? (
-								<View style={settingStyles.optionItem(theme, true)}>
-									<ActivityIndicator size="small" color={theme.primaryTouch} style={{ marginRight: 12 }} />
-									<Text style={[settingStyles.primaryText(theme), { flex: 1 }]}>{t('Moving songs')}</Text>
-									<Text style={{ color: theme.secondaryText, fontSize: size.text.medium }}>
-										{`${moving.done + moving.failed} / ${moving.total}`}
-									</Text>
-								</View>
-							) : null}
 						</View>
-						<Text style={settingStyles.description(theme)}>{t('Songs folder description')}</Text>
+						<Text style={settingStyles.description(theme)}>{t('Download folder description')}</Text>
 					</>
 				) : null}
 				<View style={settingStyles.optionsContainer(theme)}>

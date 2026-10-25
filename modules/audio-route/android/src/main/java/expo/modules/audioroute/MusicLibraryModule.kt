@@ -1,16 +1,22 @@
 package expo.modules.audioroute
 
+import android.content.ContentUris
 import android.content.ContentValues
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import java.io.File
-import java.io.InputStream
 
 class MusicLibraryModule : Module() {
+  private val context
+    get() = appContext.reactContext ?: throw CodedException("ERR_NO_CONTEXT", "The app is not ready", null)
+
+  private fun result(status: String, uri: Uri) = mapOf("status" to status, "uri" to uri.toString())
+
   override fun definition() = ModuleDefinition {
     Name("MusicLibrary")
 
@@ -18,33 +24,23 @@ class MusicLibraryModule : Module() {
       Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
     }
 
-    AsyncFunction("save") { sourceUri: String, folder: String, name: String, mimeType: String ->
+    AsyncFunction("save") { sourceUri: String, folder: String, name: String, mimeType: String, tags: Map<String, Any?>? ->
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
         throw CodedException("ERR_UNSUPPORTED", "Android 10 or newer is required", null)
       }
-      val context = appContext.reactContext
-        ?: throw CodedException("ERR_NO_CONTEXT", "The app is not ready", null)
       val resolver = context.contentResolver
-      val parsed = Uri.parse(sourceUri)
-      val openSource: () -> InputStream = if (parsed.scheme == "content") {
-        { resolver.openInputStream(parsed) ?: throw CodedException("ERR_NO_FILE", "Nothing to save", null) }
-      } else {
-        val source = File(parsed.path ?: sourceUri)
-        if (!source.isFile) throw CodedException("ERR_NO_FILE", "Nothing to save", null)
-        ({ source.inputStream() })
-      }
-
       val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
       val relativePath = "Music/" + folder.trim('/') + "/"
 
-      val existing = resolver.query(
+      resolver.query(
         collection,
         arrayOf(MediaStore.Audio.Media._ID),
         "${MediaStore.Audio.Media.RELATIVE_PATH} = ? AND ${MediaStore.Audio.Media.DISPLAY_NAME} = ?",
         arrayOf(relativePath, name),
         null
-      )?.use { it.moveToFirst() } ?: false
-      if (existing) return@AsyncFunction "exists"
+      )?.use { cursor ->
+        if (cursor.moveToFirst()) return@AsyncFunction result("exists", ContentUris.withAppendedId(collection, cursor.getLong(0)))
+      }
 
       val values = ContentValues().apply {
         put(MediaStore.Audio.Media.DISPLAY_NAME, name)
@@ -57,7 +53,7 @@ class MusicLibraryModule : Module() {
       try {
         val output = resolver.openOutputStream(target)
           ?: throw CodedException("ERR_WRITE", "Could not open the file for writing", null)
-        output.use { stream -> openSource().use { it.copyTo(stream) } }
+        output.use { stream -> Documents.open(resolver, sourceUri).use { Id3.copy(it, stream, tags) } }
         values.clear()
         values.put(MediaStore.Audio.Media.IS_PENDING, 0)
         resolver.update(target, values, null, null)
@@ -65,7 +61,30 @@ class MusicLibraryModule : Module() {
         resolver.delete(target, null, null)
         throw error
       }
-      "saved"
+      result("saved", target)
+    }
+
+    AsyncFunction("saveToFolder") { treeUri: String, folders: List<String>, name: String, mimeType: String, sourceUri: String, tags: Map<String, Any?>? ->
+      val resolver = context.contentResolver
+      var dir = Documents.root(Uri.parse(treeUri))
+      for (folder in folders) dir = Documents.folder(resolver, dir, folder)
+
+      Documents.child(resolver, dir, name)?.let {
+        return@AsyncFunction result("exists", Uri.parse(it["uri"] as String))
+      }
+
+      val target = DocumentsContract.createDocument(resolver, dir, mimeType, name)
+        ?: throw CodedException("ERR_CREATE", "Could not create $name", null)
+      try {
+        val output = resolver.openOutputStream(target, "w")
+          ?: throw CodedException("ERR_WRITE", "Could not write $name", null)
+        output.use { stream -> Documents.open(resolver, sourceUri).use { Id3.copy(it, stream, tags) } }
+      } catch (error: Throwable) {
+        runCatching { DocumentsContract.deleteDocument(resolver, target) }
+        throw error
+      }
+      Documents.filePath(target)?.let { MediaScannerConnection.scanFile(context, arrayOf(it), arrayOf(mimeType), null) }
+      result("saved", target)
     }
   }
 }

@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as FileSystem from 'expo-file-system'
 
 import { getApi, getApiNetworkFirst } from '~/utils/api'
-import { deleteSongCache } from '~/utils/cache'
+import { deleteSongCache, isAvailableOffline } from '~/utils/cache'
 import { urlStream } from '~/utils/url'
 import LocalPlayer from '~/utils/player/playerLocal'
 import logger from '~/utils/logger'
@@ -53,7 +53,7 @@ const saveAlbums = () => {
 		.catch((error) => logger.warn('Offline', `Album list not saved: ${error?.message || error}`))
 }
 
-const isCached = (id) => Boolean(global.listCacheSong?.includes(`${id}.${global.streamFormat}`))
+const isCached = (id) => isAvailableOffline(id)
 
 const remember = (songs) => {
 	for (const song of songs) {

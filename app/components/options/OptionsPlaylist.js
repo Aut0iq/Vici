@@ -7,6 +7,7 @@ import { useConfig } from '~/contexts/config'
 import { getApi } from '~/utils/api'
 import { urlStream } from '~/utils/url'
 import { downloadSong } from '~/utils/player'
+import { downloadSongs } from '~/utils/download'
 import { useSettings } from '~/contexts/settings'
 import OptionsPopup from '~/components/popup/OptionsPopup'
 
@@ -34,6 +35,15 @@ const OptionsPlaylist = ({ playlist, open, onClose, onRefresh }) => {
 							await downloadSong(urlStream(config, song.id, settings.streamFormat, settings.maxBitRate), song.id)
 						}
 					}
+				},
+				{
+					name: t('Download to Music'),
+					icon: 'download',
+					onPress: () => {
+						refOption.current.close()
+						downloadSongs(config, playlist.entry, t)
+					},
+					hidden: Platform.OS === 'web' || !playlist.entry?.length
 				},
 				{
 					name: t('Edit playlist'),

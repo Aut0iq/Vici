@@ -20,6 +20,7 @@ import {
 	getDownloadFolder,
 	isDownloadFolderSupported,
 	pickDownloadFolder,
+	reindexDownloads,
 	setDownloadFolder,
 	stopDownloads,
 	useDownloads,
@@ -181,7 +182,9 @@ const CacheSettings = () => {
 		confirmAlert(t('Cache all music'), lines.join('\n'), () => cacheSongs(config, library.songs))
 	})
 
-	const downloadEverything = () => scan('download', (library) => {
+	const downloadEverything = () => scan('download', async (library) => {
+		const found = await reindexDownloads(library.songs)
+		if (found) getStat()
 		const missing = library.songs.filter((song) => !getDownloadUri(song.id))
 		if (!missing.length) {
 			confirmAlert(t('Download all music'), t('All music is already downloaded'), () => { })
@@ -189,6 +192,7 @@ const CacheSettings = () => {
 		}
 		const bytes = missing.reduce((sum, song) => sum + (song.duration || 0) * MP3_BYTES_PER_SECOND, 0)
 		const lines = [
+			...(found ? [`${t('Found in the folder')}: ${found}`] : []),
 			`${t('Songs to download')}: ${missing.length}`,
 			`${t('Approximate size')}: ${formatSize(bytes)}`,
 			`${t('Where')}: ${folderText(downloadFolder, 'Music/Vici')}`,

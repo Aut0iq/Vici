@@ -3,9 +3,9 @@ import { ToastAndroid } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as FileSystem from 'expo-file-system'
 
-import { canSaveToMusic, saveToFolder, saveToMusic } from '~/../modules/audio-route/library'
-import { folderLabel, isFolderGranted, isFolderSupported } from '~/../modules/audio-route/folder'
-import { deleteSongCache, getDownloadUri, registerDownload } from '~/utils/cache'
+import { canSaveToMusic, findSaved, listSaved, saveToFolder, saveToMusic } from '~/../modules/audio-route/library'
+import { folderLabel, isFolderGranted, isFolderSupported, listTree } from '~/../modules/audio-route/folder'
+import { deleteSongCache, getDownloadUri, registerDownload, registerDownloads } from '~/utils/cache'
 import { urlCover, urlStream } from '~/utils/url'
 import logger from '~/utils/logger'
 
@@ -124,17 +124,52 @@ const tagsFor = (song, cover) => ({
 	cover: cover || '',
 })
 
+const placeOf = (song) => {
+	const number = song.track ? `${String(song.track).padStart(2, '0')} ` : ''
+	return {
+		artist: clean(song.displayAlbumArtist || song.albumArtist || song.artist, 'Unknown artist'),
+		album: clean(song.album, 'Unknown album'),
+		base: clean(`${number}${song.title || song.id}`, song.id),
+	}
+}
+
+const withoutExtension = (path) => path.replace(/\.[^./]+$/, '')
+
+export const reindexDownloads = async (songs) => {
+	const folder = await getDownloadFolder().catch(() => null)
+	if (folder && !folder.isAvailable) return 0
+	const files = await (folder ? listTree(folder.treeUri) : listSaved(ROOT)).catch((error) => {
+		logger.warn('Downloads', `Download folder not read: ${error?.message || error}`)
+		return []
+	})
+	if (!files.length) return 0
+	const byPath = new Map(files.map((file) => [withoutExtension(file.path), file.uri]))
+	const found = []
+	for (const song of songs || []) {
+		if (!song?.id || getDownloadUri(song.id)) continue
+		const { artist, album, base } = placeOf(song)
+		const uri = byPath.get(`${artist}/${album}/${base}`)
+		if (uri) found.push([song, uri])
+	}
+	const added = registerDownloads(found)
+	if (added) logger.info('Downloads', `Found ${added} songs already in the download folder`)
+	return added
+}
+
 const saveSong = async (config, song, folder) => {
 	const audio = `${FileSystem.cacheDirectory}vici-download-${song.id}`
 	const cover = `${FileSystem.cacheDirectory}vici-cover-${song.id}`
+	const { artist, album, base } = placeOf(song)
+	const existing = await findSaved(folder?.treeUri || null, folder ? [artist, album] : [ROOT, artist, album], base).catch(() => null)
+	if (existing) {
+		registerDownload(song, existing)
+		return 'exists'
+	}
 	try {
 		await fetchAudio(config, song, audio)
 		const type = await detectType(audio) || 'mp3'
 		const tags = type === 'mp3' ? tagsFor(song, await fetchCover(config, song, cover)) : null
-		const artist = clean(song.displayAlbumArtist || song.albumArtist || song.artist, 'Unknown artist')
-		const album = clean(song.album, 'Unknown album')
-		const number = song.track ? `${String(song.track).padStart(2, '0')} ` : ''
-		const name = `${clean(`${number}${song.title || song.id}`, song.id)}.${type}`
+		const name = `${base}.${type}`
 		const saved = folder
 			? await saveToFolder(folder.treeUri, [artist, album], name, MIME[type], audio, tags)
 			: await saveToMusic(audio, `${ROOT}/${artist}/${album}`, name, MIME[type], tags)

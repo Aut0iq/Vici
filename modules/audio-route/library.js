@@ -16,6 +16,16 @@ export const saveToMusic = (uri, folder, name, mimeType, tags = null) => {
 	return MusicLibrary.save(uri, folder, name, mimeType, tags)
 }
 
+export const listSaved = (folder) => {
+	if (!MusicLibrary) return Promise.resolve([])
+	return MusicLibrary.listSaved(folder)
+}
+
+export const findSaved = (treeUri, folders, baseName) => {
+	if (!MusicLibrary) return Promise.resolve(null)
+	return MusicLibrary.findSaved(treeUri, folders, baseName)
+}
+
 export const saveToFolder = (treeUri, folders, name, mimeType, uri, tags = null) => {
 	if (!MusicLibrary) return Promise.reject(new Error('Saving to a folder is not available'))
 	return MusicLibrary.saveToFolder(treeUri, folders, name, mimeType, uri, tags)

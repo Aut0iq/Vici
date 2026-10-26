@@ -2,8 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as FileSystem from 'expo-file-system'
 import logger from '~/utils/logger'
 import {
+	checkUris,
 	copyToFile,
-	existingUris,
 	findFolder,
 	folderLabel,
 	isFolderGranted,
@@ -82,14 +82,21 @@ const loadDownloads = async () => {
 	}
 }
 
+const PRUNE_LIMIT = 0.3
+
 const pruneDownloads = async () => {
 	const entries = Object.entries(downloads)
 	if (!entries.length) return
-	const alive = await existingUris(entries.map(([, item]) => item.uri)).catch(() => null)
-	if (!alive) return
-	const kept = new Set(alive)
-	const missing = entries.filter(([, item]) => !kept.has(item.uri))
+	const states = await checkUris(entries.map(([, item]) => item.uri)).catch(() => null)
+	if (!states) return
+	const missing = entries.filter((_, index) => states[index] === 'no')
+	const unknown = states.filter((state) => state === 'unknown').length
+	if (unknown) logger.warn('Downloads', `Could not check ${unknown} downloaded files, keeping them`)
 	if (!missing.length) return
+	if (missing.length > 10 && missing.length > entries.length * PRUNE_LIMIT) {
+		logger.warn('Downloads', `${missing.length} of ${entries.length} downloaded files look missing, the storage may be unavailable, keeping the list`)
+		return
+	}
 	for (const [id] of missing) delete downloads[id]
 	saveDownloads()
 	logger.info('Downloads', `Removed ${missing.length} songs whose files were deleted`)
@@ -99,6 +106,27 @@ export const registerDownload = (song, uri) => {
 	if (!song?.id || !uri) return
 	downloads[song.id] = { uri, song }
 	saveDownloads()
+}
+
+export const registerDownloads = (entries) => {
+	let added = 0
+	for (const [song, uri] of entries) {
+		if (!song?.id || !uri || downloads[song.id]) continue
+		downloads[song.id] = { uri, song }
+		added += 1
+	}
+	if (added) saveDownloads()
+	return added
+}
+
+const isTreeInUse = async (treeUri) => {
+	const downloadFolder = await AsyncStorage.getItem('downloadFolder').catch(() => null)
+	return treeUri === downloadFolder || treeUri === folder.treeUri
+}
+
+const releaseUnused = async (treeUri) => {
+	if (!treeUri || await isTreeInUse(treeUri)) return
+	await releaseFolder(treeUri).catch(() => { })
 }
 
 export const getDownloadUri = (songId) => downloads[songId]?.uri || null
@@ -267,9 +295,8 @@ export const changeCacheFolder = async (treeUri, move, onProgress = () => { }) =
 
 	if (treeUri) await AsyncStorage.setItem(FOLDER_KEY, treeUri)
 	else await AsyncStorage.removeItem(FOLDER_KEY)
-	if (source.treeUri && source.treeUri !== treeUri) await releaseFolder(source.treeUri).catch(() => { })
-
 	folder = target
+	if (source.treeUri && source.treeUri !== treeUri) await releaseUnused(source.treeUri)
 	if (!target.dirUri) await FileSystem.makeDirectoryAsync(getPathDir(), { intermediates: true }).catch(() => { })
 	global.listCacheSong = await getListCacheSong() || []
 	return progress
@@ -297,7 +324,7 @@ const moveOldFolderBack = async () => {
 				await removeFromFolder(dirUri)
 				logger.info('initCacheSong', `Moved ${moved} cached songs from the old song folder`)
 			}
-			if (treeUri !== folder.treeUri) await releaseFolder(treeUri)
+			await releaseUnused(treeUri)
 		}
 		await AsyncStorage.removeItem(OLD_FOLDER_KEY)
 	} catch (error) {

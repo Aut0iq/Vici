@@ -9,15 +9,30 @@ import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
+import java.io.FileNotFoundException
 
 class FoldersModule : Module() {
   private val resolver: ContentResolver
     get() = appContext.reactContext?.contentResolver
       ?: throw CodedException("ERR_NO_CONTEXT", "The app is not ready", null)
 
-  private fun exists(uri: String): Boolean = runCatching {
-    resolver.query(Uri.parse(uri), arrayOf(Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { it.moveToFirst() } ?: false
-  }.getOrDefault(false)
+  private fun state(uri: String): String = try {
+    resolver.query(Uri.parse(uri), arrayOf(Document.COLUMN_DISPLAY_NAME), null, null, null).use { cursor ->
+      when {
+        cursor == null -> "unknown"
+        cursor.moveToFirst() -> "yes"
+        else -> "no"
+      }
+    }
+  } catch (error: SecurityException) {
+    "unknown"
+  } catch (error: FileNotFoundException) {
+    "no"
+  } catch (error: IllegalArgumentException) {
+    "no"
+  } catch (error: Throwable) {
+    "unknown"
+  }
 
   override fun definition() = ModuleDefinition {
     Name("Folders")
@@ -99,8 +114,24 @@ class FoldersModule : Module() {
       runCatching { DocumentsContract.deleteDocument(resolver, Uri.parse(uri)) }.getOrDefault(false)
     }
 
-    AsyncFunction("existing") { uris: List<String> ->
-      uris.filter { exists(it) }
+    AsyncFunction("check") { uris: List<String> ->
+      uris.map { state(it) }
+    }
+
+    AsyncFunction("tree") { treeUri: String ->
+      val result = mutableListOf<Map<String, String>>()
+      val queue = ArrayDeque<Pair<Uri, String>>()
+      queue.add(Documents.root(Uri.parse(treeUri)) to "")
+      while (queue.isNotEmpty()) {
+        val (dir, prefix) = queue.removeFirst()
+        for (child in Documents.children(resolver, dir)) {
+          val name = child["name"] as String
+          val path = if (prefix.isEmpty()) name else "$prefix/$name"
+          if (child["isDir"] == true) queue.add(Uri.parse(child["uri"] as String) to path)
+          else result.add(mapOf("path" to path, "uri" to child["uri"] as String))
+        }
+      }
+      result
     }
   }
 }

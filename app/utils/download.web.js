@@ -25,3 +25,4 @@ export const isDownloadFolderSupported = false
 export const useDownloads = () => idle
 export const stopDownloads = () => { }
 export const isAlbumQueued = () => false
+export const reindexDownloads = async () => 0

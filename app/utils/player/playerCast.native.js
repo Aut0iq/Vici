@@ -7,6 +7,7 @@ import { useRemote } from '~/contexts/remote/use'
 import { useSong } from '~/contexts/song/use'
 import logger from '~/utils/logger'
 import State from '~/utils/playerState'
+import { remainingTracks } from '~/utils/tools'
 
 const initPlayer = async (_songDispatch) => { }
 
@@ -51,8 +52,9 @@ const useEvent = (_song, songDispatch, nextSong) => {
 			getApi(global.config, 'scrobble', { id: global.song.songInfo.id, submission: true })
 				.catch(() => { })
 			if (global.song.actionEndOfSong === 'repeat') {
-				client.seek(0)
-			} else if (!global.repeatQueue && global.song.index === global.song.queue.length - 1) {
+				loadSong(global.config, global.song.queue, global.song.index)
+					.catch((error) => logger.error('RemotePlayer', `Repeat failed: ${error?.message || error}`))
+			} else if (!global.repeatQueue && remainingTracks(global.song) <= 0) {
 				client.stop()
 			} else nextSong(global.config, global.song, songDispatch)
 		}))

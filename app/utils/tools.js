@@ -23,6 +23,14 @@ export const prevRandomIndex = () => {
 	else return global.song.randomIndex[index - 1]
 }
 
+export const remainingTracks = (song) => {
+	if (song.actionEndOfSong === 'random' && song.randomIndex?.length) {
+		const position = song.randomIndex.indexOf(song.index)
+		if (position !== -1) return song.randomIndex.length - 1 - position
+	}
+	return song.queue.length - 1 - song.index
+}
+
 export const neighborTracks = (song, ahead = 2, behind = 1) => {
 	const queue = song?.queue
 	if (!queue?.length || queue.length < 2) return []

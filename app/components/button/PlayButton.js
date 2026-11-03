@@ -43,8 +43,8 @@ const PlayButton = ({ style = {}, size, color }) => {
 		if (!song.isSongLoad) {
 			Player.playSong(config, songDispatch, song.queue, song.index)
 		} else if (song.state === Player.State.Error) {
-			Player.reload()
-		} if (song.state === Player.State.Playing) {
+			Player.reload().then(() => Player.resumeSong())
+		} else if (song.state === Player.State.Playing) {
 			Player.pauseSong()
 		} else {
 			Player.resumeSong()

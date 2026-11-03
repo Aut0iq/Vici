@@ -6,7 +6,7 @@ import Player from '~/utils/player'
 import { getApi } from '~/utils/api'
 import logger from '~/utils/logger'
 import State from '~/utils/playerState'
-import { queueWithout } from '~/utils/tools'
+import { queueWithout, remainingTracks } from '~/utils/tools'
 import { isForeground } from '~/utils/foreground'
 import { SongContext, SongDispatchContext, LiveSongContext, SongFreezeContext } from '~/contexts/song/context'
 
@@ -62,14 +62,6 @@ export const SongProvider = ({ children }) => {
 
 const ENDLESS_BATCH = 50
 const ENDLESS_THRESHOLD = 5
-
-const remainingTracks = (song) => {
-	if (song.actionEndOfSong === 'random' && song.randomIndex?.length) {
-		const position = song.randomIndex.indexOf(song.index)
-		if (position !== -1) return song.randomIndex.length - 1 - position
-	}
-	return song.queue.length - 1 - song.index
-}
 
 const useEndlessQueue = (song, dispatch) => {
 	const loading = React.useRef(false)
@@ -210,12 +202,16 @@ export const songReducer = (state, action) => {
 			}
 
 			const inserted = (action.index === null || action.index >= state.queue.length) ? newQueue.length - 1 : action.index
+			const index = (typeof action.index === 'number' && state.index >= action.index) ? state.index + 1 : state.index
+			const randomIndex = (state.randomIndex || []).map((i) => (i >= inserted ? i + 1 : i))
+			if (randomIndex.length) {
+				const position = typeof action.index === 'number' ? randomIndex.indexOf(index) : -1
+				randomIndex.splice(position === -1 ? randomIndex.length : position + 1, 0, inserted)
+			}
 			return newSong(state, {
 				queue: newQueue,
-				index: (typeof action.index === 'number' && state.index >= action.index) ? state.index + 1 : state.index,
-				randomIndex: state.randomIndex?.length
-					? [...state.randomIndex.map((i) => (i >= inserted ? i + 1 : i)), inserted]
-					: [],
+				index,
+				randomIndex,
 			}, true)
 		}
 		case 'setRating': {

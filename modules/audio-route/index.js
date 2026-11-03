@@ -24,6 +24,12 @@ export const isIgnoringBatteryOptimizations = () => callBoolean('isIgnoringBatte
 
 export const openBatteryOptimizationSettings = () => callBoolean('openBatteryOptimizationSettings')
 
+export const setPlayOnConnect = (enabled) => {
+	try {
+		AudioRoute?.setPlayOnConnect(Boolean(enabled))
+	} catch { }
+}
+
 export const addDeviceConnectedListener = (listener) => {
 	if (!AudioRoute) return () => { }
 	const subscription = AudioRoute.addListener('onDeviceConnected', listener)

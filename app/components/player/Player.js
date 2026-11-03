@@ -3,15 +3,14 @@ import { useWindowDimensions, Linking } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
 import { useSettings, useSetSettings, useSettingsReady } from '~/contexts/settings'
-import { useLiveSong, useSongDispatch, useSongFreeze } from '~/contexts/song'
+import { useLiveSong, useSongFreeze } from '~/contexts/song'
 import { SongContext } from '~/contexts/song/context'
 import { useConfig } from '~/contexts/config'
 import { updateWidget } from '~/widget'
-import { addDeviceConnectedListener, isExternalConnected } from '~/../modules/audio-route'
+import { addDeviceConnectedListener, isExternalConnected, setPlayOnConnect } from '~/../modules/audio-route'
+import { resumeOnConnect } from '~/services/headphones'
 import { confirmAlert } from '~/utils/alert'
 import { parseCodaLink } from '~/utils/coda'
-import logger from '~/utils/logger'
-import PlayerUtils from '~/utils/player'
 import useIsDesktop from '~/utils/useIsDesktop'
 import useSettled from '~/utils/useSettled'
 import BoxDesktopPlayer from '~/components/player/BoxDesktopPlayer'
@@ -21,7 +20,6 @@ import FullScreenPlayer from '~/components/player/FullScreenPlayer'
 
 const Player = ({ state }) => {
 	const song = useLiveSong()
-	const songDispatch = useSongDispatch()
 	const setFrozen = useSongFreeze()
 	const settings = useSettings()
 	const setSettings = useSetSettings()
@@ -62,18 +60,16 @@ ${coda.url}`,
 	}, [codaLink, settingsReady])
 
 	React.useEffect(() => {
+		if (settingsReady) setPlayOnConnect(settings.playOnHeadphonesConnect)
+	}, [settingsReady, settings.playOnHeadphonesConnect])
+
+	React.useEffect(() => {
 		if (!settings.playOnHeadphonesConnect || global.viciAutoPlayChecked) return
 		global.viciAutoPlayChecked = true
 		let cancelled = false
 		isExternalConnected().then((connected) => {
 			if (!connected || cancelled) return
-			setTimeout(() => {
-				const current = global.song
-				if (!current?.queue?.length || current.state === PlayerUtils.State.Playing) return
-				logger.info('Player', 'Headphones already connected on start, resuming')
-				if (current.isSongLoad) PlayerUtils.resumeSong()
-				else PlayerUtils.playSong(global.config || config, songDispatch, current.queue, current.index)
-			}, 1500)
+			setTimeout(() => resumeOnConnect('already connected on start'), 1500)
 		})
 		return () => { cancelled = true }
 	}, [settings.playOnHeadphonesConnect])
@@ -81,14 +77,7 @@ ${coda.url}`,
 	React.useEffect(() => {
 		if (!settings.playOnHeadphonesConnect) return
 		return addDeviceConnectedListener(({ type }) => {
-			const current = global.song
-			if (!current?.queue?.length || current.state === PlayerUtils.State.Playing) return
-			logger.info('Player', `Audio device connected (${type}), resuming`)
-			setTimeout(() => {
-				if (global.song?.state === PlayerUtils.State.Playing) return
-				if (global.song?.isSongLoad) PlayerUtils.resumeSong()
-				else PlayerUtils.playSong(global.config || config, songDispatch, global.song.queue, global.song.index)
-			}, 1200)
+			setTimeout(() => resumeOnConnect(type), 1200)
 		})
 	}, [settings.playOnHeadphonesConnect])
 

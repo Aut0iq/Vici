@@ -22,3 +22,7 @@ android {
     abortOnError false
   }
 }
+
+dependencies {
+  implementation 'com.facebook.react:react-android'
+}

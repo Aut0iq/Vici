@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, ScrollView, AppState } from 'react-native'
+import { View, ScrollView, AppState, Platform, PermissionsAndroid } from 'react-native'
 import Text from '~/components/Text'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
@@ -57,6 +57,14 @@ const PlayerSettings = () => {
 		return () => subscription.remove()
 	}, [])
 
+	const togglePlayOnConnect = async () => {
+		const enabled = !settings.playOnHeadphonesConnect
+		if (enabled && Platform.OS === 'android' && Platform.Version >= 31) {
+			await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT).catch(() => null)
+		}
+		setSettings({ ...settings, playOnHeadphonesConnect: enabled })
+	}
+
 	return (
 		<ScrollView
 			style={mainStyles.mainContainer(theme)}
@@ -71,7 +79,7 @@ const PlayerSettings = () => {
 						title={t('settings.player.Play on connect')}
 						icon="headphones"
 						value={settings.playOnHeadphonesConnect}
-						onPress={() => setSettings({ ...settings, playOnHeadphonesConnect: !settings.playOnHeadphonesConnect })}
+						onPress={togglePlayOnConnect}
 					/>
 					<ButtonMenu
 						title={batteryFree ? t('settings.player.Background allowed') : t('settings.player.Allow background')}

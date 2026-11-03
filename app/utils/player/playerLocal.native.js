@@ -49,7 +49,7 @@ const initPlayer = async (songDispatch) => {
 				})
 			})
 		}
-		logger.error('Player', error)
+		if (error?.code !== 'player_already_initialized') logger.error('Player', error)
 	}
 	songDispatch({ type: 'init' })
 	await TrackPlayer.updateOptions({
@@ -206,12 +206,13 @@ const convertToTrack = async (track, config) => {
 }
 
 let loadToken = 0
-const loadSong = async (config, queue, index) => {
+const loadSong = async (config, queue, index, position = 0) => {
 	const token = ++loadToken
 	const track = await convertToTrack(queue[index], config)
 	if (token !== loadToken) return
 	await TrackPlayer.load(track)
 	if (token !== loadToken) return
+	if (position > 0) await TrackPlayer.seekTo(position)
 	await TrackPlayer.play()
 }
 

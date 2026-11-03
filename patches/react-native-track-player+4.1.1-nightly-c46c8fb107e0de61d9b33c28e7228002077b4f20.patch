@@ -13,3 +13,36 @@ index ac33473..49ce42f 100644
      // used when building against local maven
  //    implementation "com.github.doublesymmetry:kotlin-audio:2.1.0"
  
+diff --git a/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/module/MusicModule.kt b/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/module/MusicModule.kt
+index b2409a0..732d4de 100644
+--- a/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/module/MusicModule.kt
++++ b/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/module/MusicModule.kt
+@@ -4,6 +4,7 @@ import android.content.*
+ import android.os.Build
+ import android.os.Bundle
+ import android.os.IBinder
++import android.os.PowerManager
+ import android.support.v4.media.RatingCompat
+ import androidx.localbroadcastmanager.content.LocalBroadcastManager
+ import com.doublesymmetry.kotlinaudio.models.Capability
+@@ -159,6 +160,11 @@ class MusicModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
+         }
+     }
+ 
++    private fun canStartInBackground(): Boolean {
++        val power = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
++        return power?.isIgnoringBatteryOptimizations(context.packageName) == true
++    }
++
+     @ReactMethod
+     fun setupPlayer(data: ReadableMap?, promise: Promise) {
+         if (isServiceBound) {
+@@ -170,7 +176,7 @@ class MusicModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
+         }
+ 
+         // prevent crash Fatal Exception: android.app.RemoteServiceException$ForegroundServiceDidNotStartInTimeException
+-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && AppForegroundTracker.backgrounded) {
++        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && AppForegroundTracker.backgrounded && !canStartInBackground()) {
+             promise.reject(
+                 "android_cannot_setup_player_in_background",
+                 "On Android the app must be in the foreground when setting up the player."

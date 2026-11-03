@@ -77,7 +77,7 @@
       "player": {
         "Headphones": "Headphones",
         "Play on connect": "Play on connect",
-        "Play on connect Description": "Music resumes by itself when you connect headphones or a speaker. To make it work with the app fully closed, allow background work and create a routine: \"Bluetooth device connected\" to \"Open Vici\".",
+        "Play on connect Description": "Music resumes where it stopped when you connect headphones or a speaker. To let Bluetooth headphones start music while the app is closed, allow background work and access to nearby devices.",
         "Stream format": "Stream format",
         "Stream format Description": "Specify the format of the stream to be played.",
         "Max bitrate": "Max bitrate",

@@ -72,6 +72,10 @@ class AudioRouteModule : Module() {
       fallbacks.any { startSystemScreen(it) }
     }
 
+    Function("setPlayOnConnect") { enabled: Boolean ->
+      appContext.reactContext?.let { Headphones.setEnabled(it, enabled) }
+    }
+
     AsyncFunction("isExternalConnected") {
       val devices = audioManager?.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
       devices?.any { isExternal(it.type) } ?: false
@@ -87,6 +91,9 @@ class AudioRouteModule : Module() {
             return
           }
           val device = addedDevices?.firstOrNull { isExternal(it.type) } ?: return
+          val context = appContext.reactContext
+          if (typeName(device.type) == "bluetooth" && context != null &&
+            Headphones.isEnabled(context) && Headphones.canReceive(context)) return
           sendEvent(
             "onDeviceConnected",
             mapOf(

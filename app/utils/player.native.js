@@ -121,8 +121,8 @@ export const setRepeat = async (songdispatch, action) => {
 	songdispatch({ type: 'setActionEndOfSong', action })
 }
 
-export const loadSong = async (config, queue, index) => {
-	return getPlayer().loadSong(config, queue, index)
+export const loadSong = async (config, queue, index, position = 0) => {
+	return getPlayer().loadSong(config, queue, index, position)
 }
 
 export const unloadSong = async () => { }

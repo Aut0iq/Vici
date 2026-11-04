@@ -118,6 +118,7 @@ module.exports = async () => {
 		}
 		if (state !== State.Buffering && state !== State.Loading && state !== State.Ready) lastState = state
 	})
+	on(Event.PlaybackProgressUpdated, ({ position }) => savePosition(global.song?.songInfo?.id, position))
 	on(Event.PlaybackError, (error) => {
 		logger.error('PlaybackError', error.code, error.message)
 	})

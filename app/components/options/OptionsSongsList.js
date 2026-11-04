@@ -26,7 +26,7 @@ const OptionsSongsList = ({ songs, indexOptions, setIndexOptions, onUpdate = () 
 
 	React.useEffect(() => {
 		if (indexOptions < 0) return
-		isSongCached(config, songs[indexOptions]?.id, settings.streamFormat, settings.maxBitrate)
+		isSongCached(config, songs[indexOptions]?.id, settings.streamFormat, settings.maxBitRate)
 			.then((cached) => {
 				setIsCached(cached ? true : false)
 			})
@@ -150,7 +150,7 @@ const OptionsSongsList = ({ songs, indexOptions, setIndexOptions, onUpdate = () 
 		let indexPlay = 0
 
 		for (let index = 0; index < songs.length; index++) {
-			const cached = await isSongCached(config, songs[index].id, settings.streamFormat, settings.maxBitrate)
+			const cached = await isSongCached(config, songs[index].id, settings.streamFormat, settings.maxBitRate)
 			if (index === indexOptions) indexPlay = cachedList.length
 			if (cached) cachedList.push(songs[index])
 		}

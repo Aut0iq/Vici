@@ -131,7 +131,7 @@ const Home = () => {
 		<View style={{ flex: 1, backgroundColor: theme.primaryBack }}>
 			<NowPlayingBackground />
 			<View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.35)' }]} />
-		<ScrollView vertical={true}
+		<ScrollView showsVerticalScrollIndicator={false} vertical={true}
 			style={{ flex: 1 }}
 			contentContainerStyle={mainStyles.contentMainContainer(insets)}
 		>

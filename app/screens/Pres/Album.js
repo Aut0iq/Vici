@@ -38,7 +38,7 @@ const Album = ({ navigation, route: { params } }) => {
 	}, [params.id])
 
 	return (
-		<ScrollView
+		<ScrollView showsVerticalScrollIndicator={false}
 			vertical={true}
 			style={mainStyles.mainContainer(theme)}
 			contentContainerStyle={mainStyles.contentMainContainer(insets, false)}>

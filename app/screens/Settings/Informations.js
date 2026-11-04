@@ -55,7 +55,7 @@ const InformationsSettings = () => {
 	}
 
 	return (
-		<ScrollView
+		<ScrollView showsVerticalScrollIndicator={false}
 			style={mainStyles.mainContainer(theme)}
 			contentContainerStyle={mainStyles.contentMainContainer(insets)}
 		>

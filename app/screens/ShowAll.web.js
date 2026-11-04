@@ -36,7 +36,7 @@ const ShowAll = ({ navigation, route: { params: { section } } }) => {
 	}
 
 	return (
-		<ScrollView
+		<ScrollView showsVerticalScrollIndicator={false}
 			vertical={true}
 			style={mainStyles.mainContainer(theme)}
 			contentContainerStyle={mainStyles.contentMainContainer(insets)}

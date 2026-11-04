@@ -92,7 +92,7 @@ const AddServer = ({ navigation }) => {
 	}
 
 	return (
-		<ScrollView
+		<ScrollView showsVerticalScrollIndicator={false}
 			style={mainStyles.mainContainer(theme)}
 			contentContainerStyle={mainStyles.contentMainContainer(insets)}
 		>

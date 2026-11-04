@@ -25,7 +25,7 @@ const Settings = ({ navigation }) => {
 
 	return (
 		<ScreenBackground>
-		<ScrollView
+		<ScrollView showsVerticalScrollIndicator={false}
 			style={{ flex: 1 }}
 			contentContainerStyle={[
 				mainStyles.contentMainContainer(insets),

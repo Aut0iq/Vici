@@ -69,7 +69,7 @@ const Genre = ({ route: { params: { name, albumCount = 0, songCount = 0 } } }) =
 	}
 
 	return (
-		<ScrollView
+		<ScrollView showsVerticalScrollIndicator={false}
 			style={mainStyles.mainContainer(theme)}
 			contentContainerStyle={mainStyles.contentMainContainer(insets, false)}
 			vertical={true}

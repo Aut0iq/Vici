@@ -62,7 +62,7 @@ const EditPlaylist = ({ route: { params } }) => {
 	}
 
 	return (
-		<ScrollView
+		<ScrollView showsVerticalScrollIndicator={false}
 			style={mainStyles.mainContainer(theme)}
 			contentContainerStyle={[mainStyles.contentMainContainer(insets, false)]}
 		>

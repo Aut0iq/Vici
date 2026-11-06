@@ -2,10 +2,10 @@ import React from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as serviceWorkerRegistration from '~/services/serviceWorkerRegistration'
 
-import { getApi } from '~/utils/api'
 import { urlStream, urlCover } from './url'
 import { nextRandomIndex, prevRandomIndex, queueWithout, saveQueue } from '~/utils/tools'
 import { loadNow, loadSettled } from '~/utils/skipLoad'
+import { onTrackStart, onPlayingChange, onTrackEnd } from '~/services/scrobbler'
 import reportState from '~/utils/reportState'
 import State from '~/utils/playerState'
 import logger from '~/utils/logger'
@@ -50,14 +50,17 @@ export const initPlayer = async (songDispatch) => {
 	sound.addEventListener('playing', () => {
 		navigator.mediaSession.playbackState = 'playing'
 		reportState(songDispatch, State.Playing)
+		onPlayingChange(true)
 	})
 	sound.addEventListener('play', () => {
 		navigator.mediaSession.playbackState = 'playing'
 		reportState(songDispatch, State.Playing)
+		onPlayingChange(true)
 	})
 	sound.addEventListener('pause', () => {
 		navigator.mediaSession.playbackState = 'paused'
 		reportState(songDispatch, State.Paused)
+		onPlayingChange(false)
 	})
 	sound.addEventListener('volumechange', () => {
 		global.isVolumeSupported = true
@@ -66,8 +69,8 @@ export const initPlayer = async (songDispatch) => {
 	sound.volume = 0.99
 	sound.volume = savedVolume >= 0 && savedVolume <= 1 ? savedVolume : 1
 	sound.addEventListener('ended', () => {
-		const songId = global.song.songInfo.id
-
+		if (!global.song?.queue?.length) return
+		onTrackEnd(global.song.actionEndOfSong === 'repeat')
 		if (global.song.actionEndOfSong === 'repeat') {
 			if (audio().duration < 1) {
 				reload()
@@ -79,8 +82,6 @@ export const initPlayer = async (songDispatch) => {
 		} else {
 			nextSong(global.config, global.song, songDispatch)
 		}
-		getApi(global.config, 'scrobble', { id: songId, submission: true })
-			.catch(() => { })
 	})
 	sound.addEventListener('canplaythrough', () => {
 		downloadNextSong(global.config, global.song.queue, global.song.index)
@@ -109,6 +110,7 @@ export const initPlayer = async (songDispatch) => {
 	})
 
 	addEventListener('keydown', (e) => {
+		if (e.target?.tagName === 'INPUT' || e.target?.tagName === 'TEXTAREA' || e.target?.isContentEditable) return
 		if (e.key === ' ') {
 			if (global.song.state === State.Playing) pauseSong()
 			else resumeSong()
@@ -190,8 +192,7 @@ const loadSong = async (config, queue, index) => {
 	sound.src = urlStream(config, song.id, global.streamFormat, global.maxBitRate)
 	sound.play()
 		.then(() => {
-			getApi(config, 'scrobble', { id: song.id, submission: false })
-				.catch(() => { })
+			onTrackStart(song.id, song.duration)
 		})
 		.catch((error) => {
 			if (error?.name !== 'AbortError') logger.error('loadSong', error)

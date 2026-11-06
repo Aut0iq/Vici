@@ -50,6 +50,10 @@ module.exports = {
         cacheName: 'song',
         rangeRequests: true,
         cacheableResponse: { statuses: [200] },
+        expiration: {
+          maxEntries: 300,
+          maxAgeSeconds: 60 * 60 * 24 * 30,
+        },
       },
     },
     {

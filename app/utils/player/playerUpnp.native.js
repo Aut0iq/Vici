@@ -120,7 +120,7 @@ const saveState = async () => {
 	const state = await UPNP.getState(device)
 	return {
 		position: progress.position || 0,
-		isPlaying: state.state === State.Playing,
+		isPlaying: state === State.Playing,
 	}
 }
 

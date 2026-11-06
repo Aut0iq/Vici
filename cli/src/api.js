@@ -14,10 +14,12 @@ export const buildQuery = (username, password) => {
 	return `u=${encodeURIComponent(username)}&t=${token}&s=${salt}&v=${VERSION}&c=${CLIENT}`
 }
 
+const LOCAL_HOST = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|\[[0-9a-f:]+\]|[^/:]+\.(local|lan|home)(?=[:/]|$))/i
+
 export const normalizeUrl = (url) => {
-	let value = String(url || '').trim().replace(/\/+$/, '')
-	if (value && !/^https?:\/\//i.test(value)) value = `https://${value}`
-	return value
+	const value = String(url || '').trim().replace(/\/+$/, '')
+	if (!value || /^https?:\/\//i.test(value)) return value
+	return `${LOCAL_HOST.test(value) ? 'http' : 'https'}://${value}`
 }
 
 export class Api {

@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, Animated, Easing, Platform, Pressable, Image, StyleSheet } from 'react-native'
+import { View, Animated, Easing, Platform, Pressable, StyleSheet } from 'react-native'
+import { Image } from 'expo-image'
 
 import { useConfig } from '~/contexts/config'
 import { useSong } from '~/contexts/song'
@@ -155,7 +156,8 @@ const VinylCover = ({ coverSize, width, translateX = null, onDoubleTap = null, o
 					/>
 					<Image
 						source={{ uri: urlCover(config, song?.songInfo) }}
-						fadeDuration={COVER_FADE}
+						transition={COVER_FADE}
+						cachePolicy="disk"
 						style={[StyleSheet.absoluteFill, { borderRadius: 22 }]}
 					/>
 				</Pressable>

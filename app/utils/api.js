@@ -51,7 +51,7 @@ export const getUrl = (config, path, query = '') => {
 export const getApi = (config, path, query = '') => {
 	return new Promise((resolve, reject) => {
 		if (!config?.url || !config?.query) {
-			reject('getApi: config.url or config.query is not defined')
+			reject({ message: 'getApi: config.url or config.query is not defined', isApiError: false })
 			return
 		}
 		if (isOffline(config)) {

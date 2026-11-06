@@ -88,6 +88,9 @@ const Home = () => {
 	const theme = useTheme()
 	const [statusRefresh, setStatusRefresh] = React.useState()
 	const [refresh, setRefresh] = React.useState(0)
+	const scanTimer = React.useRef(null)
+
+	React.useEffect(() => () => clearTimeout(scanTimer.current), [])
 
 	const clickRandomSong = () => {
 		getApiNetworkFirst(config, 'getRandomSongs', 'size=50')
@@ -106,7 +109,7 @@ const Home = () => {
 		getApi(config, 'getScanStatus')
 			.then((json) => {
 				if (json.scanStatus.scanning) {
-					setTimeout(() => {
+					scanTimer.current = setTimeout(() => {
 						getStatusRefresh()
 					}, 1000)
 					setStatusRefresh(json.scanStatus)

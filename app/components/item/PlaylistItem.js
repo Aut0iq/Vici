@@ -47,7 +47,7 @@ const PlaylistItem = ({ playlist, index, setIndexOption }) => {
 					{!playlist.public && <Icon name='lock' size={10} color={theme.secondaryText} style={{ marginTop: 3 }} />}
 				</View>
 				<Text numberOfLines={1} style={mainStyles.smallText(theme.secondaryText)}>
-					{(playlist.duration / 60) | 1} {t('min')} · {playlist.songCount} {t('songs')}
+					{(playlist.duration / 60) | 0} {t('min')} · {playlist.songCount} {t('songs')}
 				</Text>
 			</View>
 			{playlist.comment?.includes(`#${config.username}-pin`) && <Icon name="bookmark" size={size.icon.small} color={theme.secondaryText} style={{ paddingEnd: 5 }} />}

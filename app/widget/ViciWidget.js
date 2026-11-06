@@ -69,7 +69,7 @@ export const ViciWidget = ({ title, artist, cover, isPlaying, colors, height = 6
 				style={{ fontSize: height > 80 ? 16 : 14, fontWeight: '700', color: '#F6F0E8' }}
 			/>
 			<TextWidget
-				text={artist || 'Нажмите, чтобы открыть'}
+				text={artist || 'Tap to open'}
 				maxLines={1}
 				truncate="END"
 				style={{ fontSize: height > 80 ? 13 : 12, color: '#D0C6CB' }}

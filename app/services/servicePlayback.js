@@ -12,6 +12,8 @@ let lockDownload = false
 let shouldPlay = false
 let pauseTimer = null
 let focusLost = false
+let ducked = false
+let savedVolume = 1
 let subscriptions = []
 
 const songDispatch = (action) => {
@@ -56,6 +58,9 @@ module.exports = async () => {
 							Player.stopSong()
 							shouldPlay = false
 						} else {
+							TrackPlayer.getVolume()
+								.then((volume) => { if (!ducked) savedVolume = volume; ducked = true })
+								.catch(() => { })
 							TrackPlayer.setVolume(0.5)
 							shouldPlay = true
 							clearTimeout(pauseTimer)
@@ -72,7 +77,8 @@ module.exports = async () => {
 					clearTimeout(pauseTimer)
 					pauseTimer = null
 					logger.info('Playback', 'Audio focus returned, resuming')
-					TrackPlayer.setVolume(1)
+					ducked = false
+					TrackPlayer.setVolume(savedVolume)
 					Player.resumeSong()
 					shouldPlay = false
 				}

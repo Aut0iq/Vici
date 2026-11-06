@@ -53,6 +53,9 @@ const fetchDeviceDescription = async (deviceInfo) => {
 			logger.error('UPNP-SSDP', 'XML Parse error:', error)
 		}
 
+		const services = xml?.root?.device?.serviceList?.service
+		const serviceList = Array.isArray(services) ? services : [services].filter(Boolean)
+
 		return {
 			id: xml?.root?.device?.UDN || `uuid:${deviceInfo.ip}:${deviceInfo.port}`,
 			name: xml?.root?.device?.friendlyName || `Device at ${deviceInfo.ip}`,
@@ -60,7 +63,7 @@ const fetchDeviceDescription = async (deviceInfo) => {
 			port: deviceInfo.port,
 			manufacturer: xml?.root?.device?.manufacturer || 'Unknown',
 			serviceUrl: `http://${deviceInfo.ip}:${deviceInfo.port}`,
-			controlUrl: xml?.root?.device?.serviceList?.service?.find(s => s.serviceType === 'urn:schemas-upnp-org:service:AVTransport:1')?.controlURL || '/upnp/control/rendertransport1',
+			controlUrl: serviceList.find(s => s.serviceType === 'urn:schemas-upnp-org:service:AVTransport:1')?.controlURL || '/upnp/control/rendertransport1',
 			isMediaRenderer: true,
 			type: 'upnp',
 		}
@@ -134,20 +137,11 @@ export const discoverDevices = async (onDeviceFound = null) => {
 			}
 		}
 
-		const [ssdpDevices, httpDevices] = await discoverViaSsdp(5000, deviceCallback)
+		const devices = await discoverViaSsdp(5000, deviceCallback)
 
-		const ssdp = ssdpDevices?.status === 'fulfilled' ? ssdpDevices.value : []
-		const http = httpDevices?.status === 'fulfilled' ? httpDevices.value : []
-
-
-
-		const allDevices = [...ssdp, ...http]
-		const uniqueDevices = Array.from(
-			new Map(allDevices.map(d => [d.id, d])).values()
+		return Array.from(
+			new Map(devices.map(d => [d.id, d])).values()
 		)
-
-
-		return uniqueDevices
 	} catch (error) {
 		logger.error('UPNP', 'Discovery error:', error)
 		return []

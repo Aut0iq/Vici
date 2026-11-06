@@ -2,7 +2,7 @@ module.exports = {
   globDirectory: './dist/',
   swDest: 'dist/serviceWorker.js',
   globPatterns: ["**/*.{html,js,css,png,jpg,jpeg,gif,svg,json,woff2,woff,eot,ttf}",],
-  dontCacheBustURLsMatching: /\.[0-9a-f]{8}\./,
+  dontCacheBustURLsMatching: /[-.][0-9a-f]{8,}\./,
   globIgnores: [
     'asset-manifest.json$',
     '**/*.map$',

@@ -19,7 +19,7 @@ export const SettingsProvider = ({ children }) => {
 	const [settings, setSettings] = React.useState(defaultSettings)
 	const [ready, setReady] = React.useState(false)
 	const { i18n } = useTranslation()
-	updateGlobalSettings(settings)
+	useGlobalSettings(settings)
 
 	React.useEffect(() => {
 		getSettings().then((data) => {
@@ -298,7 +298,7 @@ const getSettings = async () => {
 	}
 }
 
-const updateGlobalSettings = async (settings) => {
+const useGlobalSettings = (settings) => {
 	React.useEffect(() => {
 		global.streamFormat = settings.streamFormat
 	}, [settings.streamFormat])

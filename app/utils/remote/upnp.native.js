@@ -26,7 +26,7 @@ const sendSoapRequest = async (device, action, params = {}, serviceType = 'AVTra
 </s:Envelope>`
 
 	try {
-		const url = `${device.serviceUrl}${controlUrl}`
+		const url = controlUrl.startsWith('http') ? controlUrl : `${device.serviceUrl}${controlUrl}`
 
 		const response = await fetch(url, {
 			method: 'POST',

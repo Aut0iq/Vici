@@ -11,11 +11,9 @@ import logger from '~/utils/logger'
 
 const ROOT = 'Vici'
 const FOLDER_KEY = 'downloadFolder'
-const BITRATE = 320
 const COVER_SIZE = 800
 const MAX_NAME = 80
 const HEADER_BYTES = 16
-const BASE64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 const FORBIDDEN = /[\\/:*?"<>|]/g
 
 const MIME = {
@@ -41,24 +39,9 @@ const clean = (text, fallback) => {
 	return (value || fallback).slice(0, MAX_NAME).trim()
 }
 
-const decode = (base64) => {
-	const bytes = []
-	let buffer = 0
-	let bits = 0
-	for (const char of base64.replace(/=+$/, '')) {
-		buffer = (buffer << 6) | BASE64.indexOf(char)
-		bits += 6
-		if (bits >= 8) {
-			bits -= 8
-			bytes.push((buffer >> bits) & 0xff)
-		}
-	}
-	return bytes
-}
-
 const detectType = async (uri) => {
 	const head = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64, position: 0, length: HEADER_BYTES })
-		.then(decode)
+		.then((base64) => [...atob(base64)].map((char) => char.charCodeAt(0)))
 		.catch(() => [])
 	const text = String.fromCharCode(...head)
 	if (text.startsWith('fLaC')) return 'flac'
@@ -98,7 +81,7 @@ export const setDownloadFolder = async (treeUri) => {
 }
 
 const fetchAudio = async (config, song, target) => {
-	const result = await FileSystem.downloadAsync(urlStream(config, song.id, 'mp3', BITRATE), target)
+	const result = await FileSystem.downloadAsync(urlStream(config, song.id, 'raw'), target)
 	const type = header(result?.headers, 'content-type')
 	if (result?.status !== 200 || type.includes('json') || type.includes('xml')) {
 		throw new Error(`The server did not return the file (${result?.status})`)

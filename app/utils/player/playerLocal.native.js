@@ -230,7 +230,7 @@ const getVolume = () => {
 
 const unloadSong = async () => { }
 const updateVolume = () => { }
-const updateTime = () => {
+const useTime = () => {
 	return useProgress(500)
 }
 
@@ -273,7 +273,7 @@ export default {
 	unloadSong,
 	loadSong,
 	updateVolume,
-	updateTime,
+	updateTime: useTime,
 	isVolumeSupported,
 	reload,
 	useEvent,

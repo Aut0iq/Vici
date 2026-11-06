@@ -89,7 +89,7 @@ const getVolume = async () => lastVolume
 
 const unloadSong = async () => { }
 const updateVolume = () => { }
-const updateTime = () => {
+const useTime = () => {
 	const [progress, setProgress] = React.useState({
 		position: 0,
 		duration: 0
@@ -145,7 +145,7 @@ export default {
 	unloadSong,
 	loadSong,
 	updateVolume,
-	updateTime,
+	updateTime: useTime,
 	isVolumeSupported,
 	reload,
 	useEvent,

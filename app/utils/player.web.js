@@ -139,7 +139,7 @@ export const initPlayer = async (songDispatch) => {
 
 export const useEvent = (_song, _songDispatch) => { }
 
-export const updateTime = () => {
+const useTime = () => {
 	const [time, setTime] = React.useState({
 		position: audio().currentTime,
 		duration: audio().duration,
@@ -282,7 +282,7 @@ export const getVolume = () => {
 	return audio().volume
 }
 
-export const updateVolume = () => {
+const useVolume = () => {
 	const [volume, setVol] = React.useState(getVolume())
 
 	React.useEffect(() => {
@@ -340,7 +340,7 @@ export default {
 	initService,
 	initPlayer,
 	useEvent,
-	updateTime,
+	updateTime: useTime,
 	playSong,
 	nextSong,
 	previousSong,
@@ -351,7 +351,7 @@ export default {
 	setVolume,
 	getVolume,
 	isVolumeSupported,
-	updateVolume,
+	updateVolume: useVolume,
 	secondToTime,
 	setRepeat,
 	reload,

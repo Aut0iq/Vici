@@ -33,6 +33,7 @@
     "expo-document-picker": "~13.1.6",
     "expo-file-system": "~18.1.11",
     "expo-font": "~13.3.2",
+    "expo-image": "~2.4.1",
     "expo-linear-gradient": "~14.1.5",
     "fast-xml-parser": "^5.3.3",
     "i18next": "^25.3.1",

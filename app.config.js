@@ -20,7 +20,7 @@ module.exports = ({ config }) => {
 			orientation: "default",
 			icon: "./assets/icon.png",
 			userInterfaceStyle: "light",
-			newArchEnabled: false,
+			newArchEnabled: true,
 			assetBundlePatterns: [
 				"**/*"
 			],
@@ -67,7 +67,9 @@ module.exports = ({ config }) => {
 					"expo-build-properties",
 					{
 						android: {
-							usesCleartextTraffic: true
+							usesCleartextTraffic: true,
+							enableProguardInReleaseBuilds: true,
+							enableShrinkResourcesInReleaseBuilds: true
 						}
 					}
 				],

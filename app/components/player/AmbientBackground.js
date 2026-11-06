@@ -1,5 +1,6 @@
 import React from 'react'
 import { Animated, Image, StyleSheet, View, Platform } from 'react-native'
+import { Image as ExpoImage } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { getColors } from 'react-native-image-colors'
 
@@ -83,9 +84,10 @@ const AmbientBackground = ({ song: liveSong, cached = false }) => {
 	return (
 		<View renderToHardwareTextureAndroid={cached} style={[StyleSheet.absoluteFill, { backgroundColor: INK, overflow: 'hidden' }]} pointerEvents="none">
 			{blurUri && !failed ? (
-				<Image
+				<ExpoImage
 					source={{ uri: blurUri }}
 					blurRadius={BLUR_RADIUS}
+					cachePolicy="disk"
 					onError={() => setFailed(true)}
 					style={[StyleSheet.absoluteFill, { width: '100%', height: '100%', transform: [{ scale: BLUR_SCALE }] }]}
 				/>

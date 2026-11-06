@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, Image } from 'react-native'
+import { View } from 'react-native'
+import { Image } from 'expo-image'
 import Icon from 'react-native-vector-icons/FontAwesome'
 
 import size from '~/styles/size'
@@ -25,7 +26,7 @@ const ImageError = ({ source, style = {}, children = null, iconError = null, blu
 		}
 	}, [source, source?.uri])
 
-	if (isImage) return <ImageMemo source={lastSource} onError={() => setIsImage(false)} style={style} blurRadius={blurRadius} />
+	if (isImage) return <ImageMemo source={lastSource} onError={() => setIsImage(false)} style={style} blurRadius={blurRadius} cachePolicy="disk" transition={120} />
 	if (children) return children
 	if (iconError) return (
 		<View style={[{ justifyContent: 'center', alignItems: 'center' }, style]}>

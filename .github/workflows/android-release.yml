@@ -37,6 +37,7 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Vici ${{ steps.version.outputs.version }}
+          prerelease: ${{ contains(steps.version.outputs.version, 'dev') }}
           generate_release_notes: true
 
   build:

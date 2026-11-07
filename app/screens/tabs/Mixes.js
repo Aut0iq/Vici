@@ -86,7 +86,7 @@ const Mixes = ({ navigation }) => {
 		<View style={{ flex: 1, backgroundColor: theme.primaryBack }}>
 			<NowPlayingBackground />
 			<View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(14,10,15,0.35)' }]} />
-			<ScrollView
+			<ScrollView showsVerticalScrollIndicator={false}
 				style={{ flex: 1 }}
 				contentContainerStyle={mainStyles.contentMainContainer(insets)}
 			>

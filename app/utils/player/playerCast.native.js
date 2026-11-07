@@ -147,7 +147,7 @@ const getVolume = () => {
 
 const unloadSong = async () => { }
 const updateVolume = () => { }
-const updateTime = () => {
+const useTime = () => {
 	const streamPosition = useStreamPosition()
 	const song = useSong()
 
@@ -241,7 +241,7 @@ export default {
 	unloadSong,
 	loadSong,
 	updateVolume,
-	updateTime,
+	updateTime: useTime,
 	isVolumeSupported,
 	reload,
 	useEvent,

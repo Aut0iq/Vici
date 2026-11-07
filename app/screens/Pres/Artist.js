@@ -73,7 +73,7 @@ const Artist = ({ navigation, route: { params } }) => {
 				isOption={isOption}
 				setIsOption={setIsOption}
 			/>
-			<ScrollView
+			<ScrollView showsVerticalScrollIndicator={false}
 				style={mainStyles.mainContainer(theme)}
 				vertical={true}
 				contentContainerStyle={mainStyles.contentMainContainer(insets, false)}>

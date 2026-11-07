@@ -42,7 +42,7 @@ const Info = ({ route: { params: { info } } }) => {
 
 	if (!info) return null
 	return (
-		<ScrollView
+		<ScrollView showsVerticalScrollIndicator={false}
 			style={mainStyles.mainContainer(theme)}
 			contentContainerStyle={mainStyles.contentMainContainer(insets)}
 		>

@@ -61,9 +61,9 @@ const AddServer = ({ navigation }) => {
 
 		let query
 		if (lowSecurity) {
-			query = `u=${encodeURI(username)}&p=${encodeURI(password)}&v=1.16.1&c=${CLIENT_NAME}`
+			query = `u=${encodeURIComponent(username)}&p=${encodeURIComponent(password)}&v=1.16.1&c=${CLIENT_NAME}`
 		} else {
-			query = `u=${encodeURI(username)}&t=${md5(password + salt)}&s=${salt}&v=1.16.1&c=${CLIENT_NAME}`
+			query = `u=${encodeURIComponent(username)}&t=${md5(password + salt)}&s=${salt}&v=1.16.1&c=${CLIENT_NAME}`
 		}
 
 		if (Platform.OS === 'web' && window.location.protocol === 'https:' && uri.startsWith('http://')) {
@@ -92,7 +92,7 @@ const AddServer = ({ navigation }) => {
 	}
 
 	return (
-		<ScrollView
+		<ScrollView showsVerticalScrollIndicator={false}
 			style={mainStyles.mainContainer(theme)}
 			contentContainerStyle={mainStyles.contentMainContainer(insets)}
 		>

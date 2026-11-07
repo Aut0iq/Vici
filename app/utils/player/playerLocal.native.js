@@ -8,6 +8,7 @@ import { isSongCached, getPathSong, getTempPath, storeSong } from '~/utils/cache
 import MyState from '~/utils/playerState'
 import logger from '~/utils/logger'
 import reportState from '~/utils/reportState'
+import { neighborTracks } from '~/utils/tools'
 
 let isConnected = true
 
@@ -71,7 +72,7 @@ const initPlayer = async (songDispatch) => {
 			Capability.SkipToPrevious,
 			Capability.SeekTo
 		],
-		progressUpdateEventInterval: -1,
+		progressUpdateEventInterval: 5,
 		icon: require('~/../assets/icon.png')
 	})
 	const activeTrack = await TrackPlayer.getActiveTrack()
@@ -169,17 +170,11 @@ const downloadSong = async (urlStream, id) => {
 const downloadNextSong = async (queue, currentIndex) => {
 	if (!global.isSongCaching || global.offlineMode) return
 	if (!Array.isArray(queue) || !queue.length || currentIndex === undefined || currentIndex === null) return
-	const maxIndex = Math.min(global.cacheNextSong, queue.length)
-
-	const order = [1, -1]
-	for (let i = 2; i < maxIndex; i++) order.push(i)
-
-	for (const i of order) {
-		if (queue.length <= 1) break
-		const index = (currentIndex + queue.length + i) % queue.length
-		if (index === currentIndex) continue
-		if (!queue[index].isLiveStream && queue[index].id.match(/^[a-zA-Z0-9-]*$/)) {
-			await downloadSong(urlStream(global.config, queue[index].id, global.streamFormat, global.maxBitRate), queue[index].id)
+	const song = { ...global.song, queue, index: currentIndex }
+	const ahead = Math.max(1, Math.min(global.cacheNextSong, queue.length) - 1)
+	for (const track of [...neighborTracks(song, ahead, 0), ...neighborTracks(song, 0, 1)]) {
+		if (!track.isLiveStream && track.id.match(/^[a-zA-Z0-9-]*$/)) {
+			await downloadSong(urlStream(global.config, track.id, global.streamFormat, global.maxBitRate), track.id)
 		}
 	}
 }
@@ -235,7 +230,7 @@ const getVolume = () => {
 
 const unloadSong = async () => { }
 const updateVolume = () => { }
-const updateTime = () => {
+const useTime = () => {
 	return useProgress(500)
 }
 
@@ -278,7 +273,7 @@ export default {
 	unloadSong,
 	loadSong,
 	updateVolume,
-	updateTime,
+	updateTime: useTime,
 	isVolumeSupported,
 	reload,
 	useEvent,

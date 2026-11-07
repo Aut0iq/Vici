@@ -1,4 +1,4 @@
-FROM eclipse-temurin:11-jdk
+FROM eclipse-temurin:17-jdk
 
 RUN apt-get update && apt-get install -y \
     wget \

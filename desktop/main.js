@@ -19,6 +19,7 @@ const MIME = {
 	'.jpeg': 'image/jpeg',
 	'.gif': 'image/gif',
 	'.svg': 'image/svg+xml',
+	'.webp': 'image/webp',
 	'.ico': 'image/x-icon',
 	'.ttf': 'font/ttf',
 	'.woff': 'font/woff',
@@ -175,11 +176,11 @@ const installUpdate = () => {
 }
 
 const buildTrayMenu = () => Menu.buildFromTemplate([
-	{ label: 'Открыть Vici', click: showWindow },
-	...(updateReady ? [{ label: `Обновить до ${updateReady} и перезапустить`, click: installUpdate }] : []),
+	{ label: 'Open Vici', click: showWindow },
+	...(updateReady ? [{ label: `Update to ${updateReady} and restart`, click: installUpdate }] : []),
 	{ type: 'separator' },
 	{
-		label: 'Выход',
+		label: 'Quit',
 		click: () => {
 			quitting = true
 			app.quit()
@@ -201,12 +202,12 @@ const setupUpdates = () => {
 		tray?.setContextMenu(buildTrayMenu())
 		const { response } = await dialog.showMessageBox({
 			type: 'info',
-			buttons: ['Перезапустить', 'Позже'],
+			buttons: ['Restart', 'Later'],
 			defaultId: 0,
 			cancelId: 1,
-			title: 'Обновление Vici',
-			message: `Доступна новая версия ${info.version}`,
-			detail: 'Она уже скачана. Перезапустить Vici сейчас, чтобы установить? Можно и позже — через меню значка в трее.',
+			title: 'Vici Update',
+			message: `Version ${info.version} is available`,
+			detail: 'It has already been downloaded. Restart Vici now to install it? You can also do it later from the tray menu.',
 		})
 		if (response === 0) installUpdate()
 	})
@@ -232,7 +233,7 @@ if (!app.requestSingleInstanceLock()) {
 	app.on('second-instance', showWindow)
 
 	app.whenReady().then(start).catch((error) => {
-		dialog.showErrorBox('Vici', `Не удалось запустить приложение.\n\n${error?.stack || error}`)
+		dialog.showErrorBox('Vici', `Failed to start the application.\n\n${error?.stack || error}`)
 		app.exit(1)
 	})
 

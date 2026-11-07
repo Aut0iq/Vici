@@ -175,8 +175,8 @@ export const getSongCachedInfo = async (_config, songId, streamFormat, _maxBitra
 			return [
 				{ title: 'File', value: name },
 				{ title: 'Is cached', value: info.exists ? 'Yes' : 'No' },
-				{ title: 'Size', value: `${(info.size / (1024 * 1024)).toFixed(2)} MB` },
-				{ title: 'Modified', value: new Date(info.modificationTime).toLocaleString() },
+				{ title: 'Size', value: `${((info.size || 0) / (1024 * 1024)).toFixed(2)} MB` },
+				{ title: 'Modified', value: info.exists && info.modificationTime ? new Date(info.modificationTime * 1000).toLocaleString() : '—' },
 			]
 		})
 		.catch(() => null)

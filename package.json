@@ -61,6 +61,7 @@
     "cross-env": "^7.0.3",
     "eslint": "^9.17.0",
     "eslint-plugin-react": "^7.37.3",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^15.14.0",
     "patch-package": "^8.0.0",
     "workbox-cli": "^7.3.0"

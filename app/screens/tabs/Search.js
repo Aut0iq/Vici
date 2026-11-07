@@ -278,7 +278,7 @@ const Search = () => {
 				}
 				<Icon name="search" size={size.icon.tiny} color={theme.secondaryText} style={{ position: 'absolute', left: 0, lineHeight: 20, paddingVertical: 11.5, paddingHorizontal: 12 }} />
 			</View>
-			<ScrollView vertical={true} style={{ flex: 1 }} contentContainerStyle={{ flexDirection: 'column', paddingBottom: insets.bottom + 180, gap: 10 }}>
+			<ScrollView showsVerticalScrollIndicator={false} vertical={true} style={{ flex: 1 }} contentContainerStyle={{ flexDirection: 'column', paddingBottom: insets.bottom + 180, gap: 10 }}>
 				<SearchResult
 					state={state}
 					query={query}

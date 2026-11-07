@@ -30,7 +30,7 @@ const Cached = ({ song }) => {
 
 	const cached = async (song) => {
 		if (!settings.showCache) return false
-		const cache = await isSongCached(config, song.id, settings.streamFormat, settings.maxBitrate)
+		const cache = await isSongCached(config, song.id, settings.streamFormat, settings.maxBitRate)
 		if (cache) return true
 		return false
 	}

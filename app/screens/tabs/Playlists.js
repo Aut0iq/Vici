@@ -74,7 +74,7 @@ const Playlists = ({ navigation }) => {
 
 	return (
 		<ScreenBackground>
-		<ScrollView
+		<ScrollView showsVerticalScrollIndicator={false}
 			vertical={true}
 			style={{ flex: 1 }}
 			contentContainerStyle={mainStyles.contentMainContainer(insets)}

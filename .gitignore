@@ -39,6 +39,7 @@ yarn-error.*
 !modules/*/ios/**
 
 modules/*/android/build/
+AGENTS.md
 .node_modules
 node_modules
 dist

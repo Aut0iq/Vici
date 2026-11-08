@@ -2,31 +2,23 @@ const { withPodfile } = require('expo/config-plugins')
 
 // fmt 11.0.2 из RN 0.79 падает под clang из Xcode 26:
 // "call to consteval function is not a constant expression" в format-inl.h.
-// Флаг выключает consteval-проверки строк формата — переносит их в runtime.
-// Ставим per-file COMPILER_FLAGS, чтобы не перетирать GCC_PREPROCESSOR_DEFINITIONS из xcconfig подов.
-const FIX = `    installer.pods_project.targets.each do |target|
-      next unless target.respond_to?(:source_build_phase)
-      target.source_build_phase.files.each do |file|
-        settings = file.settings || {}
-        flags = settings['COMPILER_FLAGS'] || ''
-        unless flags.include?('FMT_USE_CONSTEVAL')
-          settings['COMPILER_FLAGS'] = "#{flags} -DFMT_USE_CONSTEVAL=0".strip
-          file.settings = settings
-        end
+// FMT_USE_CONSTEVAL в base.h переопределяется безусловно, поэтому -D не помогает;
+// под C++17 fmt сам выключает consteval. Ставим после react_native_post_install — он выставляет c++20 всем подам.
+const FIX = `
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'fmt'
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
       end
     end
 `
 
 module.exports = (config) =>
 	withPodfile(config, (config) => {
-		let contents = config.modResults.contents
-		if (contents.includes('FMT_USE_CONSTEVAL')) return config
-		const anchor = 'post_install do |installer|\n'
-		if (contents.includes(anchor)) {
-			contents = contents.replace(anchor, anchor + '\n' + FIX + '\n')
-		} else {
-			contents += `\npost_install do |installer|\n${FIX}end\n`
-		}
-		config.modResults.contents = contents
+		const contents = config.modResults.contents
+		if (contents.includes("target.name == 'fmt'")) return config
+		const anchor = contents.match(/react_native_post_install\([\s\S]*?\n\s*\)\n/)
+		if (!anchor) throw new Error('react_native_post_install() не найден в Podfile')
+		config.modResults.contents = contents.replace(anchor[0], anchor[0] + FIX)
 		return config
 	})

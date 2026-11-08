@@ -1,0 +1,78 @@
+name: Release iOS
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Версия, например 2026.09.18'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ios-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Получить код
+        uses: actions/checkout@v4
+
+      - name: Определить версию
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Собираем Vici iOS $VERSION"
+
+      - name: Установить Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Установить зависимости
+        run: npm ci
+
+      - name: Записать версию в package.json
+        run: |
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version=process.argv[1];fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')" "${{ steps.version.outputs.version }}"
+
+      - name: Подготовить iOS-проект
+        run: npx expo prebuild --clean --platform ios
+        env:
+          CI: 1
+
+      - name: Собрать приложение (симулятор, без подписи)
+        working-directory: ios
+        run: |
+          xcodebuild -workspace Vici.xcworkspace \
+            -scheme Vici \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Упаковать .app
+        working-directory: ios/build/Build/Products/Release-iphonesimulator
+        run: zip -r "$GITHUB_WORKSPACE/vici-${{ steps.version.outputs.version }}-ios-simulator.zip" Vici.app
+
+      - name: Добавить сборку в релиз
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Vici ${{ steps.version.outputs.version }}
+          prerelease: ${{ contains(steps.version.outputs.version, 'dev') }}
+          generate_release_notes: true
+          files: vici-${{ steps.version.outputs.version }}-ios-simulator.zip

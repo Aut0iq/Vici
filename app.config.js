@@ -24,6 +24,14 @@ module.exports = ({ config }) => {
 			assetBundlePatterns: [
 				"**/*"
 			],
+			ios: {
+				bundleIdentifier: packageName,
+				supportsTablet: true,
+				infoPlist: {
+					UIBackgroundModes: ["audio"],
+					ITSAppUsesNonExemptEncryption: false
+				}
+			},
 			android: {
 				package: packageName,
 				versionCode: toVersionCode(config.version),

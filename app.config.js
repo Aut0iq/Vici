@@ -84,6 +84,9 @@ module.exports = ({ config }) => {
 					'./plugins/asyncStorage.js'
 				],
 				[
+					'./plugins/iosPodFixes.js'
+				],
+				[
 					"react-native-android-widget",
 					{
 						widgets: [

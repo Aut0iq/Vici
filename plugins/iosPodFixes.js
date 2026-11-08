@@ -5,6 +5,7 @@ const { withPodfile } = require('expo/config-plugins')
 // Флаг выключает consteval-проверки строк формата — переносит их в runtime.
 // Ставим per-file COMPILER_FLAGS, чтобы не перетирать GCC_PREPROCESSOR_DEFINITIONS из xcconfig подов.
 const FIX = `    installer.pods_project.targets.each do |target|
+      next unless target.respond_to?(:source_build_phase)
       target.source_build_phase.files.each do |file|
         settings = file.settings || {}
         flags = settings['COMPILER_FLAGS'] || ''
